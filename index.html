@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Dashboard</title>
+<style>
+:root{--bg:#1a2640;--surf:#223050;--surf2:#2a3a60;--border:#354870;--accent:#3b82f6;--cyan:#06b6d4;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono','Fira Mono',monospace;--sans:'Inter',system-ui,sans-serif}
+/* Light themes */
+body.light   {--bg:#f0f4f8;--surf:#ffffff;--surf2:#e8edf5;--border:#cbd5e1;--text:#1e293b;--muted:#64748b;--accent:#2563eb;--cyan:#0891b2;--green:#059669;--red:#dc2626;--amber:#d97706}
+body.pearl   {--bg:#f8f6f2;--surf:#ffffff;--surf2:#f0ede7;--border:#ddd8cf;--text:#2d2a26;--muted:#78716c;--accent:#7c3aed;--cyan:#0891b2;--green:#059669;--red:#dc2626;--amber:#d97706}
+body.sky     {--bg:#e8f4fd;--surf:#ffffff;--surf2:#d6ebf8;--border:#bdd7ee;--text:#0f2942;--muted:#5b7fa6;--accent:#0369a1;--cyan:#0284c7;--green:#059669;--red:#dc2626;--amber:#d97706}
+body.mint    {--bg:#ecfdf5;--surf:#ffffff;--surf2:#d1fae5;--border:#a7f3d0;--text:#064e3b;--muted:#6b7280;--accent:#059669;--cyan:#0891b2;--green:#047857;--red:#dc2626;--amber:#d97706}
+body.rose    {--bg:#fff1f2;--surf:#ffffff;--surf2:#ffe4e6;--border:#fecdd3;--text:#4c0519;--muted:#9f8a8d;--accent:#e11d48;--cyan:#0891b2;--green:#059669;--red:#be123c;--amber:#d97706}
+/* Dark themes */
+body.navy    {--bg:#0d1b2a;--surf:#1a2d42;--surf2:#1f3652;--border:#2a4a6b;--text:#e2e8f0;--muted:#64748b;--accent:#38bdf8;--cyan:#22d3ee;--green:#34d399;--red:#f87171;--amber:#fbbf24}
+body.slate   {--bg:#1e1e2e;--surf:#2a2a3e;--surf2:#32324a;--border:#44445a;--text:#cdd6f4;--muted:#6c7086;--accent:#89b4fa;--cyan:#89dceb;--green:#a6e3a1;--red:#f38ba8;--amber:#fab387}
+body.forest  {--bg:#0d1f13;--surf:#132a1a;--surf2:#1a3522;--border:#234d2d;--text:#d1fae5;--muted:#6b7280;--accent:#34d399;--cyan:#6ee7b7;--green:#10b981;--red:#ef4444;--amber:#f59e0b}
+body.midnight{--bg:#09090b;--surf:#18181b;--surf2:#27272a;--border:#3f3f46;--text:#fafafa;--muted:#71717a;--accent:#a78bfa;--cyan:#67e8f9;--green:#4ade80;--red:#f87171;--amber:#fbbf24}
+body.ocean   {--bg:#0c1926;--surf:#0f2a3d;--surf2:#143550;--border:#1e4d70;--text:#e0f2fe;--muted:#5b8ba8;--accent:#06b6d4;--cyan:#22d3ee;--green:#34d399;--red:#f87171;--amber:#fbbf24}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
+header{background:var(--surf);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--cyan));border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff}
+.logo-text{font-size:15px;font-weight:700}
+.header-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#last-updated{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.btn{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-spin{animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;background:var(--surf);overflow-x:auto;position:sticky;top:57px;z-index:99}
+.tab{padding:11px 18px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+main{padding:18px 24px;max-width:1500px;margin:0 auto}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.state-box{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;gap:16px;text-align:center}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.state-box p{color:var(--muted);font-size:14px}
+.err-txt{color:var(--red);font-family:var(--mono);font-size:12px;max-width:600px}
+#warning-banner{display:none;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:10px 16px;margin-bottom:16px}
+.warn-item{font-size:12px;color:var(--amber);line-height:1.7}
+.spy-bar{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 20px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.spy-lbl{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.spy-val{font-family:var(--mono);font-size:13px;font-weight:700}
+.spy-div{width:1px;height:22px;background:var(--border)}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.card{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.card .lbl{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.card .val{font-size:16px;font-weight:700;font-family:var(--mono)}
+.card .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+.panel h3{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel h3 .sub{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.bar-chart{display:flex;flex-direction:column;gap:5px}
+.bar-row{display:grid;grid-template-columns:18px 54px 1fr;align-items:center;gap:8px;border-radius:5px;padding:2px 4px;cursor:default;transition:background .15s;position:relative}
+.bar-row:hover{background:var(--surf2)}
+.bar-rank{font-size:10px;color:var(--text);text-align:center;font-family:var(--mono);font-weight:600}
+.bar-ticker{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text);text-align:right}
+.bar-track{background:var(--border);border-radius:4px;height:22px;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.16,1,.3,1);position:relative;min-width:2px}
+.bar-lbl{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:10px;font-weight:800;color:rgba(255,255,255,.9);white-space:nowrap;pointer-events:none}
+.pos{background:var(--green);color:var(--green)}.neg{background:var(--red);color:var(--red)}
+.bar-sep{height:1px;background:var(--border);margin:3px 0;grid-column:1/-1}
+.bar-tooltip{display:none;position:absolute;left:80px;top:-60px;background:#0d1929;border:1px solid var(--border);border-radius:8px;padding:10px 14px;z-index:999;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,.6);pointer-events:none}
+.bar-row:hover .bar-tooltip{display:block}
+.tt-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px}
+.tt-row{font-size:11px;font-family:var(--mono);color:var(--muted);line-height:1.7}
+.tt-p{color:var(--cyan);font-weight:700}.tt-g{color:var(--green);font-weight:700}.tt-r{color:var(--red);font-weight:700}.tt-a{color:var(--amber);font-weight:700}
+.sig{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:800;font-family:var(--mono);letter-spacing:.5px;white-space:nowrap}
+.sig-s{background:rgba(16,185,129,.18);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.sig-n{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.sig-w{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.rsi-badge{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px}
+.rsi-ob{background:rgba(239,68,68,.15);color:var(--red)}
+.rsi-os{background:rgba(16,185,129,.15);color:var(--green)}
+.rsi-mid{background:rgba(100,116,139,.15);color:var(--muted)}
+.ma-above{background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
+.ma-below{background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
+.earn-warn{background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap}
+.score-wrap{display:flex;align-items:center;gap:6px}
+.score-bar{width:48px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.score-fill{height:100%;border-radius:2px}
+.vol-lo{background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px}
+.vol-mi{background:rgba(245,158,11,.12);color:var(--amber);font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px}
+.vol-hi{background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px}
+.range-wrap{display:flex;align-items:center;gap:5px;min-width:100px}
+.range-track{flex:1;height:6px;background:var(--border);border-radius:3px;position:relative}
+.range-grad{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
+.range-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--accent);z-index:1}
+.range-pct{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+.heatmap-row{display:grid;grid-template-columns:140px 58px 58px 1fr;align-items:center;gap:12px;padding:6px 8px;border-bottom:1px solid var(--border)}
+.heatmap-row:last-child{border-bottom:none}
+.hm-name{font-size:12px;font-weight:600}
+.hm-avg{font-family:var(--mono);font-size:12px;font-weight:700;text-align:right}
+.hm-chips{display:flex;flex-wrap:wrap;gap:4px}
+.hm-chip{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px}
+.hm-g{background:rgba(16,185,129,.15);color:var(--green)}.hm-r{background:rgba(239,68,68,.15);color:var(--red)}
+.insight-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.insight-item:last-child{border-bottom:none}
+.ibadge{font-family:var(--mono);font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;white-space:nowrap;min-width:44px;text-align:center}
+.ibg{background:rgba(16,185,129,.15);color:var(--green)}.ibr{background:rgba(239,68,68,.15);color:var(--red)}.ibb{background:rgba(59,130,246,.15);color:var(--accent)}
+.itext{font-size:12px;line-height:1.5}
+.event-row{display:grid;grid-template-columns:88px 1fr auto;align-items:center;gap:12px;padding:7px 8px;border-radius:6px;transition:background .12s}
+.event-row:hover{background:var(--surf2)}
+.ev-date{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--amber)}
+.ev-name{font-size:12px}.ev-tick{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.tbl-wrap{background:var(--surf);border:1px solid var(--border);border-radius:10px;overflow-x:auto;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--surf2);padding:9px 12px;text-align:right;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+thead th:nth-child(-n+3){text-align:left}
+th.sort{cursor:pointer;user-select:none}
+th.sort:hover{color:var(--accent)}
+th.sa::after{content:' ^';color:var(--accent)}
+th.sd::after{content:' v';color:var(--accent)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surf2)}
+tbody td{padding:9px 12px;text-align:right;white-space:nowrap}
+tbody td:first-child{text-align:center;color:var(--muted);font-size:11px}
+tbody td:nth-child(2){text-align:left;font-weight:600}
+tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:700}
+.tp{font-family:var(--mono);font-weight:600}
+.tg{color:var(--green);font-family:var(--mono);font-weight:700}
+.tr{color:var(--red);font-family:var(--mono);font-weight:700}
+.tm{color:var(--muted);font-family:var(--mono);font-size:11px}
+.section-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:4px 0 6px 26px;font-weight:600}
+.period-btn{background:var(--surf2);color:var(--muted);border:1px solid var(--border);padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.period-btn:hover{color:var(--text);border-color:var(--accent)}
+.active-period{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
+.tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
+#tip-popup{display:none;position:fixed;background:#0d1929;color:var(--text);border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:12px;line-height:1.6;white-space:normal;width:300px;z-index:99999;box-shadow:0 4px 24px rgba(0,0,0,.8);pointer-events:none;font-family:var(--sans)}
+footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px}
+
+.sparkline{display:inline-block;vertical-align:middle}
+.spark-up{stroke:#10b981}.spark-down{stroke:#ef4444}.spark-flat{stroke:#64748b}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-mark">MF</div>
+    <div class="logo-text">Market Dashboard</div>
+  </div>
+  <div class="header-right">
+    <button id="settings-btn" style="background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s" title="Display settings">&#9881; Display</button>
+
+<!-- Settings panel -->
+<div id="settings-panel" style="display:none;position:fixed;top:57px;right:16px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:18px 20px;z-index:9998;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:260px">
+  <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">Display Settings</div>
+
+  <!-- Theme -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Theme</div>
+    <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Light</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="theme-opt" data-theme="light"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#f0f4f8;color:#1e293b">Light</button>
+      <button class="theme-opt" data-theme="pearl"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#f8f6f2;color:#2d2a26">Pearl</button>
+      <button class="theme-opt" data-theme="sky"      style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#e8f4fd;color:#0f2942">Sky</button>
+      <button class="theme-opt" data-theme="mint"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#ecfdf5;color:#064e3b">Mint</button>
+      <button class="theme-opt" data-theme="rose"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#fff1f2;color:#4c0519">Rose</button>
+    </div>
+    <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Dark</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      <button class="theme-opt" data-theme="dark"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#1a2640;color:#e2e8f0">Dark</button>
+      <button class="theme-opt" data-theme="navy"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0d1b2a;color:#e2e8f0">Navy</button>
+      <button class="theme-opt" data-theme="slate"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#1e1e2e;color:#cdd6f4">Slate</button>
+      <button class="theme-opt" data-theme="forest"   style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0d1f13;color:#d1fae5">Forest</button>
+      <button class="theme-opt" data-theme="midnight" style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#09090b;color:#fafafa">Midnight</button>
+      <button class="theme-opt" data-theme="ocean"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0c1926;color:#e0f2fe">Ocean</button>
+    </div>
+  </div>
+
+  <!-- Font size -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Font Size</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="font-down" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:14px;cursor:pointer;font-weight:700">A-</button>
+      <span id="font-size-lbl" style="font-size:12px;color:var(--text);font-family:var(--mono);min-width:40px;text-align:center">14px</span>
+      <button id="font-up"   style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:14px;cursor:pointer;font-weight:700">A+</button>
+      <button id="font-reset" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:11px;cursor:pointer">Reset</button>
+    </div>
+  </div>
+
+  <button id="settings-close" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;margin-top:4px">Close</button>
+</div>
+    <div id="last-updated">Loading...</div>
+    <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
+  </div>
+</header>
+<div class="tabs">
+  <div class="tab active" data-tab="overview">&#127968; Overview</div>
+  <div class="tab" data-tab="signals">&#127919; Signals</div>
+  <div class="tab" data-tab="history">&#128200; Historical</div>
+  <div class="tab" data-tab="guide">&#128218; Guide</div>
+</div>
+<main>
+
+<!-- OVERVIEW -->
+<div id="panel-overview" class="tab-panel active">
+  <div id="ov-loading" class="state-box"><div class="spinner"></div><p>Fetching market data...</p></div>
+  <div id="ov-content" style="display:none">
+    <div id="warning-banner"></div>
+    <div class="spy-bar" id="spy-bar"></div>
+    <div class="summary-grid" id="summary-cards"></div>
+    <div id="ov-watchlist" style="margin-bottom:16px"></div>
+    <div class="panel" style="margin-bottom:16px">
+      <h3>Sector Heatmap <span class="sub">Weekly &amp; Monthly avg</span></h3>
+      <div style="display:grid;grid-template-columns:140px 58px 58px 1fr;gap:12px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:6px">
+        <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);cursor:pointer" onclick="sortHeatmap('sector')" id="hm-h-sector">Sector</div>
+        <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);text-align:right;cursor:pointer" onclick="sortHeatmap('avg_1w')" id="hm-h-1w">1W Avg &#9660;</div>
+        <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);text-align:right;cursor:pointer" onclick="sortHeatmap('avg_1m')" id="hm-h-1m">1M Avg</div>
+        <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)">Stocks</div>
+      </div>
+      <div id="sector-heatmap"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SIGNALS -->
+<div id="panel-signals" class="tab-panel">
+  <div id="sig-content" style="display:none">
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.9">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 32px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Score (0-100)</div>
+          Composite rank across peers: 1W momentum 30% &middot; 1M trend 25% &middot; YTD 20% &middot; 52W position 15% &middot; low volatility 10%<br>
+          <span class="sig sig-s" style="margin-top:4px;display:inline-block">Strong</span> &ge;72 &nbsp;
+          <span class="sig sig-n">Neutral</span> 45-71 &nbsp;
+          <span class="sig sig-w">Weak</span> &lt;45
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">
+            <span class="tip" data-tip="Relative Strength Index - measures if a stock was bought or sold too aggressively. Scale 0-100. Does NOT compare stocks to each other.">RSI</span>
+            - Relative Strength Index
+          </div>
+          <span style="color:var(--green)">Under 30 = oversold</span> - price fell a lot, may bounce. Potential buy zone.<br>
+          <span style="color:var(--red)">Over 70 = overbought</span> - price rose a lot, may pull back. Caution.<br>
+          <span style="color:var(--muted)">30-70 = neutral.</span>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">
+            <span class="tip" data-tip="Moving Average - average closing price over last 50 trading days. Smooths out noise to show trend direction.">50MA</span>
+            - 50-Day Moving Average
+          </div>
+          <span style="color:var(--green)">Above 50MA</span> - uptrend in place.<br>
+          <span style="color:var(--red)">Below 50MA</span> - downtrend in place.<br>
+          <span style="color:var(--muted)">Best entries: above 50MA + RSI under 50 (uptrend, not overbought).</span>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Other indicators</div>
+          <span class="tip" data-tip="Where current price sits between yearly low and high. 100% = at 52-week high. 0% = at 52-week low.">52W Pos</span> - position in 52-week range &nbsp;&middot;&nbsp;
+          <span class="tip" data-tip="How much this stock gained or lost vs S&P 500 this week. Positive = beat the market.">vs SPY</span> - vs S&amp;P 500 &nbsp;&middot;&nbsp;
+          * moved &gt;5% this week &nbsp;&middot;&nbsp;
+          <span class="tip" data-tip="Volume spike: this week trading volume was 50%+ above the 20-day average. High volume confirms a move is significant.">vol spike</span> &nbsp;&middot;&nbsp;
+          ! earnings within 14 days
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
+        Momentum signals only. Not financial advice. Always check fundamentals before acting.
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="position:relative;flex:1;min-width:200px;max-width:340px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">&#128269;</span>
+        <input id="sig-search" type="text" placeholder="Filter by ticker or company..."
+          style="width:100%;background:var(--surf2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:8px 10px 8px 32px;font-size:12px;outline:none">
+      </div>
+      <div id="sig-count" style="font-size:11px;color:var(--muted)"></div>
+      <button id="clear-filter-btn" style="background:none;border:1px solid var(--border);color:var(--muted);padding:7px 12px;border-radius:6px;font-size:11px;cursor:pointer">Clear</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="sort" data-f="company" data-tbl="action">Company</th>
+            <th>Ticker</th>
+            <th class="sort" data-f="score" data-tbl="action">Score</th>
+            <th class="sort" data-f="signal" data-tbl="action">Momentum</th>
+            <th class="sort sd" data-f="pct_1w" data-tbl="action"><span class="tip" data-tip="One-week % price change (last 5 trading days).">1W</span></th>
+            <th class="sort" data-f="pct_1m" data-tbl="action"><span class="tip" data-tip="One-month % price change (last ~22 trading days).">1M</span></th>
+            <th class="sort" data-f="pct_ytd" data-tbl="action"><span class="tip" data-tip="Year-to-Date: % change since January 1st of this year.">YTD</span></th>
+            <th class="sort" data-f="rel_1w" data-tbl="action"><span class="tip" data-tip="Performance vs S&P 500 this week. Positive = beat the market. Negative = underperformed.">vs SPY</span></th>
+            <th class="sort" data-f="rsi14" data-tbl="action"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
+            <th><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
+            <th class="sort" data-f="pos_52w" data-tbl="action"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
+            <th><span class="tip" data-tip="5-day price trend: shows direction of price movement over the last 5 trading days">Trend</span></th>
+            <th>Flags</th>
+            <th>What it means</th>
+          </tr>
+        </thead>
+        <tbody id="action-body"></tbody>
+      </table>
+    </div>
+    <div class="panel" style="margin-bottom:16px">
+      <h3>Relative Strength vs SPY - This Week
+        <span id="spy-1w-lbl" style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:6px"></span>
+      </h3>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Green = beat SPY &middot; Red = lagged SPY &middot; Number = difference from SPY return</div>
+      <div class="bar-chart" id="chart-rel"></div>
+    </div>
+    <div class="panel" style="margin-bottom:16px">
+      <h3>&#128276; Price Alerts <span class="sub">Email when price crosses your target</span></h3>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Run <strong>setupAlertTrigger()</strong> once in GAS editor to enable hourly checks.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;padding:14px;background:var(--surf2);border-radius:8px;border:1px solid var(--border)">
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Ticker</div>
+          <select id="alert-ticker" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;font-family:var(--mono);font-weight:700;cursor:pointer"><option value="">Select...</option></select>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Condition</div>
+          <select id="alert-condition" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;cursor:pointer">
+            <option value="above">Price rises above</option>
+            <option value="below">Price falls below</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Target Price ($)</div>
+          <input id="alert-price" type="number" step="0.01" placeholder="e.g. 300.00" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;font-family:var(--mono);width:130px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Email</div>
+          <input id="alert-email" type="email" placeholder="your@email.com" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;width:200px">
+        </div>
+        <button id="add-alert-btn" class="btn" style="padding:8px 20px;white-space:nowrap">+ Add Alert</button>
+      </div>
+      <div id="alerts-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORICAL -->
+<div id="panel-history" class="tab-panel">
+  <div id="hist-content" style="display:none">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="sort" data-f="company" data-tbl="hist">Company</th>
+            <th>Ticker</th>
+            <th class="sort" data-f="price" data-tbl="hist">Price</th>
+            <th class="sort" data-f="pct_1w" data-tbl="hist">&#916; 1W</th>
+            <th class="sort" data-f="pct_1m" data-tbl="hist">&#916; 1M</th>
+            <th class="sort" data-f="pct_3m" data-tbl="hist">&#916; 3M</th>
+            <th class="sort sd" data-f="pct_ytd" data-tbl="hist">&#916; YTD</th>
+            <th>3M Ago</th><th>YTD Start</th>
+            <th class="sort" data-f="signal" data-tbl="hist">Signal</th>
+            <th class="sort" data-f="rsi14" data-tbl="hist"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
+            <th class="sort" data-f="above_ma50" data-tbl="hist"><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
+            <th class="sort" data-f="pos_52w" data-tbl="hist"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
+            <th><span class="tip" data-tip="Market Capitalisation: total market value of the company. T = trillion, B = billion.">Mkt Cap</span></th>
+          </tr>
+        </thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- GUIDE -->
+<div id="panel-guide" class="tab-panel">
+<div style="max-width:820px;margin:0 auto;padding:8px 0">
+
+  <!-- Disclaimer -->
+  <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--amber);line-height:1.7">
+    <strong>Important:</strong> This dashboard shows momentum signals based on price data only.
+    It does NOT consider company fundamentals, earnings quality, debt, valuation, or macroeconomic factors.
+    Always do your own research before making any investment decision. <strong>Not financial advice.</strong>
+  </div>
+
+  <!-- Step by step -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <!-- Step 1 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">1</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Start with the Overview tab — find Strong Momentum stocks</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        The three watchlist columns (Strong / Neutral / Weak) give you the first filter.
+        <strong style="color:var(--green)">Only consider stocks in Strong Momentum for buying.</strong>
+        Neutral and Weak stocks are either going sideways or declining — not the right time to enter.
+        Strong Momentum means the stock is outperforming its peers across 1W, 1M, and YTD timeframes.
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">2</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Check RSI — is it a good time to enter?</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        RSI tells you whether a stock has been bought too aggressively already.
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;max-width:480px">
+          <span style="color:var(--green);font-family:var(--mono);font-weight:700">RSI &lt; 40</span>
+          <span>Pulled back significantly — good entry zone, trend may resume</span>
+          <span style="color:var(--green);font-family:var(--mono);font-weight:700">RSI 40-60</span>
+          <span>Neutral — reasonable entry, not stretched</span>
+          <span style="color:var(--amber);font-family:var(--mono);font-weight:700">RSI 60-70</span>
+          <span>Getting stretched — consider waiting for a pullback</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">RSI &gt; 70</span>
+          <span>Overbought — the move likely already happened, do not chase</span>
+        </div>
+        <div style="margin-top:10px;color:var(--text);font-weight:600">Best entry: Strong Momentum + RSI under 60</div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">3</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Check 50MA — is the trend structurally intact?</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        The 50-day Moving Average confirms whether the medium-term trend is healthy.
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;max-width:480px">
+          <span style="color:var(--green);font-family:var(--mono);font-weight:700">^ Above 50MA</span>
+          <span>Uptrend intact — dips are buying opportunities</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">v Below 50MA</span>
+          <span>Downtrend — even short-term rallies can be traps</span>
+        </div>
+        <div style="margin-top:10px;color:var(--text);font-weight:600">Rule: Only buy stocks above their 50MA.</div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">4</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Use the Signals tab for deeper analysis</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        Sort the Signals table by Score (descending). For your top candidates check:
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;max-width:520px">
+          <span style="color:var(--text);font-family:var(--mono);font-weight:700">52W Position</span>
+          <span>40-85% is ideal. Under 40% = weak trend. Over 85% = extended, higher risk.</span>
+          <span style="color:var(--text);font-family:var(--mono);font-weight:700">vs SPY</span>
+          <span>Positive = beating the market, not just riding it. This is genuine outperformance.</span>
+          <span style="color:var(--amber);font-family:var(--mono);font-weight:700">EARN flag</span>
+          <span>Earnings coming up — price can move sharply in either direction. Wait until after.</span>
+          <span style="color:var(--amber);font-family:var(--mono);font-weight:700">+5% flag</span>
+          <span>Already moved strongly this week — may be extended. Wait for consolidation.</span>
+          <span style="color:var(--text);font-family:var(--mono);font-weight:700">Trend sparkline</span>
+          <span>Green rising line = steady uptrend this week. Prefer smooth rises over sharp spikes.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">5</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Check Historical tab for context</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        Sort by YTD. A stock up +80% YTD already has a lot of gain priced in — much higher risk entry.
+        A stock up +15% YTD with Strong momentum and RSI under 50 is a cleaner, lower-risk setup.
+        <div style="margin-top:10px;background:var(--surf2);border-radius:8px;padding:12px 14px">
+          <div style="color:var(--text);font-weight:600;margin-bottom:6px">Sweet spot to look for:</div>
+          YTD gain 10-40% &nbsp;&#183;&nbsp; Strong Momentum &nbsp;&#183;&nbsp; Above 50MA &nbsp;&#183;&nbsp; RSI under 60 &nbsp;&#183;&nbsp; 52W position 40-80% &nbsp;&#183;&nbsp; vs SPY positive &nbsp;&#183;&nbsp; No EARN flag
+        </div>
+      </div>
+    </div>
+
+
+    <!-- When to buy -->
+    <div style="background:var(--surf);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">&#10003;</div>
+        <div style="font-size:14px;font-weight:700;color:var(--green)">When to consider buying</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        All five conditions below should ideally be true before entering a position.
+        The more boxes you can tick, the stronger the setup.
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-width:560px">
+
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surf2);border-radius:8px;padding:10px 12px">
+            <span style="color:var(--green);font-size:14px;margin-top:1px">&#10003;</span>
+            <div>
+              <div style="color:var(--text);font-weight:600;margin-bottom:2px">Signal is Strong Momentum</div>
+              <div style="color:var(--muted);font-size:11px">Stock is outperforming peers across 1W, 1M and YTD. This is your first and most important filter.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surf2);border-radius:8px;padding:10px 12px">
+            <span style="color:var(--green);font-size:14px;margin-top:1px">&#10003;</span>
+            <div>
+              <div style="color:var(--text);font-weight:600;margin-bottom:2px">RSI is below 60</div>
+              <div style="color:var(--muted);font-size:11px">The stock has not been overbought. There is still room for the trend to continue. RSI 30-50 after a pullback is the ideal entry.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surf2);border-radius:8px;padding:10px 12px">
+            <span style="color:var(--green);font-size:14px;margin-top:1px">&#10003;</span>
+            <div>
+              <div style="color:var(--text);font-weight:600;margin-bottom:2px">Price is above the 50MA (^ 50MA)</div>
+              <div style="color:var(--muted);font-size:11px">The medium-term trend is up. You are buying in the direction of the trend, not against it.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surf2);border-radius:8px;padding:10px 12px">
+            <span style="color:var(--green);font-size:14px;margin-top:1px">&#10003;</span>
+            <div>
+              <div style="color:var(--text);font-weight:600;margin-bottom:2px">52W Position between 40% and 85%</div>
+              <div style="color:var(--muted);font-size:11px">Not too close to its yearly low (weak trend) and not too close to its yearly high (extended). The middle range offers the best risk/reward.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surf2);border-radius:8px;padding:10px 12px">
+            <span style="color:var(--green);font-size:14px;margin-top:1px">&#10003;</span>
+            <div>
+              <div style="color:var(--text);font-weight:600;margin-bottom:2px">vs SPY is positive</div>
+              <div style="color:var(--muted);font-size:11px">The stock is beating the market, not just moving with it. This is genuine outperformance worth backing.</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surf2);border-radius:8px;padding:10px 12px">
+            <span style="color:var(--green);font-size:14px;margin-top:1px">&#10003;</span>
+            <div>
+              <div style="color:var(--text);font-weight:600;margin-bottom:2px">No EARN flag or earnings more than 14 days away</div>
+              <div style="color:var(--muted);font-size:11px">Earnings reports can cause sharp unpredictable moves. Enter after the report, not before, unless you are comfortable with that risk.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="margin-top:14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px 14px">
+          <div style="color:var(--green);font-weight:700;margin-bottom:4px">Best setup example</div>
+          <div style="color:var(--muted);font-size:11px;line-height:1.7">
+            Strong Momentum &nbsp;+&nbsp; RSI 42 (pulled back, not oversold) &nbsp;+&nbsp; Above 50MA &nbsp;+&nbsp;
+            52W Position 55% &nbsp;+&nbsp; vs SPY +2.5% &nbsp;+&nbsp; No earnings flag &nbsp;+&nbsp; YTD gain 15-35%
+            <br><strong style="color:var(--text)">= High conviction entry</strong>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;font-size:11px;color:var(--amber)">
+          Always verify fundamentals independently. A strong momentum score does not mean the company is financially healthy or the stock is cheap.
+        </div>
+      </div>
+    </div>
+
+    <!-- When to sell -->
+    <div style="background:var(--surf);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">!</div>
+        <div style="font-size:14px;font-weight:700;color:var(--red)">When to consider selling / reducing</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;max-width:520px">
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">Signal: Weak</span>
+          <span>Stock has dropped to Weak Momentum — trend broken vs peers</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">v Below 50MA</span>
+          <span>Price crossed below 50MA — medium-term trend has turned down</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">RSI &gt; 75</span>
+          <span>Very overbought — take some profit, the move is likely overextended</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">52W Pos &gt; 95%</span>
+          <span>At or near yearly high — limited upside, consider trimming</span>
+          <span style="color:var(--amber);font-family:var(--mono);font-weight:700">EARN flag</span>
+          <span>If you have a large gain and earnings are in &lt;7 days, consider reducing risk</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary table -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">Quick Reference Cheat Sheet</div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Indicator</th>
+            <th style="padding:8px 12px;text-align:center;color:var(--green);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Good to Buy</th>
+            <th style="padding:8px 12px;text-align:center;color:var(--amber);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Caution</th>
+            <th style="padding:8px 12px;text-align:center;color:var(--red);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Avoid / Sell</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">Momentum Signal</td>
+            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(16,185,129,.15);color:var(--green);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Strong</span></td>
+            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(245,158,11,.15);color:var(--amber);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Neutral</span></td>
+            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(239,68,68,.15);color:var(--red);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Weak</span></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">RSI-14</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">&lt; 60</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">60 - 70</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 70</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">50MA</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green)">^ Above</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--muted)">Just crossed</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red)">v Below</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">52W Position</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">40 - 80%</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">80 - 90%</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 90% or &lt; 20%</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">vs SPY</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green)">Positive</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--muted)">Near zero</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red)">Negative</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">YTD Gain</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">10 - 40%</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">40 - 70%</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 70%</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 12px;font-weight:600">Flags</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green)">No flags</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber)">VOL spike</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red)">EARN &lt;7d or +5%</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+</main>
+<div id="tip-popup"></div>
+<footer>Prices: Finnhub &middot; History, RSI, MA, Volume: Yahoo Finance &middot; Earnings: Finnhub &middot; Data pushed daily by GAS &middot; Not financial advice.</footer>
+
+<script>
+
+// ── Display settings ──────────────────────────────────────────
+var THEMES = ['dark','light','pearl','sky','mint','rose','navy','slate','forest','midnight','ocean'];
+var currentTheme = localStorage.getItem('dashTheme') || 'dark';
+var currentFont  = parseInt(localStorage.getItem('dashFont') || '14');
+
+function applyTheme(t) {
+  currentTheme = t;
+  THEMES.forEach(function(th){ document.body.classList.remove(th); });
+  if (t !== 'dark') document.body.classList.add(t);
+  localStorage.setItem('dashTheme', t);
+  document.querySelectorAll('.theme-opt').forEach(function(b){
+    b.style.outline = b.dataset.theme === t ? '2px solid var(--accent)' : 'none';
+  });
+}
+
+function applyFont(size) {
+  currentFont = Math.min(20, Math.max(11, size));
+  // Scale html root font-size — all px values in CSS become relative via zoom
+  document.documentElement.style.zoom = (currentFont / 14).toFixed(2);
+  document.documentElement.style.fontSize = currentFont + 'px';
+  localStorage.setItem('dashFont', currentFont);
+  var lbl = document.getElementById('font-size-lbl');
+  if (lbl) lbl.textContent = currentFont + 'px';
+}
+
+applyTheme(currentTheme);
+applyFont(currentFont);
+
+// ── Sparkline SVG ─────────────────────────────────────────────
+function makeSpark(data, w, h) {
+  if (!data || data.length < 2) return '<span style="color:var(--muted);font-size:10px">-</span>';
+  var min = Math.min.apply(null, data);
+  var max = Math.max.apply(null, data);
+  var range = max - min || 1;
+  var step  = w / (data.length - 1);
+  var pts   = data.map(function(v, i) {
+    var x = Math.round(i * step);
+    var y = Math.round(h - ((v - min) / range) * (h - 2) - 1);
+    return x + ',' + y;
+  }).join(' ');
+  var trend = data[data.length-1] >= data[0] ? 'spark-up' : 'spark-down';
+  return '<svg class="sparkline" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
+    '<polyline points="'+pts+'" fill="none" class="'+trend+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+  '</svg>';
+}
+
+var D = null;
+var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
+var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
+// GAS endpoint — set this to your deployed GAS web app URL
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxvwJC-_Qc38x-BzyAUnjaCMZEwENx4F-NYLyocYfgNaiviKVU3O4l1V4lvpNetyNeS/exec';
+
+// Tab switching
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelector('[data-tab="'+name+'"]').classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// Load data from GitHub raw URL
+function renderSpyBar(spy) {
+  if (!spy) { document.getElementById('spy-bar').style.display='none'; return; }
+  var items = [
+    { lbl:'S&P 500 (SPY)', val:'$'+fmt(spy.price), cls:'' },
+    { lbl:'Today',  val:p(spy.dp),      cls:(spy.dp||0)>=0?'tt-g':'tt-r' },
+    { lbl:'1 Week', val:p(spy.pct_1w),  cls:(spy.pct_1w||0)>=0?'tt-g':'tt-r' },
+    { lbl:'1 Month',val:p(spy.pct_1m),  cls:(spy.pct_1m||0)>=0?'tt-g':'tt-r' },
+    { lbl:'YTD',    val:p(spy.pct_ytd), cls:(spy.pct_ytd||0)>=0?'tt-g':'tt-r' }
+  ];
+  document.getElementById('spy-bar').innerHTML = '<div class="spy-lbl">Benchmark</div>' +
+    items.map(function(it,i){
+      return (i>0?'<div class="spy-div"></div>':'')+
+        '<div><div class="spy-lbl">'+it.lbl+'</div><div class="spy-val '+it.cls+'">'+it.val+'</div></div>';
+    }).join('');
+}
+
+function renderSummary(stocks, spy) {
+  var gainers = stocks.filter(function(s){ return (s.pct_1w||0)>0; }).length;
+  var best    = stocks.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; });
+  var worst   = stocks.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; });
+  var avgW    = (stocks.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/stocks.length).toFixed(2);
+  var strong  = stocks.filter(function(s){ return s.signal==='STRONG'; }).length;
+  var alerts  = stocks.filter(function(s){ return s.alert; }).length;
+  var earnSoon= stocks.filter(function(s){ return s.earnings_days!==null&&s.earnings_days!==undefined; }).length;
+  document.getElementById('summary-cards').innerHTML = [
+    { lbl:'Tracked',         val:stocks.length, sub:'large-caps' },
+    { lbl:'Weekly Gainers',  val:gainers+'/20',  sub:'this week' },
+    { lbl:'Strong Momentum', val:strong,         sub:'of 20 stocks' },
+    { lbl:'Best 1W',         val:best.ticker,    sub:p(best.pct_1w) },
+    { lbl:'Worst 1W',        val:worst.ticker,   sub:p(worst.pct_1w) },
+    { lbl:'Avg 1W',          val:(avgW>0?'+':'')+avgW+'%', sub:'universe avg' },
+    { lbl:'Alerts',          val:alerts,         sub:'>5% this week' },
+    { lbl:'Earnings Soon',   val:earnSoon,       sub:'within 14 days' }
+  ].map(function(c){
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+  }).join('');
+}
+
+function renderWatchlist(stocks) {
+  var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
+  stocks.forEach(function(s){ (groups[s.signal]||groups.NEUTRAL).push(s); });
+  Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
+  var configs = [
+    { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Trending up - consider entry if RSI not overbought', color:'var(--green)', border:'rgba(16,185,129,.25)' },
+    { key:'NEUTRAL', label:'Neutral',         icon:'&#9679;', sub:'No strong signal - wait for confirmation',           color:'var(--amber)', border:'rgba(245,158,11,.25)' },
+    { key:'WEAK',   label:'Weak Momentum',   icon:'&#9679;', sub:'Lagging peers - avoid or wait for reversal',         color:'var(--red)',   border:'rgba(239,68,68,.25)' }
+  ];
+  document.getElementById('ov-watchlist').innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
+    configs.map(function(cfg){
+      var items = groups[cfg.key];
+      return '<div style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+
+          '<div>'+
+            '<div style="font-size:14px;font-weight:700;color:'+cfg.color+'">'+cfg.icon+' '+cfg.label+'</div>'+
+            '<div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4">'+cfg.sub+'</div>'+
+          '</div>'+
+          '<span style="font-size:24px;font-weight:800;font-family:var(--mono);color:'+cfg.color+';opacity:.6">'+items.length+'</span>'+
+        '</div>'+
+        items.map(function(s){
+          var pctClr=(s.pct_1w||0)>=0?'var(--green)':'var(--red)';
+          var sw=s.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
+          var rsiClr=s.rsi14===null?'var(--muted)':s.rsi14<30?'var(--green)':s.rsi14>70?'var(--red)':'var(--muted)';
+          var rsiBg=s.rsi14===null?'rgba(100,116,139,.1)':s.rsi14<30?'rgba(16,185,129,.12)':s.rsi14>70?'rgba(239,68,68,.12)':'rgba(100,116,139,.1)';
+          var rsiTip=s.rsi14===null?'':s.rsi14<30?'Oversold - possible entry':s.rsi14>70?'Overbought - caution':'RSI neutral';
+          var rsiLbl=s.rsi14!==null?'RSI '+s.rsi14+(s.rsi14<30?' OS':s.rsi14>70?' OB':''):'RSI -';
+          var maClr=s.above_ma50===null?'var(--muted)':s.above_ma50?'var(--green)':'var(--red)';
+          var maBg=s.above_ma50===null?'rgba(100,116,139,.1)':s.above_ma50?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)';
+          var maLbl=s.above_ma50===null?'MA -':s.above_ma50?'^ 50MA':'v 50MA';
+          var maTip=s.above_ma50===null?'50-day Moving Average: no data available':s.above_ma50?'Above 50MA: price is above its 50-day average. Uptrend in place. Dips are buying opportunities.':'Below 50MA: price is below its 50-day average. Downtrend in place. Rallies are selling opportunities.';
+          var earnHtml=(s.earnings_days!==null&&s.earnings_days!==undefined)?'<span class="earn-warn">! '+s.earnings_days+'d</span>':'';
+          return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'+
+              '<div style="display:flex;align-items:center;gap:8px">'+
+                '<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);min-width:48px">'+esc(s.ticker)+'</span>'+
+                '<div>'+
+                  '<div style="font-size:12px;font-weight:600">'+esc(s.company)+'</div>'+
+                  '<div style="font-size:10px;color:var(--muted)">'+esc(s.sector)+'</div>'+
+                '<div style="font-size:10px;color:var(--muted)">$'+fmt(s.price)+' &nbsp;|&nbsp; 52W: $'+fmt(s.low_52w||0)+' - $'+fmt(s.high_52w||0)+'</div>'+
+                '</div>'+
+              '</div>'+
+              '<div style="text-align:right">'+
+                '<div style="font-family:var(--mono);font-size:14px;font-weight:800;color:'+pctClr+'">'+(s.pct_1w>=0?'+':'')+s.pct_1w+'%</div>'+
+                '<div style="font-size:10px;color:var(--muted)">this week</div>'+
+              '</div>'+
+            '</div>'+
+            '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
+              '<span title="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
+              '<span title="'+maTip+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help" class="tip" data-tip="'+maTip+'">'+maLbl+'</span>'+
+              earnHtml+
+              '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
+                '<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+sw+'/100</span>'+
+                '<div style="width:44px;height:6px;background:var(--border);border-radius:3px;overflow:hidden">'+
+                  '<div style="width:'+sw+'%;height:100%;background:'+sfClr+';border-radius:3px;transition:width .5s"></div>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>';
+        }).join('')+
+      '</div>';
+    }).join('')+
+    '</div>';
+}
+
+function renderHeatmap(hm) {
+  if (!hm||!hm.length) return;
+  renderHeatmapData(hm);
+}
+// kept for compatibility
+function renderHeatmap_old(hm) {
+  var maxAbs1w=Math.max.apply(null,hm.map(function(s){ return Math.abs(s.avg_1w||0); }).concat([.01]));
+  var maxAbs1m=Math.max.apply(null,hm.map(function(s){ return Math.abs(s.avg_1m||0); }).concat([.01]));
+  document.getElementById('sector-heatmap').innerHTML = hm.map(function(sec){
+    var pos1w=(sec.avg_1w||0)>=0, pos1m=(sec.avg_1m||0)>=0;
+    var bar1wW=Math.round((Math.abs(sec.avg_1w||0)/maxAbs1w)*80);
+    var bar1mW=Math.round((Math.abs(sec.avg_1m||0)/maxAbs1m)*80);
+    var strong=sec.stocks.filter(function(st){ return st.signal==='STRONG'; }).length;
+    var weak=sec.stocks.filter(function(st){ return st.signal==='WEAK'; }).length;
+    var sigS=strong>0?strong+' strong':weak>0?weak+' weak':'neutral';
+    var sigC=strong>0?'var(--green)':weak>0?'var(--red)':'var(--muted)';
+    return '<div class="heatmap-row" style="background:'+(pos1w?'rgba(16,185,129,.04)':'rgba(239,68,68,.04)')+';border-radius:6px;padding:6px 8px;margin:1px 0">'+
+      '<div><div class="hm-name">'+esc(sec.sector)+'</div><div style="font-size:10px;color:'+sigC+'">'+sigS+'</div></div>'+
+      '<div>'+
+        '<div style="font-family:var(--mono);font-size:12px;font-weight:700;text-align:right;color:'+(pos1w?'var(--green)':'var(--red)')+'">'+p(sec.avg_1w)+'</div>'+
+        '<div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="width:'+bar1wW+'%;height:100%;background:'+(pos1w?'var(--green)':'var(--red)')+';border-radius:2px"></div></div>'+
+      '</div>'+
+      '<div>'+
+        '<div style="font-family:var(--mono);font-size:12px;font-weight:700;text-align:right;color:'+(pos1m?'var(--green)':'var(--red)')+'">'+p(sec.avg_1m)+'</div>'+
+        '<div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="width:'+bar1mW+'%;height:100%;background:'+(pos1m?'var(--green)':'var(--red)')+';border-radius:2px"></div></div>'+
+      '</div>'+
+      '<div class="hm-chips">'+
+        sec.stocks.map(function(st){
+          var pc=(st.pct_1w||0)>=0;
+          var bdr=st.signal==='STRONG'?'1px solid rgba(16,185,129,.4)':st.signal==='WEAK'?'1px solid rgba(239,68,68,.4)':'1px solid var(--border)';
+          return '<span style="background:'+(pc?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)')+';color:'+(pc?'var(--green)':'var(--red)')+';border:'+bdr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:default" title="'+esc(st.ticker)+' | '+st.signal+' | Score:'+st.score+'">'+esc(st.ticker)+' '+(st.pct_1w>=0?'+':'')+st.pct_1w+'%</span>';
+        }).join('')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderEvents(events) {
+  var el=document.getElementById('events');
+  if (!events||!events.length){ el.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">No earnings in the next 30 days.</div>'; return; }
+  el.innerHTML=events.map(function(e){
+    var warn=e.urgent?' <span class="earn-warn">! '+e.days_away+'d</span>':'';
+    return '<div class="event-row"><div class="ev-date">'+esc(e.date)+'</div><div class="ev-name">'+esc(e.event)+warn+'</div><div class="ev-tick">'+esc(e.tickers)+'</div></div>';
+  }).join('');
+}
+
+function renderActionTable(stocks) {
+  var s=sorts.action, sorted=sortArr(stocks,s.f,s.d);
+  document.getElementById('action-body').innerHTML = sorted.map(function(st,i){
+    var sigCls=st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
+    var sigLbl=st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':'Neutral';
+    var rsiCls=st.rsi14===null?'':st.rsi14<30?'rsi-os':st.rsi14>70?'rsi-ob':'rsi-mid';
+    var maLbl=st.above_ma50===null?'-':st.above_ma50?'^ 50MA':'v 50MA';
+    var maCls=st.above_ma50===null?'':st.above_ma50?'ma-above':'ma-below';
+    var sw=st.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
+    var flags='';
+    if(st.alert) flags+='<span title="Moved more than 5% this week" style="background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;margin-right:3px;cursor:help">+5%</span>';
+    if(st.vol_spike) flags+='<span title="Volume spike: traded 50%+ above 20-day average this week — confirms price move is significant" style="background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;margin-right:3px;cursor:help">VOL</span>';
+    if(st.earnings_days!==null&&st.earnings_days!==undefined) flags+='<span title="Earnings report in '+st.earnings_days+' days — price can move sharply" class="earn-warn" style="font-size:9px">EARN '+st.earnings_days+'d</span>';
+    if(!flags) flags='<span style="color:var(--muted);font-size:11px">-</span>';
+    var meaning=buildMeaning(st);
+    var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'<span>-</span>';
+    var tip=[st.company+' ('+st.ticker+')','Price: $'+fmt(st.price)+' | Cap: '+(st.market_cap||'N/A'),'Sector: '+(st.sector||'-'),'Score: '+sw+'/100 | Signal: '+sigLbl,'RSI: '+(st.rsi14!==null?st.rsi14+(st.rsi14<30?' oversold':st.rsi14>70?' overbought':' neutral'):'N/A'),'50MA: '+maLbl+(st.ma50?' ($'+fmt(st.ma50)+')':''),'52W Pos: '+(st.pos_52w!==null?st.pos_52w+'%':'N/A'),'vs SPY: '+(st.rel_1w!==null?(st.rel_1w>=0?'+':'')+st.rel_1w+'%':'N/A'),(st.earnings_days!==null&&st.earnings_days!==undefined?'Earnings in '+st.earnings_days+' days':''),(st.vol_spike?'Volume spike':'')].filter(Boolean).join(' | ');
+    return '<tr title="'+esc(tip)+'" style="cursor:default">'+
+      '<td>'+(i+1)+'</td>'+
+      '<td>'+esc(st.company)+'</td>'+
+      '<td>'+esc(st.ticker)+'</td>'+
+      '<td><div class="score-wrap" style="justify-content:flex-end"><span class="tm">'+sw+'</span><div class="score-bar"><div class="score-fill" style="width:'+sw+'%;background:'+sfClr+'"></div></div></div></td>'+
+      '<td><span class="sig '+sigCls+'">'+sigLbl+'</span></td>'+
+      '<td class="'+(st.pct_1w>=0?'tg':'tr')+'">'+p(st.pct_1w)+'</td>'+
+      '<td class="'+pcls(st.pct_1m)+'">'+pn(st.pct_1m)+'</td>'+
+      '<td class="'+pcls(st.pct_ytd)+'">'+pn(st.pct_ytd)+'</td>'+
+      '<td class="'+pcls(st.rel_1w)+'">'+pn(st.rel_1w)+'</td>'+
+      '<td>'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
+      '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
+      '<td>'+range52+'</td>'+
+      '<td>'+makeSpark(st.spark||[], 50, 18)+'</td>'+
+      '<td style="white-space:nowrap">'+flags+'</td>'+
+      '<td style="text-align:left;max-width:200px;white-space:normal;font-size:11px;color:var(--muted);line-height:1.4">'+esc(meaning)+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function buildMeaning(s){
+  var parts=[];
+  if(s.rsi14!==null){ if(s.rsi14<30) parts.push('RSI '+s.rsi14+' - oversold, possible entry.'); else if(s.rsi14>70) parts.push('RSI '+s.rsi14+' - overbought, caution.'); else parts.push('RSI '+s.rsi14+' - neutral.'); }
+  if(s.above_ma50!==null) parts.push(s.above_ma50?'Above 50MA (uptrend).':'Below 50MA (downtrend).');
+  if(s.pos_52w!==null){ if(s.pos_52w>=85) parts.push('Near 52W high - extended.'); else if(s.pos_52w<=20) parts.push('Near 52W low - watch for reversal.'); else parts.push('Mid 52W range.'); }
+  if(s.earnings_days!==null&&s.earnings_days!==undefined) parts.push('Earnings in '+s.earnings_days+' days - risk event.');
+  if(s.vol_spike) parts.push('Volume spike - unusual activity.');
+  if(!parts.length) parts.push('No strong signals.');
+  return parts.join(' ');
+}
+
+function renderRelChart(stocks, spy) {
+  var valid=stocks.filter(function(s){ return s.rel_1w!==null; });
+  if(!valid.length||!spy){ document.getElementById('chart-rel').innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">SPY data unavailable.</div>'; return; }
+  var spyLbl=document.getElementById('spy-1w-lbl');
+  if(spyLbl&&spy.pct_1w!==null) spyLbl.textContent='(SPY this week: '+p(spy.pct_1w)+')';
+  var sorted=valid.slice().sort(function(a,b){ return b.rel_1w-a.rel_1w; });
+  var maxAbs=Math.max.apply(null,sorted.map(function(s){ return Math.abs(s.rel_1w); }).concat([.01]));
+  var out=sorted.filter(function(s){ return s.rel_1w>=0; });
+  var lag=sorted.filter(function(s){ return s.rel_1w<0; });
+  var spyRow='<div style="display:grid;grid-template-columns:18px 54px 1fr;gap:8px;align-items:center;padding:4px;margin:4px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)"><div></div><div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--cyan);text-align:right">SPY</div><div style="height:2px;background:var(--cyan);border-radius:2px;opacity:.5"></div></div>';
+  var html='';
+  if(out.length){ html+='<div class="section-lbl" style="color:var(--green)">Beat SPY ('+out.length+')</div>'; html+=out.map(function(s,i){ return makeBar(s,i+1,s.rel_1w,maxAbs,'pos'); }).join(''); }
+  html+=spyRow;
+  if(lag.length){ html+='<div class="section-lbl" style="color:var(--red)">Lagged SPY ('+lag.length+')</div>'; html+=lag.map(function(s,i){ return makeBar(s,i+1,s.rel_1w,maxAbs,'neg'); }).join(''); }
+  document.getElementById('chart-rel').innerHTML=html;
+}
+
+var chartPeriod='pct_1w';
+function setChartPeriod(field, label) {
+  chartPeriod=field;
+  document.getElementById('chart-period-lbl').textContent=label;
+  document.querySelectorAll('.period-btn').forEach(function(b){ b.classList.remove('active-period'); });
+  var map={pct_1w:'btn-1w',pct_1m:'btn-1m',pct_3m:'btn-3m',pct_ytd:'btn-ytd'};
+  if(map[field]) document.getElementById(map[field]).classList.add('active-period');
+  if(D) renderAllRanked('chart-main',D.stocks,field);
+}
+
+function renderAllRanked(id, stocks, field) {
+  var valid=stocks.filter(function(s){ return s[field]!==null&&s[field]!==undefined; });
+  if(!valid.length){ document.getElementById(id).innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Data pending next refresh.</div>'; return; }
+  var sorted=valid.slice().sort(function(a,b){ return b[field]-a[field]; });
+  var maxAbs=Math.max.apply(null,sorted.map(function(s){ return Math.abs(s[field]); }).concat([.01]));
+
+  // Show SPY benchmark line for 1W view
+  var spyLine = document.getElementById('chart-spy-line');
+  if (spyLine) {
+    if (field === 'pct_1w' && D && D.spy && D.spy.pct_1w !== null) {
+      var spyPct = D.spy.pct_1w;
+      var spyW   = Math.round((Math.abs(spyPct) / maxAbs) * 92);
+      spyLine.style.display = 'flex';
+      spyLine.innerHTML = '<span>SPY benchmark:</span>' +
+        '<div style="flex:1;height:2px;background:var(--border);border-radius:1px;position:relative;max-width:'+Math.round(92/100*600)+'px">' +
+          '<div style="position:absolute;left:0;top:0;width:'+spyW+'%;height:2px;background:var(--cyan);border-radius:1px"></div>' +
+          '<div style="position:absolute;left:'+spyW+'%;top:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:var(--cyan)"></div>' +
+        '</div>' +
+        '<span style="color:var(--cyan)">'+(spyPct>=0?'+':'')+spyPct+'% (SPY)</span>';
+    } else {
+      spyLine.style.display = 'none';
+    }
+  }
+
+  document.getElementById(id).innerHTML=sorted.map(function(s,i){
+    return makeBar(s,i+1,s[field],maxAbs,s[field]>=0?'pos':'neg');
+  }).join('');
+}
+
+function makeBar(s, rank, pct, maxAbs, cls) {
+  var w=Math.max(4,Math.round((Math.abs(pct)/maxAbs)*92));
+  var sigC=s.signal==='STRONG'?'sig-s':s.signal==='WEAK'?'sig-w':'sig-n';
+  var sigL=s.signal==='STRONG'?'Strong':s.signal==='WEAK'?'Weak':'Neutral';
+  var rsiTxt=s.rsi14!==null?'RSI: '+s.rsi14+(s.rsi14<30?' (oversold)':s.rsi14>70?' (overbought)':''):'RSI: N/A';
+  var maTxt=s.above_ma50!==null?(s.above_ma50?'Above':'Below')+' 50MA':'50MA: N/A';
+  var sparkSvg = makeSpark(s.spark || [], 60, 20);
+  var tooltip='<div class="bar-tooltip">'+
+    '<div class="tt-name" style="display:flex;align-items:center;justify-content:space-between">'+
+      '<span>'+esc(s.company)+(s.alert?' *':'')+(s.vol_spike?' V':'')+'</span>'+
+      sparkSvg+
+    '</div>'+
+    '<div class="tt-row">Price: <span class="tt-p">$'+fmt(s.price)+'</span> | Score: <span class="tt-a">'+s.score+'/100</span> | <span class="sig '+sigC+'">'+sigL+'</span></div>'+
+    '<div class="tt-row">1W: <span class="'+(s.pct_1w>=0?'tt-g':'tt-r')+'">'+p(s.pct_1w)+'</span>'+(s.rel_1w!==null?' (vs SPY: '+p(s.rel_1w)+')':'')+' | 1M: <span class="'+(s.pct_1m!==null&&s.pct_1m>=0?'tt-g':'tt-r')+'">'+pn(s.pct_1m)+'</span> | YTD: <span class="'+((s.pct_ytd||0)>=0?'tt-g':'tt-r')+'">'+pn(s.pct_ytd)+'</span></div>'+
+    '<div class="tt-row">'+rsiTxt+' | '+maTxt+'</div>'+
+    (s.earnings_days!==null&&s.earnings_days!==undefined?'<div class="tt-row" style="color:var(--amber)">Earnings in '+s.earnings_days+' days</div>':'')+
+  '</div>';
+  return '<div class="bar-row">'+
+    '<div class="bar-rank">#'+rank+'</div>'+
+    '<div class="bar-ticker">'+esc(s.ticker)+(s.alert?'<span style="color:var(--amber);font-size:9px"> *</span>':'')+'</div>'+
+    '<div class="bar-track">'+
+      '<div class="bar-fill '+cls+'" style="width:'+w+'%">'+
+        (w>20?'<span class="bar-lbl">'+pct2(pct)+'</span>':'')+
+      '</div>'+tooltip+
+    '</div>'+
+  '</div>';
+}
+
+function renderHistTable(stocks) {
+  var s=sorts.hist, sorted=sortArr(stocks,s.f,s.d);
+  document.getElementById('hist-body').innerHTML = sorted.map(function(st,i){
+    var sigCls=st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
+    var sigLbl=st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':'Neutral';
+    var rsiCls=st.rsi14===null?'':st.rsi14<30?'rsi-os':st.rsi14>70?'rsi-ob':'rsi-mid';
+    var maLbl=st.above_ma50===null?'-':st.above_ma50?'^ 50MA':'v 50MA';
+    var maCls=st.above_ma50===null?'':st.above_ma50?'ma-above':'ma-below';
+    var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'-';
+    return '<tr title="'+esc(st.company)+' | RSI: '+(st.rsi14||'N/A')+' | 52W: '+(st.pos_52w!==null?st.pos_52w+'%':'N/A')+'">'+
+      '<td>'+(i+1)+'</td>'+
+      '<td>'+esc(st.company)+'</td>'+
+      '<td>'+esc(st.ticker)+'</td>'+
+      '<td class="tp">$'+fmt(st.price)+'</td>'+
+      '<td class="'+pcls(st.pct_1w)+'">'+pn(st.pct_1w)+'</td>'+
+      '<td class="'+pcls(st.pct_1m)+'">'+pn(st.pct_1m)+'</td>'+
+      '<td class="'+pcls(st.pct_3m)+'">'+pn(st.pct_3m)+'</td>'+
+      '<td class="'+pcls(st.pct_ytd)+'">'+pn(st.pct_ytd)+'</td>'+
+      '<td class="tm">'+(st.price_3m?'$'+fmt(st.price_3m):'-')+'</td>'+
+      '<td class="tm">'+(st.price_ytd?'$'+fmt(st.price_ytd):'-')+'</td>'+
+      '<td><span class="sig '+sigCls+'">'+sigLbl+'</span></td>'+
+      '<td>'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
+      '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
+      '<td>'+range52+'</td>'+
+      '<td class="tm">'+esc(st.market_cap||'N/A')+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function sortArr(arr, field, dir) {
+  return arr.slice().sort(function(a,b){
+    var av=a[field],bv=b[field];
+    if(av===null||av===undefined) av=dir==='desc'?-9999:9999;
+    if(bv===null||bv===undefined) bv=dir==='desc'?-9999:9999;
+    if(typeof av==='string') return dir==='desc'?bv.localeCompare(av):av.localeCompare(bv);
+    return dir==='desc'?bv-av:av-bv;
+  });
+}
+
+var actionSortField='pct_1w', actionSortDir='desc';
+var histSortField='pct_ytd', histSortDir='desc';
+
+function sortTbl(tbl, el) {
+  var field=el.dataset.f;
+  if(tbl==='action'){
+    if(actionSortField===field) actionSortDir=actionSortDir==='desc'?'asc':'desc';
+    else{ actionSortField=field; actionSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
+    sorts.action={f:actionSortField,d:actionSortDir};
+    if(D) renderActionTable(D.stocks);
+    document.querySelectorAll('#panel-signals th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===actionSortField) th.classList.add(actionSortDir==='desc'?'sd':'sa'); });
+  } else {
+    if(histSortField===field) histSortDir=histSortDir==='desc'?'asc':'desc';
+    else{ histSortField=field; histSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
+    sorts.hist={f:histSortField,d:histSortDir};
+    if(D) renderHistTable(D.stocks);
+    document.querySelectorAll('#panel-history th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===histSortField) th.classList.add(histSortDir==='desc'?'sd':'sa'); });
+  }
+}
+
+
+
+
+var hmSortField = 'avg_1w', hmSortDir = 'desc';
+function sortHeatmap(field) {
+  if (hmSortField === field) hmSortDir = hmSortDir === 'desc' ? 'asc' : 'desc';
+  else { hmSortField = field; hmSortDir = field === 'sector' ? 'asc' : 'desc'; }
+  if (!D) return;
+  var sorted = D.sector_heatmap.slice().sort(function(a, b) {
+    var av = a[field], bv = b[field];
+    if (typeof av === 'string') return hmSortDir === 'desc' ? bv.localeCompare(av) : av.localeCompare(bv);
+    return hmSortDir === 'desc' ? (bv||0) - (av||0) : (av||0) - (bv||0);
+  });
+  // Update headers
+  ['sector','avg_1w','avg_1m'].forEach(function(f) {
+    var el = document.getElementById('hm-h-' + f.replace('avg_',''));
+    if (!el) return;
+    var base = f === 'sector' ? 'Sector' : f === 'avg_1w' ? '1W Avg' : '1M Avg';
+    var align = f !== 'sector' ? 'text-align:right;' : '';
+    el.style.color = f === field ? 'var(--accent)' : 'var(--muted)';
+    el.textContent = base + (f === field ? (hmSortDir === 'desc' ? ' v' : ' ^') : '');
+  });
+  renderHeatmapData(sorted);
+}
+
+function renderHeatmapData(hm) {
+  var maxAbs1w=Math.max.apply(null,hm.map(function(s){ return Math.abs(s.avg_1w||0); }).concat([.01]));
+  var maxAbs1m=Math.max.apply(null,hm.map(function(s){ return Math.abs(s.avg_1m||0); }).concat([.01]));
+  document.getElementById('sector-heatmap').innerHTML = hm.map(function(sec){
+    var pos1w=(sec.avg_1w||0)>=0, pos1m=(sec.avg_1m||0)>=0;
+    var bar1wW=Math.round((Math.abs(sec.avg_1w||0)/maxAbs1w)*80);
+    var bar1mW=Math.round((Math.abs(sec.avg_1m||0)/maxAbs1m)*80);
+    var strong=sec.stocks.filter(function(st){ return st.signal==='STRONG'; }).length;
+    var weak=sec.stocks.filter(function(st){ return st.signal==='WEAK'; }).length;
+    var sigS=strong>0?strong+' strong':weak>0?weak+' weak':'neutral';
+    var sigC=strong>0?'var(--green)':weak>0?'var(--red)':'var(--muted)';
+    return '<div class="heatmap-row" style="background:'+(pos1w?'rgba(16,185,129,.04)':'rgba(239,68,68,.04)')+';border-radius:6px;padding:6px 8px;margin:1px 0">'+
+      '<div><div class="hm-name">'+esc(sec.sector)+'</div><div style="font-size:10px;color:'+sigC+'">'+sigS+'</div></div>'+
+      '<div><div style="font-family:var(--mono);font-size:12px;font-weight:700;text-align:right;color:'+(pos1w?'var(--green)':'var(--red)')+'">'+p(sec.avg_1w)+'</div>'+
+        '<div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="width:'+bar1wW+'%;height:100%;background:'+(pos1w?'var(--green)':'var(--red)')+';border-radius:2px"></div></div></div>'+
+      '<div><div style="font-family:var(--mono);font-size:12px;font-weight:700;text-align:right;color:'+(pos1m?'var(--green)':'var(--red)')+'">'+p(sec.avg_1m)+'</div>'+
+        '<div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="width:'+bar1mW+'%;height:100%;background:'+(pos1m?'var(--green)':'var(--red)')+';border-radius:2px"></div></div></div>'+
+      '<div class="hm-chips">'+
+        sec.stocks.map(function(st){
+          var pc=(st.pct_1w||0)>=0;
+          var bdr=st.signal==='STRONG'?'1px solid rgba(16,185,129,.4)':st.signal==='WEAK'?'1px solid rgba(239,68,68,.4)':'1px solid var(--border)';
+          return '<span style="background:'+(pc?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)')+';color:'+(pc?'var(--green)':'var(--red)')+';border:'+bdr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:default" title="'+esc(st.ticker)+' | '+st.signal+' | Score:'+st.score+'">'+esc(st.ticker)+' '+(st.pct_1w>=0?'+':'')+st.pct_1w+'%</span>';
+        }).join('')+
+      '</div></div>';
+  }).join('');
+}
+
+function filterSignals(query) {
+  query=query.toLowerCase().trim();
+  var rows=document.querySelectorAll('#action-body tr'), visible=0;
+  rows.forEach(function(row){ var show=!query||row.textContent.toLowerCase().indexOf(query)!==-1; row.style.display=show?'':'none'; if(show) visible++; });
+  var el=document.getElementById('sig-count');
+  if(el) el.textContent=query?visible+' of '+rows.length+' stocks':'';
+}
+
+function initAlerts(stocks) {
+  var sel=document.getElementById('alert-ticker');
+  while(sel.options.length>1) sel.remove(1);
+  stocks.forEach(function(s){ var o=document.createElement('option'); o.value=s.ticker; o.textContent=s.ticker+' - '+s.company; sel.appendChild(o); });
+  loadAlerts();
+}
+
+function loadAlerts() {
+  // Alerts stored in localStorage (no GAS needed for GitHub Pages version)
+  var stored=JSON.parse(localStorage.getItem('market_alerts')||'[]');
+  renderAlerts(stored);
+}
+
+function addAlert() {
+  var ticker=document.getElementById('alert-ticker').value;
+  var condition=document.getElementById('alert-condition').value;
+  var price=parseFloat(document.getElementById('alert-price').value);
+  var email=document.getElementById('alert-email').value.trim();
+  if(!ticker){ alert('Please select a ticker.'); return; }
+  if(!price||price<=0){ alert('Please enter a valid price.'); return; }
+  if(!email||!email.includes('@')){ alert('Please enter a valid email.'); return; }
+  var company=ticker;
+  if(D&&D.stocks){ var st=D.stocks.filter(function(s){ return s.ticker===ticker; })[0]; if(st) company=st.company; }
+  var alerts=JSON.parse(localStorage.getItem('market_alerts')||'[]');
+  alerts.push({ id:Date.now().toString(), ticker:ticker, company:company, condition:condition, targetPrice:price, email:email, active:true, createdAt:new Date().toLocaleDateString() });
+  localStorage.setItem('market_alerts', JSON.stringify(alerts));
+  document.getElementById('alert-price').value='';
+  renderAlerts(alerts);
+}
+
+function deleteAlertById(id) {
+  var alerts=JSON.parse(localStorage.getItem('market_alerts')||'[]').filter(function(a){ return a.id!==id; });
+  localStorage.setItem('market_alerts', JSON.stringify(alerts));
+  renderAlerts(alerts);
+}
+
+function renderAlerts(alerts) {
+  var el=document.getElementById('alerts-list');
+  if(!alerts||!alerts.length){ el.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">No alerts set. Add one above.</div>'; return; }
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px">'+
+    alerts.map(function(a){
+      var condStr=a.condition==='above'?'rises above':'falls below';
+      return '<div style="background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+          '<div style="display:flex;align-items:center;gap:8px">'+
+            '<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent)">'+esc(a.ticker)+'</span>'+
+            '<span style="font-size:12px">'+esc(a.company)+'</span>'+
+          '</div>'+
+          '<span style="font-size:10px;color:var(--green)">Active</span>'+
+        '</div>'+
+        '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">'+
+          condStr+' <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber)">$'+a.targetPrice+'</span>'+
+          ' - <span>'+esc(a.email)+'</span>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between">'+
+          '<span style="font-size:10px;color:var(--muted)">Set '+esc(a.createdAt)+'</span>'+
+          '<button onclick="deleteAlertById(\''+a.id+'\')" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer">Remove</button>'+
+        '</div>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+}
+
+function fmt(n){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function p(n){ return n!==null&&n!==undefined?(n>=0?'+':'')+Number(n).toFixed(2)+'%':'N/A'; }
+function pn(n){ return n!==null&&n!==undefined?(n>=0?'+':'')+Number(n).toFixed(2)+'%':'-'; }
+function pct2(n){ return (n>=0?'+':'')+Number(n).toFixed(2)+'%'; }
+function pcls(v){ return (v||0)>=0?'tg':'tr'; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function loadData(forceGASRefresh) {
+  var btn  = document.getElementById('refresh-btn');
+  var icon = document.getElementById('btn-icon');
+  if (btn)  btn.disabled = true;
+  if (icon) { icon.className = 'btn-spin'; icon.innerHTML = '&#10227;'; }
+  var lu = document.getElementById('last-updated');
+  if (lu) lu.textContent = forceGASRefresh ? 'Fetching fresh prices (~30s)...' : 'Loading...';
+
+  function readGitHub() {
+    fetch(DATA_URL + '?t=' + Date.now())
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(data){
+        D = data;
+        renderAll(data);
+        if (btn)  btn.disabled = false;
+        if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
+        if (lu) { lu.style.color = 'var(--green)'; setTimeout(function(){ lu.style.color = ''; }, 2000); }
+      })
+      .catch(function(e){
+        if (btn)  btn.disabled = false;
+        if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
+        if (lu) lu.textContent = 'Error loading data';
+      });
+  }
+
+  if (forceGASRefresh && GAS_URL && GAS_URL !== 'YOUR_GAS_URL_HERE') {
+    fetch(GAS_URL + '?action=refresh')
+      .then(function(r){ return r.json(); })
+      .then(function(){ setTimeout(readGitHub, 4000); })
+      .catch(function(){ readGitHub(); });
+  } else {
+    readGitHub();
+  }
+}
+
+function renderAll(data) {
+  document.getElementById('last-updated').textContent = 'Updated: ' + (data.lastUpdated || 'unknown');
+  document.getElementById('ov-loading').style.display = 'none';
+  document.getElementById('ov-content').style.display = 'block';
+  document.getElementById('sig-content').style.display = 'block';
+  document.getElementById('hist-content').style.display = 'block';
+
+  var wb = document.getElementById('warning-banner');
+  var ws = data.warnings || [];
+  wb.innerHTML = ws.map(function(w){ return '<div class="warn-item">! ' + esc(w) + '</div>'; }).join('');
+  wb.style.display = ws.length ? 'block' : 'none';
+
+  renderSpyBar(data.spy);
+  renderSummary(data.stocks, data.spy);
+  renderWatchlist(data.stocks);
+  renderHeatmap(data.sector_heatmap);
+  renderEvents(data.events);
+  renderActionTable(data.stocks);
+  renderRelChart(data.stocks, data.spy);
+  renderHistTable(data.stocks);
+  initAlerts(data.stocks);
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.tab[data-tab]').forEach(function(el) {
+    el.addEventListener('click', function(){ switchTab(this.dataset.tab); });
+  });
+  document.querySelectorAll('.period-btn[data-period]').forEach(function(el) {
+    el.addEventListener('click', function(){ setChartPeriod(this.dataset.period, this.dataset.periodLabel); });
+  });
+  document.querySelectorAll('th.sort[data-f]').forEach(function(el) {
+    el.addEventListener('click', function(){ sortTbl(this.dataset.tbl, this); });
+  });
+  var cfBtn=document.getElementById('clear-filter-btn');
+  if(cfBtn) cfBtn.addEventListener('click', function(){ document.getElementById('sig-search').value=''; filterSignals(''); });
+  var aaBtn=document.getElementById('add-alert-btn');
+  if(aaBtn) aaBtn.addEventListener('click', addAlert);
+  var si=document.getElementById('sig-search');
+  if(si) si.addEventListener('input', function(){ filterSignals(this.value); });
+  var rb=document.getElementById('refresh-btn');
+  if(rb) rb.addEventListener('click', function(){ loadData(true); });
+  // Settings panel
+  var settingsBtn   = document.getElementById('settings-btn');
+  var settingsPanel = document.getElementById('settings-panel');
+  var settingsClose = document.getElementById('settings-close');
+
+  if (settingsBtn) settingsBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+  });
+  if (settingsClose) settingsClose.addEventListener('click', function() {
+    settingsPanel.style.display = 'none';
+  });
+  document.addEventListener('click', function(e) {
+    if (settingsPanel && !settingsPanel.contains(e.target) && e.target !== settingsBtn) {
+      settingsPanel.style.display = 'none';
+    }
+  });
+
+  // Theme buttons
+  document.querySelectorAll('.theme-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() { applyTheme(this.dataset.theme); });
+  });
+
+  // Font size
+  var fontUp    = document.getElementById('font-up');
+  var fontDown  = document.getElementById('font-down');
+  var fontReset = document.getElementById('font-reset');
+  if (fontUp)    fontUp.addEventListener('click',    function() { applyFont(currentFont + 1); });
+  if (fontDown)  fontDown.addEventListener('click',  function() { applyFont(currentFont - 1); });
+  if (fontReset) fontReset.addEventListener('click', function() { applyFont(14); });
+
+  // Tooltip for .tip elements
+  var tipEl = document.getElementById('tip-popup');
+  document.addEventListener('mouseover', function(e) {
+    var t = e.target.closest('.tip');
+    if (t && tipEl) {
+      tipEl.textContent = t.getAttribute('data-tip');
+      tipEl.style.display = 'block';
+    }
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (tipEl && tipEl.style.display === 'block') {
+      var tw = 300, th = 90; // approx tooltip size
+      var x = e.clientX + 14;
+      var y = e.clientY - th - 10; // appear ABOVE cursor by default
+      // If too close to top, show below
+      if (y < 8) y = e.clientY + 14;
+      // If too close to right edge, shift left
+      if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 8;
+      // If too close to bottom (when showing below), shift up
+      if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
+      tipEl.style.left = x + 'px';
+      tipEl.style.top  = y + 'px';
+    }
+  });
+  document.addEventListener('mouseout', function(e) {
+    var t = e.target.closest('.tip');
+    if (t && tipEl) tipEl.style.display = 'none';
+  });
+
+  loadData();
+});
+</script>
+</body>
+</html>
