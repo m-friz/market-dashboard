@@ -6,7 +6,11 @@
 <title>Market Dashboard</title>
 <style>
 :root{--bg:#1a2640;--surf:#223050;--surf2:#2a3a60;--border:#354870;--accent:#3b82f6;--cyan:#06b6d4;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono','Fira Mono',monospace;--sans:'Inter',system-ui,sans-serif}
-body.light{--bg:#f0f4f8;--surf:#ffffff;--surf2:#e8edf5;--border:#cbd5e1;--text:#1e293b;--muted:#64748b;--accent:#2563eb;--cyan:#0891b2;--green:#059669;--red:#dc2626;--amber:#d97706}
+body.light {--bg:#f0f4f8;--surf:#ffffff;--surf2:#e8edf5;--border:#cbd5e1;--text:#1e293b;--muted:#64748b;--accent:#2563eb;--cyan:#0891b2;--green:#059669;--red:#dc2626;--amber:#d97706}
+body.navy  {--bg:#0d1b2a;--surf:#1a2d42;--surf2:#1f3652;--border:#2a4a6b;--text:#e2e8f0;--muted:#64748b;--accent:#38bdf8;--cyan:#22d3ee;--green:#34d399;--red:#f87171;--amber:#fbbf24}
+body.slate {--bg:#1e1e2e;--surf:#2a2a3e;--surf2:#32324a;--border:#44445a;--text:#cdd6f4;--muted:#6c7086;--accent:#89b4fa;--cyan:#89dceb;--green:#a6e3a1;--red:#f38ba8;--amber:#fab387}
+body.green {--bg:#0d1f13;--surf:#132a1a;--surf2:#1a3522;--border:#234d2d;--text:#d1fae5;--muted:#6b7280;--accent:#34d399;--cyan:#6ee7b7;--green:#10b981;--red:#ef4444;--amber:#f59e0b}
+body.warm  {--bg:#1c1410;--surf:#2a1f18;--surf2:#352820;--border:#4a3828;--text:#fef3c7;--muted:#92400e;--accent:#f59e0b;--cyan:#fcd34d;--green:#10b981;--red:#ef4444;--amber:#f59e0b}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
 header{background:var(--surf);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
@@ -135,7 +139,38 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <div class="logo-text">Market Dashboard</div>
   </div>
   <div class="header-right">
-    <button id="theme-btn" style="background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s" title="Toggle dark/light mode">&#9788; Light</button>
+    <button id="settings-btn" style="background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s" title="Display settings">&#9881; Display</button>
+
+<!-- Settings panel -->
+<div id="settings-panel" style="display:none;position:fixed;top:57px;right:16px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:18px 20px;z-index:9998;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:260px">
+  <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">Display Settings</div>
+
+  <!-- Theme -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Theme</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="theme-opt" data-theme="dark"   style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9790; Dark</button>
+      <button class="theme-opt" data-theme="light"  style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9788; Light</button>
+      <button class="theme-opt" data-theme="navy"   style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9632; Navy</button>
+      <button class="theme-opt" data-theme="slate"  style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9632; Slate</button>
+      <button class="theme-opt" data-theme="green"  style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9632; Forest</button>
+      <button class="theme-opt" data-theme="warm"   style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9632; Warm</button>
+    </div>
+  </div>
+
+  <!-- Font size -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Font Size</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="font-down" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:14px;cursor:pointer;font-weight:700">A-</button>
+      <span id="font-size-lbl" style="font-size:12px;color:var(--text);font-family:var(--mono);min-width:40px;text-align:center">14px</span>
+      <button id="font-up"   style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:14px;cursor:pointer;font-weight:700">A+</button>
+      <button id="font-reset" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:11px;cursor:pointer">Reset</button>
+    </div>
+  </div>
+
+  <button id="settings-close" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;margin-top:4px">Close</button>
+</div>
     <div id="last-updated">Loading...</div>
     <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
   </div>
@@ -337,18 +372,48 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 
 <script>
 
-// ── Dark/Light mode ────────────────────────────────────────────
-var isLight = localStorage.getItem('theme') === 'light';
-function applyTheme() {
-  document.body.classList.toggle('light', isLight);
-  var btn = document.getElementById('theme-btn');
-  if (btn) btn.innerHTML = isLight ? '&#9790; Dark' : '&#9788; Light';
+// ── Display settings ──────────────────────────────────────────
+var THEMES = ['dark','light','navy','slate','green','warm'];
+var currentTheme = localStorage.getItem('dashTheme') || 'dark';
+var currentFont  = parseInt(localStorage.getItem('dashFont') || '14');
+
+function applyTheme(t) {
+  currentTheme = t;
+  THEMES.forEach(function(th){ document.body.classList.remove(th); });
+  if (t !== 'dark') document.body.classList.add(t);
+  localStorage.setItem('dashTheme', t);
+  document.querySelectorAll('.theme-opt').forEach(function(b){
+    b.style.outline = b.dataset.theme === t ? '2px solid var(--accent)' : 'none';
+  });
 }
-applyTheme();
-function toggleTheme() {
-  isLight = !isLight;
-  localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  applyTheme();
+
+function applyFont(size) {
+  currentFont = Math.min(20, Math.max(11, size));
+  document.body.style.fontSize = currentFont + 'px';
+  localStorage.setItem('dashFont', currentFont);
+  var lbl = document.getElementById('font-size-lbl');
+  if (lbl) lbl.textContent = currentFont + 'px';
+}
+
+applyTheme(currentTheme);
+applyFont(currentFont);
+
+// ── Sparkline SVG ─────────────────────────────────────────────
+function makeSpark(data, w, h) {
+  if (!data || data.length < 2) return '<span style="color:var(--muted);font-size:10px">-</span>';
+  var min = Math.min.apply(null, data);
+  var max = Math.max.apply(null, data);
+  var range = max - min || 1;
+  var step  = w / (data.length - 1);
+  var pts   = data.map(function(v, i) {
+    var x = Math.round(i * step);
+    var y = Math.round(h - ((v - min) / range) * (h - 2) - 1);
+    return x + ',' + y;
+  }).join(' ');
+  var trend = data[data.length-1] >= data[0] ? 'spark-up' : 'spark-down';
+  return '<svg class="sparkline" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
+    '<polyline points="'+pts+'" fill="none" class="'+trend+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+  '</svg>';
 }
 
 var D = null;
@@ -757,23 +822,6 @@ function sortTbl(tbl, el) {
 
 
 
-// ── Sparkline SVG ─────────────────────────────────────────────
-function makeSpark(data, w, h) {
-  if (!data || data.length < 2) return '<span style="color:var(--muted);font-size:10px">-</span>';
-  var min = Math.min.apply(null, data);
-  var max = Math.max.apply(null, data);
-  var range = max - min || 1;
-  var step  = w / (data.length - 1);
-  var pts   = data.map(function(v, i) {
-    var x = Math.round(i * step);
-    var y = Math.round(h - ((v - min) / range) * (h - 2) - 1);
-    return x + ',' + y;
-  }).join(' ');
-  var trend = data[data.length-1] >= data[0] ? 'spark-up' : 'spark-down';
-  return '<svg class="sparkline" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
-    '<polyline points="'+pts+'" fill="none" class="'+trend+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
-  '</svg>';
-}
 
 var hmSortField = 'avg_1w', hmSortDir = 'desc';
 function sortHeatmap(field) {
@@ -921,8 +969,36 @@ document.addEventListener('DOMContentLoaded', function() {
   if(si) si.addEventListener('input', function(){ filterSignals(this.value); });
   var rb=document.getElementById('refresh-btn');
   if(rb) rb.addEventListener('click', loadData);
-  var tb=document.getElementById('theme-btn');
-  if(tb) tb.addEventListener('click', toggleTheme);
+  // Settings panel
+  var settingsBtn   = document.getElementById('settings-btn');
+  var settingsPanel = document.getElementById('settings-panel');
+  var settingsClose = document.getElementById('settings-close');
+
+  if (settingsBtn) settingsBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+  });
+  if (settingsClose) settingsClose.addEventListener('click', function() {
+    settingsPanel.style.display = 'none';
+  });
+  document.addEventListener('click', function(e) {
+    if (settingsPanel && !settingsPanel.contains(e.target) && e.target !== settingsBtn) {
+      settingsPanel.style.display = 'none';
+    }
+  });
+
+  // Theme buttons
+  document.querySelectorAll('.theme-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() { applyTheme(this.dataset.theme); });
+  });
+
+  // Font size
+  var fontUp    = document.getElementById('font-up');
+  var fontDown  = document.getElementById('font-down');
+  var fontReset = document.getElementById('font-reset');
+  if (fontUp)    fontUp.addEventListener('click',    function() { applyFont(currentFont + 1); });
+  if (fontDown)  fontDown.addEventListener('click',  function() { applyFont(currentFont - 1); });
+  if (fontReset) fontReset.addEventListener('click', function() { applyFont(14); });
 
   // Tooltip for .tip elements
   var tipEl = document.getElementById('tip-popup');
