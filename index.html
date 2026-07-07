@@ -427,55 +427,6 @@ function switchTab(name) {
 }
 
 // Load data from GitHub raw URL
-function loadData() {
-  var btn = document.getElementById('refresh-btn');
-  var icon = document.getElementById('btn-icon');
-  if (btn) { btn.disabled = true; }
-  if (icon) { icon.className = 'btn-spin'; icon.innerHTML = '&#10227;'; }
-  document.getElementById('last-updated').textContent = 'Loading...';
-  fetch(DATA_URL + '?t=' + Date.now())
-    .then(function(r){
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function(data){
-      D = data;
-      renderAll(data);
-      if (btn) { btn.disabled = false; }
-      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
-    })
-    .catch(function(e){
-      if (btn) { btn.disabled = false; }
-      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
-      document.getElementById('ov-loading').innerHTML =
-        '<div class="state-box"><p class="err-txt">Failed to load data: ' + e.message +
-        '<br>Data is pushed daily at 11:00 Athens. If this is your first visit, run fetchAndStore() in GAS.</p></div>';
-    });
-}
-
-function renderAll(data) {
-  document.getElementById('last-updated').textContent = 'Updated: ' + (data.lastUpdated || 'unknown');
-  document.getElementById('ov-loading').style.display = 'none';
-  document.getElementById('ov-content').style.display = 'block';
-  document.getElementById('sig-content').style.display = 'block';
-  document.getElementById('hist-content').style.display = 'block';
-
-  var wb = document.getElementById('warning-banner');
-  var ws = data.warnings || [];
-  wb.innerHTML = ws.map(function(w){ return '<div class="warn-item">! ' + esc(w) + '</div>'; }).join('');
-  wb.style.display = ws.length ? 'block' : 'none';
-
-  renderSpyBar(data.spy);
-  renderSummary(data.stocks, data.spy);
-  renderWatchlist(data.stocks);
-  renderHeatmap(data.sector_heatmap);
-  renderEvents(data.events);
-  renderActionTable(data.stocks);
-  renderRelChart(data.stocks, data.spy);
-  renderHistTable(data.stocks);
-  initAlerts(data.stocks);
-}
-
 function renderSpyBar(spy) {
   if (!spy) { document.getElementById('spy-bar').style.display='none'; return; }
   var items = [
@@ -946,6 +897,55 @@ function pn(n){ return n!==null&&n!==undefined?(n>=0?'+':'')+Number(n).toFixed(2
 function pct2(n){ return (n>=0?'+':'')+Number(n).toFixed(2)+'%'; }
 function pcls(v){ return (v||0)>=0?'tg':'tr'; }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function loadData() {
+  var btn = document.getElementById('refresh-btn');
+  var icon = document.getElementById('btn-icon');
+  if (btn) { btn.disabled = true; }
+  if (icon) { icon.className = 'btn-spin'; icon.innerHTML = '&#10227;'; }
+  document.getElementById('last-updated').textContent = 'Loading...';
+  fetch(DATA_URL + '?t=' + Date.now())
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data){
+      D = data;
+      renderAll(data);
+      if (btn) { btn.disabled = false; }
+      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
+    })
+    .catch(function(e){
+      if (btn) { btn.disabled = false; }
+      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
+      document.getElementById('ov-loading').innerHTML =
+        '<div class="state-box"><p class="err-txt">Failed to load data: ' + e.message +
+        '<br>Data is pushed daily at 11:00 Athens. If this is your first visit, run fetchAndStore() in GAS.</p></div>';
+    });
+}
+
+function renderAll(data) {
+  document.getElementById('last-updated').textContent = 'Updated: ' + (data.lastUpdated || 'unknown');
+  document.getElementById('ov-loading').style.display = 'none';
+  document.getElementById('ov-content').style.display = 'block';
+  document.getElementById('sig-content').style.display = 'block';
+  document.getElementById('hist-content').style.display = 'block';
+
+  var wb = document.getElementById('warning-banner');
+  var ws = data.warnings || [];
+  wb.innerHTML = ws.map(function(w){ return '<div class="warn-item">! ' + esc(w) + '</div>'; }).join('');
+  wb.style.display = ws.length ? 'block' : 'none';
+
+  renderSpyBar(data.spy);
+  renderSummary(data.stocks, data.spy);
+  renderWatchlist(data.stocks);
+  renderHeatmap(data.sector_heatmap);
+  renderEvents(data.events);
+  renderActionTable(data.stocks);
+  renderRelChart(data.stocks, data.spy);
+  renderHistTable(data.stocks);
+  initAlerts(data.stocks);
+}
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
