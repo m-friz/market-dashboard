@@ -194,7 +194,6 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 <div class="tabs">
   <div class="tab active" data-tab="overview">&#127968; Overview</div>
   <div class="tab" data-tab="signals">&#127919; Signals</div>
-  <div class="tab" data-tab="charts">&#128202; Charts</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
 </div>
 <main>
@@ -330,25 +329,6 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
         <button id="add-alert-btn" class="btn" style="padding:8px 20px;white-space:nowrap">+ Add Alert</button>
       </div>
       <div id="alerts-list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- CHARTS -->
-<div id="panel-charts" class="tab-panel">
-  <div id="ch-content" style="display:none">
-    <div class="panel">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-        <h3>% Change - All 20 Stocks Ranked <span class="sub" id="chart-period-lbl">This Week</span></h3>
-        <div style="display:flex;gap:6px">
-          <button class="period-btn active-period" data-period="pct_1w" data-period-label="This Week" id="btn-1w">1W</button>
-          <button class="period-btn" data-period="pct_1m" data-period-label="This Month" id="btn-1m">1M</button>
-          <button class="period-btn" data-period="pct_3m" data-period-label="3 Months" id="btn-3m">3M</button>
-          <button class="period-btn" data-period="pct_ytd" data-period-label="Year to Date" id="btn-ytd">YTD</button>
-        </div>
-      </div>
-      <div id="chart-spy-line" style="display:none;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;color:var(--cyan);font-family:var(--mono)"></div>
-      <div class="bar-chart" id="chart-main"></div>
     </div>
   </div>
 </div>
@@ -493,7 +473,6 @@ function renderAll(data) {
   renderEvents(data.events);
   renderActionTable(data.stocks);
   renderRelChart(data.stocks, data.spy);
-  setChartPeriod('pct_1w', 'This Week');
   renderHistTable(data.stocks);
   initAlerts(data.stocks);
 }
@@ -567,6 +546,7 @@ function renderWatchlist(stocks) {
           var maClr=s.above_ma50===null?'var(--muted)':s.above_ma50?'var(--green)':'var(--red)';
           var maBg=s.above_ma50===null?'rgba(100,116,139,.1)':s.above_ma50?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)';
           var maLbl=s.above_ma50===null?'MA -':s.above_ma50?'^ 50MA':'v 50MA';
+          var maTip=s.above_ma50===null?'50-day Moving Average: no data available':s.above_ma50?'Above 50MA: price is above its 50-day average. Uptrend in place. Dips are buying opportunities.':'Below 50MA: price is below its 50-day average. Downtrend in place. Rallies are selling opportunities.';
           var earnHtml=(s.earnings_days!==null&&s.earnings_days!==undefined)?'<span class="earn-warn">! '+s.earnings_days+'d</span>':'';
           return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'+
@@ -585,7 +565,7 @@ function renderWatchlist(stocks) {
             '</div>'+
             '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
               '<span title="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
-              '<span style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">'+maLbl+'</span>'+
+              '<span title="'+maTip+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help" class="tip" data-tip="'+maTip+'">'+maLbl+'</span>'+
               earnHtml+
               '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
                 '<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+sw+'/100</span>'+
@@ -1029,9 +1009,15 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.addEventListener('mousemove', function(e) {
     if (tipEl && tipEl.style.display === 'block') {
-      var x = e.clientX + 14, y = e.clientY + 14;
-      if (x + 310 > window.innerWidth) x = e.clientX - 314;
-      if (y + 100 > window.innerHeight) y = e.clientY - 80;
+      var tw = 300, th = 90; // approx tooltip size
+      var x = e.clientX + 14;
+      var y = e.clientY - th - 10; // appear ABOVE cursor by default
+      // If too close to top, show below
+      if (y < 8) y = e.clientY + 14;
+      // If too close to right edge, shift left
+      if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 8;
+      // If too close to bottom (when showing below), shift up
+      if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
       tipEl.style.left = x + 'px';
       tipEl.style.top  = y + 'px';
     }
