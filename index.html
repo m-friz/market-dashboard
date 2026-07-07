@@ -6,6 +6,7 @@
 <title>Market Dashboard</title>
 <style>
 :root{--bg:#1a2640;--surf:#223050;--surf2:#2a3a60;--border:#354870;--accent:#3b82f6;--cyan:#06b6d4;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono','Fira Mono',monospace;--sans:'Inter',system-ui,sans-serif}
+body.light{--bg:#f0f4f8;--surf:#ffffff;--surf2:#e8edf5;--border:#cbd5e1;--text:#1e293b;--muted:#64748b;--accent:#2563eb;--cyan:#0891b2;--green:#059669;--red:#dc2626;--amber:#d97706}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
 header{background:var(--surf);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
@@ -122,6 +123,9 @@ tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;col
 .tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
 #tip-popup{display:none;position:fixed;background:#0d1929;color:var(--text);border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:12px;line-height:1.6;white-space:normal;width:300px;z-index:99999;box-shadow:0 4px 24px rgba(0,0,0,.8);pointer-events:none;font-family:var(--sans)}
 footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px}
+
+.sparkline{display:inline-block;vertical-align:middle}
+.spark-up{stroke:#10b981}.spark-down{stroke:#ef4444}.spark-flat{stroke:#64748b}
 </style>
 </head>
 <body>
@@ -131,6 +135,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <div class="logo-text">Market Dashboard</div>
   </div>
   <div class="header-right">
+    <button id="theme-btn" style="background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s" title="Toggle dark/light mode">&#9788; Light</button>
     <div id="last-updated">Loading...</div>
     <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
   </div>
@@ -233,6 +238,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th class="sort" data-f="rsi14" data-tbl="action"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
             <th><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
             <th class="sort" data-f="pos_52w" data-tbl="action"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
+            <th><span class="tip" data-tip="5-day price trend: shows direction of price movement over the last 5 trading days">Trend</span></th>
             <th>Flags</th>
             <th>What it means</th>
           </tr>
@@ -290,6 +296,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <button class="period-btn" data-period="pct_ytd" data-period-label="Year to Date" id="btn-ytd">YTD</button>
         </div>
       </div>
+      <div id="chart-spy-line" style="display:none;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;color:var(--cyan);font-family:var(--mono)"></div>
       <div class="bar-chart" id="chart-main"></div>
     </div>
   </div>
@@ -329,6 +336,21 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 <footer>Prices: Finnhub &middot; History, RSI, MA, Volume: Yahoo Finance &middot; Earnings: Finnhub &middot; Data pushed daily by GAS &middot; Not financial advice.</footer>
 
 <script>
+
+// ── Dark/Light mode ────────────────────────────────────────────
+var isLight = localStorage.getItem('theme') === 'light';
+function applyTheme() {
+  document.body.classList.toggle('light', isLight);
+  var btn = document.getElementById('theme-btn');
+  if (btn) btn.innerHTML = isLight ? '&#9790; Dark' : '&#9788; Light';
+}
+applyTheme();
+function toggleTheme() {
+  isLight = !isLight;
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  applyTheme();
+}
+
 var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
@@ -469,7 +491,8 @@ function renderWatchlist(stocks) {
                 '<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);min-width:48px">'+esc(s.ticker)+'</span>'+
                 '<div>'+
                   '<div style="font-size:12px;font-weight:600">'+esc(s.company)+'</div>'+
-                  '<div style="font-size:10px;color:var(--muted)">'+esc(s.sector)+' - $'+fmt(s.price)+'</div>'+
+                  '<div style="font-size:10px;color:var(--muted)">'+esc(s.sector)+'</div>'+
+                '<div style="font-size:10px;color:var(--muted)">$'+fmt(s.price)+' &nbsp;|&nbsp; 52W: $'+fmt(s.low_52w||0)+' - $'+fmt(s.high_52w||0)+'</div>'+
                 '</div>'+
               '</div>'+
               '<div style="text-align:right">'+
@@ -483,8 +506,8 @@ function renderWatchlist(stocks) {
               earnHtml+
               '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
                 '<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+sw+'/100</span>'+
-                '<div style="width:44px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">'+
-                  '<div style="width:'+sw+'%;height:100%;background:'+sfClr+';border-radius:2px"></div>'+
+                '<div style="width:44px;height:6px;background:var(--border);border-radius:3px;overflow:hidden">'+
+                  '<div style="width:'+sw+'%;height:100%;background:'+sfClr+';border-radius:3px;transition:width .5s"></div>'+
                 '</div>'+
               '</div>'+
             '</div>'+
@@ -571,6 +594,7 @@ function renderActionTable(stocks) {
       '<td>'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
       '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
       '<td>'+range52+'</td>'+
+      '<td>'+makeSpark(st.spark||[], 50, 18)+'</td>'+
       '<td style="white-space:nowrap">'+flags+'</td>'+
       '<td style="text-align:left;max-width:200px;white-space:normal;font-size:11px;color:var(--muted);line-height:1.4">'+esc(meaning)+'</td>'+
     '</tr>';
@@ -620,6 +644,25 @@ function renderAllRanked(id, stocks, field) {
   if(!valid.length){ document.getElementById(id).innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Data pending next refresh.</div>'; return; }
   var sorted=valid.slice().sort(function(a,b){ return b[field]-a[field]; });
   var maxAbs=Math.max.apply(null,sorted.map(function(s){ return Math.abs(s[field]); }).concat([.01]));
+
+  // Show SPY benchmark line for 1W view
+  var spyLine = document.getElementById('chart-spy-line');
+  if (spyLine) {
+    if (field === 'pct_1w' && D && D.spy && D.spy.pct_1w !== null) {
+      var spyPct = D.spy.pct_1w;
+      var spyW   = Math.round((Math.abs(spyPct) / maxAbs) * 92);
+      spyLine.style.display = 'flex';
+      spyLine.innerHTML = '<span>SPY benchmark:</span>' +
+        '<div style="flex:1;height:2px;background:var(--border);border-radius:1px;position:relative;max-width:'+Math.round(92/100*600)+'px">' +
+          '<div style="position:absolute;left:0;top:0;width:'+spyW+'%;height:2px;background:var(--cyan);border-radius:1px"></div>' +
+          '<div style="position:absolute;left:'+spyW+'%;top:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:var(--cyan)"></div>' +
+        '</div>' +
+        '<span style="color:var(--cyan)">'+(spyPct>=0?'+':'')+spyPct+'% (SPY)</span>';
+    } else {
+      spyLine.style.display = 'none';
+    }
+  }
+
   document.getElementById(id).innerHTML=sorted.map(function(s,i){
     return makeBar(s,i+1,s[field],maxAbs,s[field]>=0?'pos':'neg');
   }).join('');
@@ -631,8 +674,12 @@ function makeBar(s, rank, pct, maxAbs, cls) {
   var sigL=s.signal==='STRONG'?'Strong':s.signal==='WEAK'?'Weak':'Neutral';
   var rsiTxt=s.rsi14!==null?'RSI: '+s.rsi14+(s.rsi14<30?' (oversold)':s.rsi14>70?' (overbought)':''):'RSI: N/A';
   var maTxt=s.above_ma50!==null?(s.above_ma50?'Above':'Below')+' 50MA':'50MA: N/A';
+  var sparkSvg = makeSpark(s.spark || [], 60, 20);
   var tooltip='<div class="bar-tooltip">'+
-    '<div class="tt-name">'+esc(s.company)+(s.alert?' *':'')+(s.vol_spike?' V':'')+'</div>'+
+    '<div class="tt-name" style="display:flex;align-items:center;justify-content:space-between">'+
+      '<span>'+esc(s.company)+(s.alert?' *':'')+(s.vol_spike?' V':'')+'</span>'+
+      sparkSvg+
+    '</div>'+
     '<div class="tt-row">Price: <span class="tt-p">$'+fmt(s.price)+'</span> | Score: <span class="tt-a">'+s.score+'/100</span> | <span class="sig '+sigC+'">'+sigL+'</span></div>'+
     '<div class="tt-row">1W: <span class="'+(s.pct_1w>=0?'tt-g':'tt-r')+'">'+p(s.pct_1w)+'</span>'+(s.rel_1w!==null?' (vs SPY: '+p(s.rel_1w)+')':'')+' | 1M: <span class="'+(s.pct_1m!==null&&s.pct_1m>=0?'tt-g':'tt-r')+'">'+pn(s.pct_1m)+'</span> | YTD: <span class="'+((s.pct_ytd||0)>=0?'tt-g':'tt-r')+'">'+pn(s.pct_ytd)+'</span></div>'+
     '<div class="tt-row">'+rsiTxt+' | '+maTxt+'</div>'+
@@ -708,6 +755,25 @@ function sortTbl(tbl, el) {
   }
 }
 
+
+
+// ── Sparkline SVG ─────────────────────────────────────────────
+function makeSpark(data, w, h) {
+  if (!data || data.length < 2) return '<span style="color:var(--muted);font-size:10px">-</span>';
+  var min = Math.min.apply(null, data);
+  var max = Math.max.apply(null, data);
+  var range = max - min || 1;
+  var step  = w / (data.length - 1);
+  var pts   = data.map(function(v, i) {
+    var x = Math.round(i * step);
+    var y = Math.round(h - ((v - min) / range) * (h - 2) - 1);
+    return x + ',' + y;
+  }).join(' ');
+  var trend = data[data.length-1] >= data[0] ? 'spark-up' : 'spark-down';
+  return '<svg class="sparkline" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
+    '<polyline points="'+pts+'" fill="none" class="'+trend+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+  '</svg>';
+}
 
 var hmSortField = 'avg_1w', hmSortDir = 'desc';
 function sortHeatmap(field) {
@@ -855,6 +921,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if(si) si.addEventListener('input', function(){ filterSignals(this.value); });
   var rb=document.getElementById('refresh-btn');
   if(rb) rb.addEventListener('click', loadData);
+  var tb=document.getElementById('theme-btn');
+  if(tb) tb.addEventListener('click', toggleTheme);
 
   // Tooltip for .tip elements
   var tipEl = document.getElementById('tip-popup');
