@@ -6,11 +6,18 @@
 <title>Market Dashboard</title>
 <style>
 :root{--bg:#1a2640;--surf:#223050;--surf2:#2a3a60;--border:#354870;--accent:#3b82f6;--cyan:#06b6d4;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono','Fira Mono',monospace;--sans:'Inter',system-ui,sans-serif}
-body.light {--bg:#f0f4f8;--surf:#ffffff;--surf2:#e8edf5;--border:#cbd5e1;--text:#1e293b;--muted:#64748b;--accent:#2563eb;--cyan:#0891b2;--green:#059669;--red:#dc2626;--amber:#d97706}
-body.navy  {--bg:#0d1b2a;--surf:#1a2d42;--surf2:#1f3652;--border:#2a4a6b;--text:#e2e8f0;--muted:#64748b;--accent:#38bdf8;--cyan:#22d3ee;--green:#34d399;--red:#f87171;--amber:#fbbf24}
-body.slate {--bg:#1e1e2e;--surf:#2a2a3e;--surf2:#32324a;--border:#44445a;--text:#cdd6f4;--muted:#6c7086;--accent:#89b4fa;--cyan:#89dceb;--green:#a6e3a1;--red:#f38ba8;--amber:#fab387}
-body.green {--bg:#0d1f13;--surf:#132a1a;--surf2:#1a3522;--border:#234d2d;--text:#d1fae5;--muted:#6b7280;--accent:#34d399;--cyan:#6ee7b7;--green:#10b981;--red:#ef4444;--amber:#f59e0b}
-body.warm  {--bg:#1c1410;--surf:#2a1f18;--surf2:#352820;--border:#4a3828;--text:#fef3c7;--muted:#92400e;--accent:#f59e0b;--cyan:#fcd34d;--green:#10b981;--red:#ef4444;--amber:#f59e0b}
+/* Light themes */
+body.light   {--bg:#f0f4f8;--surf:#ffffff;--surf2:#e8edf5;--border:#cbd5e1;--text:#1e293b;--muted:#64748b;--accent:#2563eb;--cyan:#0891b2;--green:#059669;--red:#dc2626;--amber:#d97706}
+body.pearl   {--bg:#f8f6f2;--surf:#ffffff;--surf2:#f0ede7;--border:#ddd8cf;--text:#2d2a26;--muted:#78716c;--accent:#7c3aed;--cyan:#0891b2;--green:#059669;--red:#dc2626;--amber:#d97706}
+body.sky     {--bg:#e8f4fd;--surf:#ffffff;--surf2:#d6ebf8;--border:#bdd7ee;--text:#0f2942;--muted:#5b7fa6;--accent:#0369a1;--cyan:#0284c7;--green:#059669;--red:#dc2626;--amber:#d97706}
+body.mint    {--bg:#ecfdf5;--surf:#ffffff;--surf2:#d1fae5;--border:#a7f3d0;--text:#064e3b;--muted:#6b7280;--accent:#059669;--cyan:#0891b2;--green:#047857;--red:#dc2626;--amber:#d97706}
+body.rose    {--bg:#fff1f2;--surf:#ffffff;--surf2:#ffe4e6;--border:#fecdd3;--text:#4c0519;--muted:#9f8a8d;--accent:#e11d48;--cyan:#0891b2;--green:#059669;--red:#be123c;--amber:#d97706}
+/* Dark themes */
+body.navy    {--bg:#0d1b2a;--surf:#1a2d42;--surf2:#1f3652;--border:#2a4a6b;--text:#e2e8f0;--muted:#64748b;--accent:#38bdf8;--cyan:#22d3ee;--green:#34d399;--red:#f87171;--amber:#fbbf24}
+body.slate   {--bg:#1e1e2e;--surf:#2a2a3e;--surf2:#32324a;--border:#44445a;--text:#cdd6f4;--muted:#6c7086;--accent:#89b4fa;--cyan:#89dceb;--green:#a6e3a1;--red:#f38ba8;--amber:#fab387}
+body.forest  {--bg:#0d1f13;--surf:#132a1a;--surf2:#1a3522;--border:#234d2d;--text:#d1fae5;--muted:#6b7280;--accent:#34d399;--cyan:#6ee7b7;--green:#10b981;--red:#ef4444;--amber:#f59e0b}
+body.midnight{--bg:#09090b;--surf:#18181b;--surf2:#27272a;--border:#3f3f46;--text:#fafafa;--muted:#71717a;--accent:#a78bfa;--cyan:#67e8f9;--green:#4ade80;--red:#f87171;--amber:#fbbf24}
+body.ocean   {--bg:#0c1926;--surf:#0f2a3d;--surf2:#143550;--border:#1e4d70;--text:#e0f2fe;--muted:#5b8ba8;--accent:#06b6d4;--cyan:#22d3ee;--green:#34d399;--red:#f87171;--amber:#fbbf24}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
 header{background:var(--surf);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
@@ -148,13 +155,22 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <!-- Theme -->
   <div style="margin-bottom:14px">
     <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Theme</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="theme-opt" data-theme="dark"   style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9790; Dark</button>
-      <button class="theme-opt" data-theme="light"  style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9788; Light</button>
-      <button class="theme-opt" data-theme="navy"   style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9632; Navy</button>
-      <button class="theme-opt" data-theme="slate"  style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9632; Slate</button>
-      <button class="theme-opt" data-theme="green"  style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9632; Forest</button>
-      <button class="theme-opt" data-theme="warm"   style="padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--text)">&#9632; Warm</button>
+    <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Light</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="theme-opt" data-theme="light"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#f0f4f8;color:#1e293b">Light</button>
+      <button class="theme-opt" data-theme="pearl"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#f8f6f2;color:#2d2a26">Pearl</button>
+      <button class="theme-opt" data-theme="sky"      style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#e8f4fd;color:#0f2942">Sky</button>
+      <button class="theme-opt" data-theme="mint"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#ecfdf5;color:#064e3b">Mint</button>
+      <button class="theme-opt" data-theme="rose"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#fff1f2;color:#4c0519">Rose</button>
+    </div>
+    <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Dark</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      <button class="theme-opt" data-theme="dark"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#1a2640;color:#e2e8f0">Dark</button>
+      <button class="theme-opt" data-theme="navy"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0d1b2a;color:#e2e8f0">Navy</button>
+      <button class="theme-opt" data-theme="slate"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#1e1e2e;color:#cdd6f4">Slate</button>
+      <button class="theme-opt" data-theme="forest"   style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0d1f13;color:#d1fae5">Forest</button>
+      <button class="theme-opt" data-theme="midnight" style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#09090b;color:#fafafa">Midnight</button>
+      <button class="theme-opt" data-theme="ocean"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0c1926;color:#e0f2fe">Ocean</button>
     </div>
   </div>
 
@@ -373,7 +389,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 <script>
 
 // ── Display settings ──────────────────────────────────────────
-var THEMES = ['dark','light','navy','slate','green','warm'];
+var THEMES = ['dark','light','pearl','sky','mint','rose','navy','slate','forest','midnight','ocean'];
 var currentTheme = localStorage.getItem('dashTheme') || 'dark';
 var currentFont  = parseInt(localStorage.getItem('dashFont') || '14');
 
@@ -389,7 +405,9 @@ function applyTheme(t) {
 
 function applyFont(size) {
   currentFont = Math.min(20, Math.max(11, size));
-  document.body.style.fontSize = currentFont + 'px';
+  // Scale html root font-size — all px values in CSS become relative via zoom
+  document.documentElement.style.zoom = (currentFont / 14).toFixed(2);
+  document.documentElement.style.fontSize = currentFont + 'px';
   localStorage.setItem('dashFont', currentFont);
   var lbl = document.getElementById('font-size-lbl');
   if (lbl) lbl.textContent = currentFont + 'px';
