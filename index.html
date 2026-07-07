@@ -119,9 +119,8 @@ tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;col
 .period-btn{background:var(--surf2);color:var(--muted);border:1px solid var(--border);padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .period-btn:hover{color:var(--text);border-color:var(--accent)}
 .active-period{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
-.tip{position:relative;border-bottom:1px dashed var(--muted);cursor:help;display:inline}
-.tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#0d1929;color:var(--text);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-size:11px;line-height:1.5;white-space:normal;width:280px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.6);pointer-events:none;opacity:0;transition:opacity .15s;font-family:var(--sans);font-weight:400}
-.tip:hover::after{opacity:1}
+.tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
+#tip-popup{display:none;position:fixed;background:#0d1929;color:var(--text);border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:12px;line-height:1.6;white-space:normal;width:300px;z-index:99999;box-shadow:0 4px 24px rgba(0,0,0,.8);pointer-events:none;font-family:var(--sans)}
 footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px}
 </style>
 </head>
@@ -133,7 +132,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   </div>
   <div class="header-right">
     <div id="last-updated">Loading...</div>
-    <button class="btn" id="refresh-btn"><span id="btn-icon">&#8635;</span> Refresh</button>
+    <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
   </div>
 </header>
 <div class="tabs">
@@ -326,6 +325,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 </div>
 
 </main>
+<div id="tip-popup"></div>
 <footer>Prices: Finnhub &middot; History, RSI, MA, Volume: Yahoo Finance &middot; Earnings: Finnhub &middot; Data pushed daily by GAS &middot; Not financial advice.</footer>
 
 <script>
@@ -346,7 +346,7 @@ function loadData() {
   var btn = document.getElementById('refresh-btn');
   var icon = document.getElementById('btn-icon');
   if (btn) { btn.disabled = true; }
-  if (icon) { icon.className = 'btn-spin'; icon.textContent = '&#8635;'; }
+  if (icon) { icon.className = 'btn-spin'; icon.innerHTML = '&#10227;'; }
   document.getElementById('last-updated').textContent = 'Loading...';
   fetch(DATA_URL + '?t=' + Date.now())
     .then(function(r){
@@ -357,11 +357,11 @@ function loadData() {
       D = data;
       renderAll(data);
       if (btn) { btn.disabled = false; }
-      if (icon) { icon.className = ''; icon.textContent = '&#8635;'; }
+      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
     })
     .catch(function(e){
       if (btn) { btn.disabled = false; }
-      if (icon) { icon.className = ''; icon.textContent = '&#8635;'; }
+      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
       document.getElementById('ov-loading').innerHTML =
         '<div class="state-box"><p class="err-txt">Failed to load data: ' + e.message +
         '<br>Data is pushed daily at 11:00 Athens. If this is your first visit, run fetchAndStore() in GAS.</p></div>';
@@ -855,6 +855,30 @@ document.addEventListener('DOMContentLoaded', function() {
   if(si) si.addEventListener('input', function(){ filterSignals(this.value); });
   var rb=document.getElementById('refresh-btn');
   if(rb) rb.addEventListener('click', loadData);
+
+  // Tooltip for .tip elements
+  var tipEl = document.getElementById('tip-popup');
+  document.addEventListener('mouseover', function(e) {
+    var t = e.target.closest('.tip');
+    if (t && tipEl) {
+      tipEl.textContent = t.getAttribute('data-tip');
+      tipEl.style.display = 'block';
+    }
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (tipEl && tipEl.style.display === 'block') {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth) x = e.clientX - 314;
+      if (y + 100 > window.innerHeight) y = e.clientY - 80;
+      tipEl.style.left = x + 'px';
+      tipEl.style.top  = y + 'px';
+    }
+  });
+  document.addEventListener('mouseout', function(e) {
+    var t = e.target.closest('.tip');
+    if (t && tipEl) tipEl.style.display = 'none';
+  });
+
   loadData();
 });
 </script>
