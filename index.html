@@ -195,6 +195,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div class="tab active" data-tab="overview">&#127968; Overview</div>
   <div class="tab" data-tab="signals">&#127919; Signals</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
+  <div class="tab" data-tab="guide">&#128218; Guide</div>
 </div>
 <main>
 
@@ -360,6 +361,201 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
       </table>
     </div>
   </div>
+</div>
+
+
+<!-- GUIDE -->
+<div id="panel-guide" class="tab-panel">
+<div style="max-width:820px;margin:0 auto;padding:8px 0">
+
+  <!-- Disclaimer -->
+  <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--amber);line-height:1.7">
+    <strong>Important:</strong> This dashboard shows momentum signals based on price data only.
+    It does NOT consider company fundamentals, earnings quality, debt, valuation, or macroeconomic factors.
+    Always do your own research before making any investment decision. <strong>Not financial advice.</strong>
+  </div>
+
+  <!-- Step by step -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <!-- Step 1 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">1</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Start with the Overview tab — find Strong Momentum stocks</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        The three watchlist columns (Strong / Neutral / Weak) give you the first filter.
+        <strong style="color:var(--green)">Only consider stocks in Strong Momentum for buying.</strong>
+        Neutral and Weak stocks are either going sideways or declining — not the right time to enter.
+        Strong Momentum means the stock is outperforming its peers across 1W, 1M, and YTD timeframes.
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">2</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Check RSI — is it a good time to enter?</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        RSI tells you whether a stock has been bought too aggressively already.
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;max-width:480px">
+          <span style="color:var(--green);font-family:var(--mono);font-weight:700">RSI &lt; 40</span>
+          <span>Pulled back significantly — good entry zone, trend may resume</span>
+          <span style="color:var(--green);font-family:var(--mono);font-weight:700">RSI 40-60</span>
+          <span>Neutral — reasonable entry, not stretched</span>
+          <span style="color:var(--amber);font-family:var(--mono);font-weight:700">RSI 60-70</span>
+          <span>Getting stretched — consider waiting for a pullback</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">RSI &gt; 70</span>
+          <span>Overbought — the move likely already happened, do not chase</span>
+        </div>
+        <div style="margin-top:10px;color:var(--text);font-weight:600">Best entry: Strong Momentum + RSI under 60</div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">3</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Check 50MA — is the trend structurally intact?</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        The 50-day Moving Average confirms whether the medium-term trend is healthy.
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;max-width:480px">
+          <span style="color:var(--green);font-family:var(--mono);font-weight:700">^ Above 50MA</span>
+          <span>Uptrend intact — dips are buying opportunities</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">v Below 50MA</span>
+          <span>Downtrend — even short-term rallies can be traps</span>
+        </div>
+        <div style="margin-top:10px;color:var(--text);font-weight:600">Rule: Only buy stocks above their 50MA.</div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">4</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Use the Signals tab for deeper analysis</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        Sort the Signals table by Score (descending). For your top candidates check:
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;max-width:520px">
+          <span style="color:var(--text);font-family:var(--mono);font-weight:700">52W Position</span>
+          <span>40-85% is ideal. Under 40% = weak trend. Over 85% = extended, higher risk.</span>
+          <span style="color:var(--text);font-family:var(--mono);font-weight:700">vs SPY</span>
+          <span>Positive = beating the market, not just riding it. This is genuine outperformance.</span>
+          <span style="color:var(--amber);font-family:var(--mono);font-weight:700">EARN flag</span>
+          <span>Earnings coming up — price can move sharply in either direction. Wait until after.</span>
+          <span style="color:var(--amber);font-family:var(--mono);font-weight:700">+5% flag</span>
+          <span>Already moved strongly this week — may be extended. Wait for consolidation.</span>
+          <span style="color:var(--text);font-family:var(--mono);font-weight:700">Trend sparkline</span>
+          <span>Green rising line = steady uptrend this week. Prefer smooth rises over sharp spikes.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">5</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Check Historical tab for context</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        Sort by YTD. A stock up +80% YTD already has a lot of gain priced in — much higher risk entry.
+        A stock up +15% YTD with Strong momentum and RSI under 50 is a cleaner, lower-risk setup.
+        <div style="margin-top:10px;background:var(--surf2);border-radius:8px;padding:12px 14px">
+          <div style="color:var(--text);font-weight:600;margin-bottom:6px">Sweet spot to look for:</div>
+          YTD gain 10-40% &nbsp;&#183;&nbsp; Strong Momentum &nbsp;&#183;&nbsp; Above 50MA &nbsp;&#183;&nbsp; RSI under 60 &nbsp;&#183;&nbsp; 52W position 40-80% &nbsp;&#183;&nbsp; vs SPY positive &nbsp;&#183;&nbsp; No EARN flag
+        </div>
+      </div>
+    </div>
+
+    <!-- When to sell -->
+    <div style="background:var(--surf);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">!</div>
+        <div style="font-size:14px;font-weight:700;color:var(--red)">When to consider selling / reducing</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;max-width:520px">
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">Signal: Weak</span>
+          <span>Stock has dropped to Weak Momentum — trend broken vs peers</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">v Below 50MA</span>
+          <span>Price crossed below 50MA — medium-term trend has turned down</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">RSI &gt; 75</span>
+          <span>Very overbought — take some profit, the move is likely overextended</span>
+          <span style="color:var(--red);font-family:var(--mono);font-weight:700">52W Pos &gt; 95%</span>
+          <span>At or near yearly high — limited upside, consider trimming</span>
+          <span style="color:var(--amber);font-family:var(--mono);font-weight:700">EARN flag</span>
+          <span>If you have a large gain and earnings are in &lt;7 days, consider reducing risk</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary table -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">Quick Reference Cheat Sheet</div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Indicator</th>
+            <th style="padding:8px 12px;text-align:center;color:var(--green);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Good to Buy</th>
+            <th style="padding:8px 12px;text-align:center;color:var(--amber);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Caution</th>
+            <th style="padding:8px 12px;text-align:center;color:var(--red);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Avoid / Sell</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">Momentum Signal</td>
+            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(16,185,129,.15);color:var(--green);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Strong</span></td>
+            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(245,158,11,.15);color:var(--amber);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Neutral</span></td>
+            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(239,68,68,.15);color:var(--red);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Weak</span></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">RSI-14</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">&lt; 60</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">60 - 70</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 70</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">50MA</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green)">^ Above</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--muted)">Just crossed</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red)">v Below</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">52W Position</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">40 - 80%</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">80 - 90%</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 90% or &lt; 20%</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">vs SPY</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green)">Positive</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--muted)">Near zero</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red)">Negative</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 12px;font-weight:600">YTD Gain</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">10 - 40%</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">40 - 70%</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 70%</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 12px;font-weight:600">Flags</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green)">No flags</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber)">VOL spike</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red)">EARN &lt;7d or +5%</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+  </div>
+</div>
 </div>
 
 </main>
