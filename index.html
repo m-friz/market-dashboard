@@ -373,30 +373,53 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <!-- Explanation banner -->
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.8">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px 32px">
+
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
-            <span class="tip" data-tip="Dividend Yield: annual dividend payment divided by current stock price. A 3% yield means you receive $3 per year for every $100 invested. Higher is not always better — very high yields can signal a company in trouble.">Yield %</span>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+            <span class="tip" data-tip="Dividend Yield: annual dividend divided by current stock price. Higher is not always better - very high yields can signal the stock price dropped sharply.">Yield %</span>
           </div>
-          Annual dividend / current price. Shows your income return.
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:11px">
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></span><span style="color:var(--muted)">&lt;1% minimal income</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--cyan);flex-shrink:0"></span><span>1-4% healthy range</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></span><span>4%+ high, check payout</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span><span style="color:var(--muted)">6%+ may be unsustainable</span></div>
+          </div>
         </div>
+
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
-            <span class="tip" data-tip="Annual Dividend Per Share: total cash paid per share over the past 12 months. Multiply by number of shares you own to calculate your annual income.">Annual DPS</span>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+            <span class="tip" data-tip="Annual Dividend Per Share: cash paid per share per year. Multiply by shares owned to get your annual income. Example: $5 DPS x 100 shares = $500/year.">Annual DPS</span>
           </div>
-          Cash paid per share per year.
+          <div style="font-size:11px;color:var(--muted);line-height:1.8">
+            Cash per share per year.<br>
+            Multiply by shares you own<br>
+            to get your annual income.
+          </div>
         </div>
+
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
-            <span class="tip" data-tip="Payout Ratio: percentage of earnings paid as dividends. Under 60% = sustainable (company keeps enough to reinvest). 60-80% = watch carefully. Over 80% = at risk of being cut if earnings fall.">Payout Ratio</span>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+            <span class="tip" data-tip="Payout Ratio: % of earnings paid as dividends. Low = more buffer if earnings fall. Over 100% means paying more than it earns.">Payout Ratio</span>
           </div>
-          % of earnings paid out. Under 60% = healthy.
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:11px">
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></span><span>&lt;60% sustainable</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0"></span><span>60-80% monitor</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span><span style="color:var(--muted)">&gt;80% at risk</span></div>
+          </div>
         </div>
+
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
-            <span class="tip" data-tip="5-Year Dividend Growth Rate: average annual % increase in dividend over the past 5 years. Positive = company is growing its payout. 5%+ is excellent. Negative = dividend was cut at some point.">5Y Growth</span>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+            <span class="tip" data-tip="5-Year Dividend Growth Rate: avg annual % increase in dividend. Companies that consistently raise dividends tend to be financially strong.">5Y Growth</span>
           </div>
-          How fast the dividend has grown. 5%+ is excellent.
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:11px">
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span><span style="color:var(--muted)">&lt;0% dividend was cut</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></span><span style="color:var(--muted)">0-3% stable, slow</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--cyan);flex-shrink:0"></span><span>3-7% healthy growth</span></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></span><span>7%+ excellent</span></div>
+          </div>
         </div>
+
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
         Only stocks from the tracked 20 that currently pay a dividend are shown. Data from Finnhub.
