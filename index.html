@@ -196,6 +196,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div class="tab" data-tab="signals">&#127919; Signals</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
   <div class="tab" data-tab="dividends">&#128176; Dividends</div>
+  <div class="tab" data-tab="greek">&#127987; Greek</div>
   <div class="tab" data-tab="guide">&#128218; Guide</div>
 </div>
 <main>
@@ -470,6 +471,68 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
         <div>&#10003; Above 50MA (stock price in uptrend — total return matters too)</div>
         <div>&#10003; No earnings flag (avoid buying just before earnings report)</div>
       </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- GREEK STOCKS -->
+<div id="panel-greek" class="tab-panel">
+  <div id="greek-content" style="display:none">
+
+    <!-- Header banner -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Athens Exchange (ATHEX) &#8212; Top 10 Greek Stocks</div>
+        <div style="font-size:11px;color:var(--muted)">Prices in EUR &#183; Data via Yahoo Finance &#183; Scores ranked within Greek universe only</div>
+      </div>
+      <div id="greek-summary-inline" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
+    </div>
+
+    <!-- Summary cards -->
+    <div id="greek-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px"></div>
+
+    <!-- Watchlist Strong/Neutral/Weak -->
+    <div id="greek-watchlist" style="margin-bottom:16px"></div>
+
+    <!-- Full table -->
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="sort" data-f="company" data-tbl="greek">Company</th>
+            <th>Ticker</th>
+            <th>Sector</th>
+            <th class="sort" data-f="price" data-tbl="greek">Price (EUR)</th>
+            <th class="sort" data-f="score" data-tbl="greek">Score</th>
+            <th class="sort" data-f="signal" data-tbl="greek">Signal</th>
+            <th class="sort sd" data-f="pct_1w" data-tbl="greek">&#916; 1W</th>
+            <th class="sort" data-f="pct_1m" data-tbl="greek">&#916; 1M</th>
+            <th class="sort" data-f="pct_ytd" data-tbl="greek">&#916; YTD</th>
+            <th class="sort" data-f="rsi14" data-tbl="greek">
+              <span class="tip" data-tip="Relative Strength Index (14-day). Under 30 = oversold. Over 70 = overbought.">RSI-14</span>
+            </th>
+            <th>
+              <span class="tip" data-tip="50-Day Moving Average. Above = uptrend. Below = downtrend.">50MA</span>
+            </th>
+            <th class="sort" data-f="pos_52w" data-tbl="greek">
+              <span class="tip" data-tip="52-Week Position: where price sits between yearly low and high. 100% = at yearly high.">52W Pos</span>
+            </th>
+            <th>Trend</th>
+            <th>Flags</th>
+          </tr>
+        </thead>
+        <tbody id="greek-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Note -->
+    <div style="font-size:11px;color:var(--muted);padding:10px 4px;line-height:1.7">
+      * Scores are calculated relative to the Greek universe only, not vs US stocks. &#183;
+      Earnings calendar and market cap not available for Greek stocks on free tier. &#183;
+      Greek market hours: 10:00-17:30 Athens time (Mon-Fri).
     </div>
 
   </div>
@@ -893,6 +956,156 @@ function renderDivTable(dividends, stocks) {
   }).join('');
 }
 
+
+// ── Greek Stocks tab ──────────────────────────────────────────
+var greekSortField = 'pct_1w', greekSortDir = 'desc';
+
+function renderGreek(greek) {
+  var el = document.getElementById('greek-content');
+  if (!el) return;
+  el.style.display = 'block';
+
+  if (!greek || !greek.length) {
+    document.getElementById('greek-body').innerHTML =
+      '<tr><td colspan="15" style="text-align:center;padding:24px;color:var(--muted)">No Greek stock data. Run fetchAndStore() in GAS to populate.</td></tr>';
+    return;
+  }
+
+  // Summary cards
+  var gainers = greek.filter(function(s){ return (s.pct_1w||0)>0; }).length;
+  var best    = greek.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; });
+  var worst   = greek.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; });
+  var strong  = greek.filter(function(s){ return s.signal==='STRONG'; }).length;
+  var avgW    = (greek.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/greek.length).toFixed(2);
+
+  document.getElementById('greek-summary').innerHTML = [
+    { lbl:'Tracked',         val:greek.length,              sub:'ATHEX stocks' },
+    { lbl:'Weekly Gainers',  val:gainers+'/'+greek.length,  sub:'this week' },
+    { lbl:'Strong Momentum', val:strong,                    sub:'vs Greek peers' },
+    { lbl:'Best 1W',         val:best.ticker,               sub:p(best.pct_1w) },
+    { lbl:'Worst 1W',        val:worst.ticker,              sub:p(worst.pct_1w) },
+    { lbl:'Avg 1W',          val:(avgW>0?'+':'')+avgW+'%',  sub:'Greek universe' }
+  ].map(function(c){
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+  }).join('');
+
+  // Watchlist
+  renderGreekWatchlist(greek);
+
+  // Table
+  renderGreekTable(greek);
+}
+
+function renderGreekWatchlist(greek) {
+  var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
+  greek.forEach(function(s){ (groups[s.signal]||groups.NEUTRAL).push(s); });
+  Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
+
+  var configs = [
+    { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Outperforming Greek peers', color:'var(--green)', border:'rgba(16,185,129,.25)' },
+    { key:'NEUTRAL', label:'Neutral',         icon:'&#9679;', sub:'In line with Greek peers',  color:'var(--amber)', border:'rgba(245,158,11,.25)' },
+    { key:'WEAK',   label:'Weak Momentum',   icon:'&#9679;', sub:'Lagging Greek peers',        color:'var(--red)',   border:'rgba(239,68,68,.25)' }
+  ];
+
+  document.getElementById('greek-watchlist').innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
+    configs.map(function(cfg){
+      var items = groups[cfg.key];
+      return '<div style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
+          '<div>'+
+            '<div style="font-size:13px;font-weight:700;color:'+cfg.color+'">'+cfg.icon+' '+cfg.label+'</div>'+
+            '<div style="font-size:10px;color:var(--muted);margin-top:2px">'+cfg.sub+'</div>'+
+          '</div>'+
+          '<span style="font-size:22px;font-weight:800;font-family:var(--mono);color:'+cfg.color+';opacity:.6">'+items.length+'</span>'+
+        '</div>'+
+        items.map(function(s){
+          var pctClr = (s.pct_1w||0)>=0?'var(--green)':'var(--red)';
+          var sw=s.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
+          var rsiClr=s.rsi14===null?'var(--muted)':s.rsi14<30?'var(--green)':s.rsi14>70?'var(--red)':'var(--muted)';
+          var rsiBg =s.rsi14===null?'rgba(100,116,139,.1)':s.rsi14<30?'rgba(16,185,129,.12)':s.rsi14>70?'rgba(239,68,68,.12)':'rgba(100,116,139,.1)';
+          var rsiTip=s.rsi14===null?'RSI not available':s.rsi14<30?'RSI '+s.rsi14+': Oversold - possible entry':s.rsi14>70?'RSI '+s.rsi14+': Overbought - caution':'RSI '+s.rsi14+': Neutral';
+          var rsiLbl=s.rsi14!==null?'RSI '+s.rsi14+(s.rsi14<30?' OS':s.rsi14>70?' OB':''):'RSI -';
+          var maClr =s.above_ma50===null?'var(--muted)':s.above_ma50?'var(--green)':'var(--red)';
+          var maBg  =s.above_ma50===null?'rgba(100,116,139,.1)':s.above_ma50?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)';
+          var maLbl =s.above_ma50===null?'MA -':s.above_ma50?'^ 50MA':'v 50MA';
+          return '<div style="padding:9px 0;border-bottom:1px solid var(--border)">'+
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+              '<div style="display:flex;align-items:center;gap:8px">'+
+                '<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);min-width:56px">'+esc(s.ticker)+'</span>'+
+                '<div>'+
+                  '<div style="font-size:12px;font-weight:600">'+esc(s.company)+'</div>'+
+                  '<div style="font-size:10px;color:var(--muted)">'+esc(s.sector)+' &#183; &#8364;'+fmt(s.price)+'</div>'+
+                '</div>'+
+              '</div>'+
+              '<div style="text-align:right">'+
+                '<div style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+pctClr+'">'+(s.pct_1w>=0?'+':'')+s.pct_1w+'%</div>'+
+                '<div style="font-size:10px;color:var(--muted)">this week</div>'+
+              '</div>'+
+            '</div>'+
+            '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
+              '<span class="tip" data-tip="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
+              '<span style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">'+maLbl+'</span>'+
+              '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
+                '<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+sw+'/100</span>'+
+                '<div style="width:44px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">'+
+                  '<div style="width:'+sw+'%;height:100%;background:'+sfClr+';border-radius:2px"></div>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>';
+        }).join('')+
+      '</div>';
+    }).join('')+
+    '</div>';
+}
+
+function renderGreekTable(greek) {
+  var sorted = greek.slice().sort(function(a,b){
+    var av=a[greekSortField],bv=b[greekSortField];
+    if(av===null||av===undefined) av=greekSortDir==='desc'?-9999:9999;
+    if(bv===null||bv===undefined) bv=greekSortDir==='desc'?-9999:9999;
+    if(typeof av==='string') return greekSortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);
+    return greekSortDir==='desc'?bv-av:av-bv;
+  });
+
+  document.getElementById('greek-body').innerHTML = sorted.map(function(st,i){
+    var sigCls=st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
+    var sigLbl=st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':'Neutral';
+    var rsiCls=st.rsi14===null?'':st.rsi14<30?'rsi-os':st.rsi14>70?'rsi-ob':'rsi-mid';
+    var maLbl =st.above_ma50===null?'-':st.above_ma50?'^ 50MA':'v 50MA';
+    var maCls =st.above_ma50===null?'':st.above_ma50?'ma-above':'ma-below';
+    var sw    =st.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
+    var range52=st.pos_52w!==null?
+      '<div class="range-wrap"><div class="range-track"><div class="range-grad"></div>'+
+      '<div class="range-dot" style="left:'+st.pos_52w+'%"></div></div>'+
+      '<span class="range-pct">'+st.pos_52w+'%</span></div>':'-';
+    var flags='';
+    if(st.alert)     flags+='<span style="background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;margin-right:3px">+5%</span>';
+    if(st.vol_spike) flags+='<span style="background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px">VOL</span>';
+    if(!flags) flags='<span style="color:var(--muted);font-size:11px">-</span>';
+
+    return '<tr title="'+esc(st.company)+' | Price: EUR '+fmt(st.price)+' | RSI: '+(st.rsi14||'N/A')+' | Signal: '+sigLbl+'">' +
+      '<td>'+(i+1)+'</td>'+
+      '<td style="font-weight:600">'+esc(st.company)+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--accent);font-weight:700">'+esc(st.ticker)+'</td>'+
+      '<td style="color:var(--muted);font-size:11px">'+esc(st.sector)+'</td>'+
+      '<td style="font-family:var(--mono)">&#8364;'+fmt(st.price)+'</td>'+
+      '<td><div class="score-wrap" style="justify-content:flex-end"><span class="tm">'+sw+'</span>'+
+        '<div class="score-bar"><div class="score-fill" style="width:'+sw+'%;background:'+sfClr+'"></div></div></div></td>'+
+      '<td><span class="sig '+sigCls+'">'+sigLbl+'</span></td>'+
+      '<td class="'+pcls(st.pct_1w)+'">'+pn(st.pct_1w)+'</td>'+
+      '<td class="'+pcls(st.pct_1m)+'">'+pn(st.pct_1m)+'</td>'+
+      '<td class="'+pcls(st.pct_ytd)+'">'+pn(st.pct_ytd)+'</td>'+
+      '<td>'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
+      '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
+      '<td>'+range52+'</td>'+
+      '<td>'+makeSpark(st.spark||[],50,18)+'</td>'+
+      '<td>'+flags+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
 var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
@@ -1284,6 +1497,11 @@ function sortTbl(tbl, el) {
     sorts.action={f:actionSortField,d:actionSortDir};
     if(D) renderActionTable(D.stocks);
     document.querySelectorAll('#panel-signals th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===actionSortField) th.classList.add(actionSortDir==='desc'?'sd':'sa'); });
+  } else if (tbl === 'greek') {
+    if(greekSortField===field) greekSortDir=greekSortDir==='desc'?'asc':'desc';
+    else{ greekSortField=field; greekSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
+    if(D && D.greek) renderGreekTable(D.greek);
+    document.querySelectorAll('#panel-greek th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===greekSortField) th.classList.add(greekSortDir==='desc'?'sd':'sa'); });
   } else if (tbl === 'div') {
     if(divSortField===field) divSortDir=divSortDir==='desc'?'asc':'desc';
     else{ divSortField=field; divSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
@@ -1470,6 +1688,7 @@ function renderAll(data) {
   document.getElementById('sig-content').style.display = 'block';
   document.getElementById('hist-content').style.display = 'block';
   var dc=document.getElementById('div-content'); if(dc) dc.style.display='block';
+  var gc=document.getElementById('greek-content'); if(gc) gc.style.display='block';
 
   var wb = document.getElementById('warning-banner');
   var ws = data.warnings || [];
@@ -1486,7 +1705,8 @@ function renderAll(data) {
     ['renderRelChart',   function(){ renderRelChart(data.stocks, data.spy); }],
     ['renderHistTable',  function(){ renderHistTable(data.stocks); }],
     ['initAlerts',       function(){ initAlerts(data.stocks); }],
-    ['renderDividends',  function(){ renderDividends(data.dividends, data.stocks); }]
+    ['renderDividends',  function(){ renderDividends(data.dividends, data.stocks); }],
+    ['renderGreek',      function(){ renderGreek(data.greek); }]
   ];
 
   fns.forEach(function(pair) {
