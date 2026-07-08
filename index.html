@@ -1778,33 +1778,35 @@ document.addEventListener('DOMContentLoaded', function() {
     var t = e.target.closest('.tip');
     if (t && tipEl) {
       tipEl.textContent = t.getAttribute('data-tip');
+      // Position off-screen first so we can measure it
+      tipEl.style.left = '-9999px';
+      tipEl.style.top  = '-9999px';
       tipEl.style.display = 'block';
     }
   });
   document.addEventListener('mousemove', function(e) {
     if (tipEl && tipEl.style.display === 'block') {
-      // Get actual rendered tooltip dimensions
       var tw = tipEl.offsetWidth  || 300;
       var th = tipEl.offsetHeight || 80;
-      var margin = 10;
+      var mg = 12;
       var vw = window.innerWidth;
       var vh = window.innerHeight;
 
-      // Default: appear above and to the right of cursor
-      var x = e.clientX + 14;
-      var y = e.clientY - th - margin;
+      // Try above-right first
+      var x = e.clientX + 16;
+      var y = e.clientY - th - mg;
 
-      // Too close to top — show below cursor
-      if (y < margin) y = e.clientY + margin;
+      // Flip above -> below if not enough space at top
+      if (y < mg) y = e.clientY + mg;
 
-      // Too close to right edge — shift left of cursor
-      if (x + tw > vw - margin) x = e.clientX - tw - margin;
+      // Flip right -> left if not enough space on right
+      if (x + tw > vw - mg) x = e.clientX - tw - mg;
 
-      // Still too far left (narrow viewport) — pin to left margin
-      if (x < margin) x = margin;
-
-      // Too close to bottom — shift up
-      if (y + th > vh - margin) y = vh - th - margin;
+      // Hard clamp to viewport
+      if (x < mg) x = mg;
+      if (x + tw > vw - mg) x = vw - tw - mg;
+      if (y < mg) y = mg;
+      if (y + th > vh - mg) y = vh - th - mg;
 
       tipEl.style.left = x + 'px';
       tipEl.style.top  = y + 'px';
