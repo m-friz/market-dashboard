@@ -195,6 +195,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div class="tab active" data-tab="overview">&#127968; Overview</div>
   <div class="tab" data-tab="signals">&#127919; Signals</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
+  <div class="tab" data-tab="dividends">&#128176; Dividends</div>
   <div class="tab" data-tab="guide">&#128218; Guide</div>
 </div>
 <main>
@@ -363,6 +364,93 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   </div>
 </div>
 
+
+
+<!-- DIVIDENDS -->
+<div id="panel-dividends" class="tab-panel">
+  <div id="div-content" style="display:none">
+
+    <!-- Explanation banner -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.8">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px 32px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+            <span class="tip" data-tip="Dividend Yield: annual dividend payment divided by current stock price. A 3% yield means you receive $3 per year for every $100 invested. Higher is not always better — very high yields can signal a company in trouble.">Yield %</span>
+          </div>
+          Annual dividend / current price. Shows your income return.
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+            <span class="tip" data-tip="Annual Dividend Per Share: total cash paid per share over the past 12 months. Multiply by number of shares you own to calculate your annual income.">Annual DPS</span>
+          </div>
+          Cash paid per share per year.
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+            <span class="tip" data-tip="Payout Ratio: percentage of earnings paid as dividends. Under 60% = sustainable (company keeps enough to reinvest). 60-80% = watch carefully. Over 80% = at risk of being cut if earnings fall.">Payout Ratio</span>
+          </div>
+          % of earnings paid out. Under 60% = healthy.
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+            <span class="tip" data-tip="5-Year Dividend Growth Rate: average annual % increase in dividend over the past 5 years. Positive = company is growing its payout. 5%+ is excellent. Negative = dividend was cut at some point.">5Y Growth</span>
+          </div>
+          How fast the dividend has grown. 5%+ is excellent.
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
+        Only stocks from the tracked 20 that currently pay a dividend are shown. Data from Finnhub.
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div id="div-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px"></div>
+
+    <!-- Dividend table -->
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="sort" data-f="company" data-tbl="div">Company</th>
+            <th>Ticker</th>
+            <th>Sector</th>
+            <th class="sort sd" data-f="yield" data-tbl="div">
+              <span class="tip" data-tip="Annual dividend yield. Higher = more income per dollar invested. But check payout ratio — very high yields can be unsustainable.">Yield %</span>
+            </th>
+            <th class="sort" data-f="dps" data-tbl="div">
+              <span class="tip" data-tip="Annual Dividend Per Share: cash you receive per share per year.">Ann. DPS</span>
+            </th>
+            <th class="sort" data-f="payout" data-tbl="div">
+              <span class="tip" data-tip="Payout Ratio: % of earnings paid as dividends. Under 60% is healthy and sustainable.">Payout %</span>
+            </th>
+            <th class="sort" data-f="grow5y" data-tbl="div">
+              <span class="tip" data-tip="5-Year Dividend Growth Rate: average annual % increase in dividend. Positive means the company has been raising its dividend.">5Y Growth</span>
+            </th>
+            <th>Sustainability</th>
+            <th>Signal</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody id="div-body"></tbody>
+      </table>
+    </div>
+
+    <!-- What to look for guidance -->
+    <div style="background:var(--surf);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:16px 20px;margin-top:4px">
+      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px">&#10003; What makes a good dividend stock?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 32px;font-size:12px;color:var(--muted);line-height:1.8">
+        <div>&#10003; Yield 2-5% (higher can mean the price dropped — investigate why)</div>
+        <div>&#10003; Payout ratio under 60% (sustainable, room to grow)</div>
+        <div>&#10003; 5Y growth rate positive (company committed to raising dividend)</div>
+        <div>&#10003; Stock in Strong or Neutral Momentum (healthy underlying business)</div>
+        <div>&#10003; Above 50MA (stock price in uptrend — total return matters too)</div>
+        <div>&#10003; No earnings flag (avoid buying just before earnings report)</div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <!-- GUIDE -->
 <div id="panel-guide" class="tab-panel">
@@ -685,6 +773,101 @@ function makeSpark(data, w, h) {
   return '<svg class="sparkline" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
     '<polyline points="'+pts+'" fill="none" class="'+trend+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
   '</svg>';
+}
+
+
+// ── Dividends tab ──────────────────────────────────────────────
+var divSortField = 'yield', divSortDir = 'desc';
+
+function renderDividends(dividends, stocks) {
+  var el = document.getElementById('div-content');
+  if (!el) return;
+  el.style.display = 'block';
+
+  if (!dividends || !dividends.length) {
+    document.getElementById('div-body').innerHTML =
+      '<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--muted)">No dividend data available. Run fetchAndStore() in GAS to populate.</td></tr>';
+    return;
+  }
+
+  // Summary cards
+  var avgYield  = (dividends.reduce(function(s,d){ return s+d.yield; },0)/dividends.length).toFixed(2);
+  var bestYield = dividends[0];
+  var bestGrow  = dividends.slice().sort(function(a,b){ return (b.grow5y||0)-(a.grow5y||0); })[0];
+  var sustCount = dividends.filter(function(d){ return d.sustainable===true; }).length;
+
+  document.getElementById('div-summary').innerHTML = [
+    { lbl:'Dividend Payers', val:dividends.length,    sub:'of 20 tracked' },
+    { lbl:'Avg Yield',       val:avgYield+'%',         sub:'universe avg' },
+    { lbl:'Highest Yield',   val:bestYield.ticker,     sub:bestYield.yield+'%' },
+    { lbl:'Best 5Y Growth',  val:bestGrow.ticker,      sub:'+'+(bestGrow.grow5y||0)+'%/yr' },
+    { lbl:'Sustainable',     val:sustCount+'/'+dividends.length, sub:'payout < 60%' }
+  ].map(function(c){
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+  }).join('');
+
+  renderDivTable(dividends, stocks);
+}
+
+function renderDivTable(dividends, stocks) {
+  // Build stock lookup for signal/MA
+  var stockMap = {};
+  if (stocks) stocks.forEach(function(s){ stockMap[s.ticker] = s; });
+
+  var sorted = dividends.slice().sort(function(a,b){
+    var av = a[divSortField], bv = b[divSortField];
+    if (av===null||av===undefined) av = divSortDir==='desc'?-9999:9999;
+    if (bv===null||bv===undefined) bv = divSortDir==='desc'?-9999:9999;
+    return divSortDir==='desc'?bv-av:av-bv;
+  });
+
+  document.getElementById('div-body').innerHTML = sorted.map(function(d, i) {
+    var st = stockMap[d.ticker] || {};
+
+    // Sustainability badge
+    var sustBg  = d.sustainable===true  ? 'rgba(16,185,129,.15)' :
+                  d.sustainable===null  ? 'rgba(245,158,11,.15)' : 'rgba(239,68,68,.15)';
+    var sustClr = d.sustainable===true  ? 'var(--green)' :
+                  d.sustainable===null  ? 'var(--amber)' : 'var(--red)';
+    var sustLbl = d.sustainable===true  ? 'Sustainable' :
+                  d.sustainable===null  ? 'Monitor' : 'At Risk';
+    var sustTip = d.sustainable===true  ? 'Payout ratio '+d.payout+'% - healthy, company keeps enough earnings to reinvest' :
+                  d.sustainable===null  ? 'Payout ratio '+d.payout+'% - elevated, watch for dividend cut if earnings fall' :
+                  d.payout ? 'Payout ratio '+d.payout+'% - high, dividend may be at risk' : 'Payout ratio not available';
+
+    // Yield colour
+    var yldClr = d.yield >= 4 ? 'var(--green)' : d.yield >= 2 ? 'var(--cyan)' : 'var(--muted)';
+    var yldTip = d.yield >= 6 ? 'Very high yield — verify this is not a distressed dividend' :
+                 d.yield >= 4 ? 'High yield — check payout ratio to confirm sustainability' :
+                 d.yield >= 2 ? 'Healthy yield range (2-4%)' : 'Low yield — stock is primarily a growth play';
+
+    // Growth colour
+    var gClr = !d.grow5y ? 'var(--muted)' : d.grow5y >= 5 ? 'var(--green)' : d.grow5y >= 0 ? 'var(--cyan)' : 'var(--red)';
+
+    // Signal from main stocks data
+    var sigCls = st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
+    var sigLbl = st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':st.signal?'Neutral':'-';
+
+    // Row tip
+    var tip = d.company+' ('+d.ticker+') | Yield: '+d.yield+'% | DPS: $'+(d.dps||'N/A')+
+      ' | Payout: '+(d.payout||'N/A')+'% | 5Y Growth: '+(d.grow5y!==null?'+'+d.grow5y+'%/yr':'N/A')+
+      ' | '+sustLbl+' | '+(st.signal?'Momentum: '+sigLbl:'');
+
+    return '<tr title="'+esc(tip)+'">' +
+      '<td>'+(i+1)+'</td>' +
+      '<td style="font-weight:600">'+esc(d.company)+'</td>' +
+      '<td style="font-family:var(--mono);color:var(--accent);font-weight:700">'+esc(d.ticker)+'</td>' +
+      '<td style="color:var(--muted);font-size:11px">'+esc(d.sector)+'</td>' +
+      '<td><span class="tip" data-tip="'+yldTip+'" style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+yldClr+';cursor:help">'+d.yield+'%</span></td>' +
+      '<td style="font-family:var(--mono);color:var(--text)">'+(d.dps ? '$'+d.dps : '-')+'</td>' +
+      '<td style="font-family:var(--mono)">'+(d.payout!==null ?
+        '<span style="color:'+(d.payout<60?'var(--green)':d.payout<80?'var(--amber)':'var(--red)')+'">'+d.payout+'%</span>' : '-')+'</td>' +
+      '<td style="font-family:var(--mono);color:'+gClr+'">'+(d.grow5y!==null?(d.grow5y>=0?'+':'')+d.grow5y+'%':'-')+'</td>' +
+      '<td><span class="tip" data-tip="'+esc(sustTip)+'" style="background:'+sustBg+';color:'+sustClr+';font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;cursor:help">'+sustLbl+'</span></td>' +
+      '<td>'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>' +
+      '<td style="font-family:var(--mono);color:var(--muted)">'+(st.price?'$'+fmt(st.price):'-')+'</td>' +
+    '</tr>';
+  }).join('');
 }
 
 var D = null;
@@ -1078,6 +1261,11 @@ function sortTbl(tbl, el) {
     sorts.action={f:actionSortField,d:actionSortDir};
     if(D) renderActionTable(D.stocks);
     document.querySelectorAll('#panel-signals th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===actionSortField) th.classList.add(actionSortDir==='desc'?'sd':'sa'); });
+  } else if (tbl === 'div') {
+    if(divSortField===field) divSortDir=divSortDir==='desc'?'asc':'desc';
+    else{ divSortField=field; divSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
+    if(D && D.dividends) renderDivTable(D.dividends, D.stocks);
+    document.querySelectorAll('#panel-dividends th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===divSortField) th.classList.add(divSortDir==='desc'?'sd':'sa'); });
   } else {
     if(histSortField===field) histSortDir=histSortDir==='desc'?'asc':'desc';
     else{ histSortField=field; histSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
@@ -1258,6 +1446,7 @@ function renderAll(data) {
   document.getElementById('ov-content').style.display = 'block';
   document.getElementById('sig-content').style.display = 'block';
   document.getElementById('hist-content').style.display = 'block';
+  var dc=document.getElementById('div-content'); if(dc) dc.style.display='block';
 
   var wb = document.getElementById('warning-banner');
   var ws = data.warnings || [];
@@ -1273,7 +1462,8 @@ function renderAll(data) {
     ['renderActionTable',function(){ renderActionTable(data.stocks); }],
     ['renderRelChart',   function(){ renderRelChart(data.stocks, data.spy); }],
     ['renderHistTable',  function(){ renderHistTable(data.stocks); }],
-    ['initAlerts',       function(){ initAlerts(data.stocks); }]
+    ['initAlerts',       function(){ initAlerts(data.stocks); }],
+    ['renderDividends',  function(){ renderDividends(data.dividends, data.stocks); }]
   ];
 
   fns.forEach(function(pair) {
