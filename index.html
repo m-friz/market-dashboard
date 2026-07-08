@@ -691,7 +691,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxa1pQXzoog2wI52ajNEsu4xgm3mL2xlUtQSzjGjE_Pk4ffNc9rXZ3K6nFhnjWw-4wphQ/exec';
+var GAS_URL  = 'YOUR_GAS_URL_HERE';
 
 // Tab switching
 function switchTab(name) {
@@ -1176,56 +1176,36 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 function loadData(forceGASRefresh) {
   var btn  = document.getElementById('refresh-btn');
   var icon = document.getElementById('btn-icon');
+  var lu   = document.getElementById('last-updated');
+
   if (btn)  btn.disabled = true;
   if (icon) { icon.className = 'btn-spin'; icon.innerHTML = '&#10227;'; }
-  var lu = document.getElementById('last-updated');
-  if (lu) lu.textContent = forceGASRefresh ? 'Fetching fresh prices (~30s)...' : 'Loading...';
+  if (lu)   lu.textContent = 'Loading...';
 
-  function readGitHub() {
-    fetch(DATA_URL + '?t=' + Date.now())
-      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function(data){
-        D = data;
-        renderAll(data);
-        if (btn)  btn.disabled = false;
-        if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
-        if (lu) { lu.style.color = 'var(--green)'; setTimeout(function(){ lu.style.color = ''; }, 2000); }
-      })
-      .catch(function(e){
-        if (btn)  btn.disabled = false;
-        if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
-        if (lu) lu.textContent = 'Error loading data';
-      });
-  }
-
-  if (forceGASRefresh && GAS_URL && GAS_URL !== 'YOUR_GAS_URL_HERE') {
-    // Use JSONP to bypass CORS restriction on GAS endpoints
-    var cbName = 'gasCb_' + Date.now();
-    var script = document.createElement('script');
-    var done   = false;
-
-    window[cbName] = function(res) {
-      done = true;
-      delete window[cbName];
-      document.head.removeChild(script);
-      // Wait 4s for GitHub to reflect the new data.json
-      setTimeout(readGitHub, 4000);
-    };
-
-    script.onerror = function() {
-      if (!done) { done = true; readGitHub(); }
-    };
-
-    // Timeout fallback — if GAS takes too long just read current data
-    setTimeout(function() {
-      if (!done) { done = true; readGitHub(); }
-    }, 35000);
-
-    script.src = GAS_URL + '?action=refresh&callback=' + cbName;
-    document.head.appendChild(script);
-  } else {
-    readGitHub();
-  }
+  // Always just read from GitHub — fast and reliable
+  // GAS pushes fresh data daily at 11:00 Athens automatically
+  fetch(DATA_URL + '?t=' + Date.now())
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      D = data;
+      renderAll(data);
+      if (btn)  btn.disabled = false;
+      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
+      if (lu)   { lu.style.color = 'var(--green)'; setTimeout(function(){ lu.style.color = ''; }, 2000); }
+    })
+    .catch(function(e) {
+      if (btn)  btn.disabled = false;
+      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
+      if (lu)   lu.textContent = 'Error: ' + e.message;
+      var ov = document.getElementById('ov-loading');
+      if (ov)   ov.innerHTML = '<div class="state-box"><p class="err-txt">Failed to load data.json from GitHub.<br>' +
+        'Error: ' + e.message + '<br><br>' +
+        'Check: <a href="https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json" ' +
+        'target="_blank" style="color:var(--accent)">raw data.json</a></p></div>';
+    });
 }
 
 function renderAll(data) {
@@ -1269,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var si=document.getElementById('sig-search');
   if(si) si.addEventListener('input', function(){ filterSignals(this.value); });
   var rb=document.getElementById('refresh-btn');
-  if(rb) rb.addEventListener('click', function(){ loadData(true); });
+  if(rb) rb.addEventListener('click', function(){ loadData(); });
   // Settings panel
   var settingsBtn   = document.getElementById('settings-btn');
   var settingsPanel = document.getElementById('settings-panel');
