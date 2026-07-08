@@ -132,7 +132,7 @@ tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;col
 .period-btn:hover{color:var(--text);border-color:var(--accent)}
 .active-period{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
 .tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
-#tip-popup{display:none;position:fixed;background:#1e3a5f;color:#ffffff;border:1px solid #4a90d9;border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.7;white-space:normal;max-width:300px;width:max-content;z-index:99999;box-shadow:0 6px 28px rgba(0,0,0,.7);pointer-events:none;font-family:var(--sans);font-weight:400}
+#tip-popup{display:none;position:fixed;background:#1e3a5f;color:#ffffff;border:1px solid #4a90d9;border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.7;white-space:pre-wrap;word-wrap:break-word;width:260px;z-index:99999;box-shadow:0 6px 28px rgba(0,0,0,.7);pointer-events:none;font-family:var(--sans);font-weight:400}
 footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px}
 
 .sparkline{display:inline-block;vertical-align:middle}
@@ -1786,27 +1786,31 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.addEventListener('mousemove', function(e) {
     if (tipEl && tipEl.style.display === 'block') {
-      var tw = tipEl.offsetWidth  || 300;
+      var tw = 260; // fixed width matches CSS
       var th = tipEl.offsetHeight || 80;
-      var mg = 12;
+      var mg = 16;
       var vw = window.innerWidth;
       var vh = window.innerHeight;
 
-      // Try above-right first
-      var x = e.clientX + 16;
-      var y = e.clientY - th - mg;
+      var x, y;
 
-      // Flip above -> below if not enough space at top
-      if (y < mg) y = e.clientY + mg;
+      // Decide horizontal: prefer right of cursor, flip left if not enough room
+      if (e.clientX + 20 + tw + mg <= vw) {
+        x = e.clientX + 20;
+      } else {
+        x = e.clientX - tw - 20;
+      }
 
-      // Flip right -> left if not enough space on right
-      if (x + tw > vw - mg) x = e.clientX - tw - mg;
+      // Decide vertical: prefer above cursor, flip below if not enough room
+      if (e.clientY - th - 20 >= mg) {
+        y = e.clientY - th - 20;
+      } else {
+        y = e.clientY + 20;
+      }
 
-      // Hard clamp to viewport
-      if (x < mg) x = mg;
-      if (x + tw > vw - mg) x = vw - tw - mg;
-      if (y < mg) y = mg;
-      if (y + th > vh - mg) y = vh - th - mg;
+      // Final clamp — never go outside viewport
+      x = Math.max(mg, Math.min(x, vw - tw - mg));
+      y = Math.max(mg, Math.min(y, vh - th - mg));
 
       tipEl.style.left = x + 'px';
       tipEl.style.top  = y + 'px';
