@@ -1221,15 +1221,25 @@ function renderAll(data) {
   wb.innerHTML = ws.map(function(w){ return '<div class="warn-item">! ' + esc(w) + '</div>'; }).join('');
   wb.style.display = ws.length ? 'block' : 'none';
 
-  renderSpyBar(data.spy);
-  renderSummary(data.stocks, data.spy);
-  renderWatchlist(data.stocks);
-  renderHeatmap(data.sector_heatmap);
-  renderEvents(data.events);
-  renderActionTable(data.stocks);
-  renderRelChart(data.stocks, data.spy);
-  renderHistTable(data.stocks);
-  initAlerts(data.stocks);
+  var fns = [
+    ['renderSpyBar',     function(){ renderSpyBar(data.spy); }],
+    ['renderSummary',    function(){ renderSummary(data.stocks, data.spy); }],
+    ['renderWatchlist',  function(){ renderWatchlist(data.stocks); }],
+    ['renderHeatmap',    function(){ renderHeatmap(data.sector_heatmap); }],
+    ['renderEvents',     function(){ renderEvents(data.events); }],
+    ['renderActionTable',function(){ renderActionTable(data.stocks); }],
+    ['renderRelChart',   function(){ renderRelChart(data.stocks, data.spy); }],
+    ['renderHistTable',  function(){ renderHistTable(data.stocks); }],
+    ['initAlerts',       function(){ initAlerts(data.stocks); }]
+  ];
+
+  fns.forEach(function(pair) {
+    try { pair[1](); }
+    catch(e) {
+      console.error(pair[0] + ' failed:', e.message);
+      document.getElementById('last-updated').textContent = 'Error in ' + pair[0] + ': ' + e.message;
+    }
+  });
 }
 
 // Event listeners
