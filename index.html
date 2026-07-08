@@ -132,7 +132,7 @@ tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;col
 .period-btn:hover{color:var(--text);border-color:var(--accent)}
 .active-period{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
 .tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
-#tip-popup{display:none;position:fixed;background:#0d1929;color:var(--text);border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:12px;line-height:1.6;white-space:normal;width:300px;z-index:99999;box-shadow:0 4px 24px rgba(0,0,0,.8);pointer-events:none;font-family:var(--sans)}
+#tip-popup{display:none;position:fixed;background:#1e3a5f;color:#ffffff;border:1px solid #4a90d9;border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.7;white-space:normal;width:300px;z-index:99999;box-shadow:0 6px 28px rgba(0,0,0,.7);pointer-events:none;font-family:var(--sans);font-weight:400}
 footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px}
 
 .sparkline{display:inline-block;vertical-align:middle}
@@ -766,7 +766,12 @@ function renderWatchlist(stocks) {
           var sw=s.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
           var rsiClr=s.rsi14===null?'var(--muted)':s.rsi14<30?'var(--green)':s.rsi14>70?'var(--red)':'var(--muted)';
           var rsiBg=s.rsi14===null?'rgba(100,116,139,.1)':s.rsi14<30?'rgba(16,185,129,.12)':s.rsi14>70?'rgba(239,68,68,.12)':'rgba(100,116,139,.1)';
-          var rsiTip=s.rsi14===null?'':s.rsi14<30?'Oversold - possible entry':s.rsi14>70?'Overbought - caution':'RSI neutral';
+          var rsiTip=s.rsi14===null?'RSI not available':
+            s.rsi14<30?'RSI '+s.rsi14+': Oversold. Stock has been sold too aggressively. Price may bounce. Potential buy zone - but confirm with 50MA and signal first.':
+            s.rsi14>70?'RSI '+s.rsi14+': Overbought. Stock has risen sharply. May pull back soon. Caution - avoid entering at this level unless you expect continued momentum.':
+            s.rsi14<45?'RSI '+s.rsi14+': Neutral, leaning oversold. Reasonable entry zone if trend is intact.':
+            s.rsi14<60?'RSI '+s.rsi14+': Neutral. No extreme pressure. Good entry window if above 50MA.':
+            'RSI '+s.rsi14+': Neutral, leaning overbought. Consider waiting for a small pullback before entering.';
           var rsiLbl=s.rsi14!==null?'RSI '+s.rsi14+(s.rsi14<30?' OS':s.rsi14>70?' OB':''):'RSI -';
           var maClr=s.above_ma50===null?'var(--muted)':s.above_ma50?'var(--green)':'var(--red)';
           var maBg=s.above_ma50===null?'rgba(100,116,139,.1)':s.above_ma50?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)';
@@ -789,7 +794,7 @@ function renderWatchlist(stocks) {
               '</div>'+
             '</div>'+
             '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
-              '<span title="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
+              '<span class="tip" data-tip="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
               '<span title="'+maTip+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help" class="tip" data-tip="'+maTip+'">'+maLbl+'</span>'+
               earnHtml+
               '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
