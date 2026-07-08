@@ -907,7 +907,7 @@ function renderActionTable(stocks) {
       (st.vol_spike ? 'VOLUME spike - unusual activity this week' : ''),
       action
     ].filter(Boolean).join(' | ');
-    return '<tr class="tip" data-tip="'+esc(tip)+'" style="cursor:default">'+
+    return '<tr title="'+esc(tip)+'" style="cursor:default">'+
       '<td>'+(i+1)+'</td>'+
       '<td>'+esc(st.company)+'</td>'+
       '<td>'+esc(st.ticker)+'</td>'+
@@ -1037,7 +1037,7 @@ function renderHistTable(stocks) {
       ' | 50MA: '+(st.above_ma50!==null?(st.above_ma50?'Above (uptrend)':'Below (downtrend)'):'N/A')+
       ' | 52W: '+(st.pos_52w!==null?st.pos_52w+'%':'N/A')+
       ' | 1W: '+pn(st.pct_1w)+' | 1M: '+pn(st.pct_1m)+' | YTD: '+pn(st.pct_ytd);
-    return '<tr class="tip" data-tip="'+esc(htip)+'">'+
+    return '<tr title="'+esc(htip)+'">'+
       '<td>'+(i+1)+'</td>'+
       '<td>'+esc(st.company)+'</td>'+
       '<td>'+esc(st.ticker)+'</td>'+
