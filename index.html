@@ -874,8 +874,40 @@ function renderActionTable(stocks) {
     if(!flags) flags='<span style="color:var(--muted);font-size:11px">-</span>';
     var meaning=buildMeaning(st);
     var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'<span>-</span>';
-    var tip=[st.company+' ('+st.ticker+')','Price: $'+fmt(st.price)+' | Cap: '+(st.market_cap||'N/A'),'Sector: '+(st.sector||'-'),'Score: '+sw+'/100 | Signal: '+sigLbl,'RSI: '+(st.rsi14!==null?st.rsi14+(st.rsi14<30?' oversold':st.rsi14>70?' overbought':' neutral'):'N/A'),'50MA: '+maLbl+(st.ma50?' ($'+fmt(st.ma50)+')':''),'52W Pos: '+(st.pos_52w!==null?st.pos_52w+'%':'N/A'),'vs SPY: '+(st.rel_1w!==null?(st.rel_1w>=0?'+':'')+st.rel_1w+'%':'N/A'),(st.earnings_days!==null&&st.earnings_days!==undefined?'Earnings in '+st.earnings_days+' days':''),(st.vol_spike?'Volume spike':'')].filter(Boolean).join(' | ');
-    return '<tr title="'+esc(tip)+'" style="cursor:default">'+
+    // Rich contextual tooltip
+    var rsiCtx = st.rsi14===null ? 'RSI: N/A' :
+      st.rsi14 < 30 ? 'RSI '+st.rsi14+': OVERSOLD - possible bounce, potential entry' :
+      st.rsi14 > 70 ? 'RSI '+st.rsi14+': OVERBOUGHT - avoid entering now, wait for pullback' :
+      st.rsi14 < 50 ? 'RSI '+st.rsi14+': Neutral (healthy range, room to run)' :
+      'RSI '+st.rsi14+': Neutral (slightly elevated, monitor)';
+    var maCtx = st.above_ma50 === null ? '50MA: N/A' :
+      st.above_ma50 ? '50MA: ABOVE (uptrend intact)' + (st.ma50 ? ' - avg $'+fmt(st.ma50) : '') :
+      '50MA: BELOW (downtrend) - rallies may be traps' + (st.ma50 ? ' - avg $'+fmt(st.ma50) : '');
+    var posCtx = st.pos_52w === null ? '52W: N/A' :
+      st.pos_52w >= 90 ? '52W: '+st.pos_52w+'% - near yearly HIGH, extended' :
+      st.pos_52w <= 20 ? '52W: '+st.pos_52w+'% - near yearly LOW, risky' :
+      st.pos_52w >= 40 && st.pos_52w <= 80 ? '52W: '+st.pos_52w+'% - ideal range (40-80%)' :
+      '52W: '+st.pos_52w+'%';
+    var spyCtx = st.rel_1w === null ? 'vs SPY: N/A' :
+      st.rel_1w > 2 ? 'vs SPY: +'+st.rel_1w+'% - genuinely outperforming market' :
+      st.rel_1w < -2 ? 'vs SPY: '+st.rel_1w+'% - underperforming market' :
+      'vs SPY: '+st.rel_1w+'% - in line with market';
+    var action = st.signal==='STRONG' && st.rsi14 && st.rsi14 < 60 && st.above_ma50 && st.pos_52w > 40 && st.pos_52w < 85 ?
+      'ACTION: Good setup - consider entry' :
+      st.signal==='STRONG' && st.rsi14 && st.rsi14 > 70 ?
+      'ACTION: Strong trend but overbought - wait for RSI to cool' :
+      st.signal==='WEAK' ? 'ACTION: Avoid - trend is weak vs peers' :
+      'ACTION: Monitor - no strong entry signal yet';
+    var tip = [
+      st.company+' ('+st.ticker+') | '+st.sector,
+      'Price: $'+fmt(st.price)+' | Mkt Cap: '+(st.market_cap||'N/A'),
+      'Score: '+sw+'/100 | Momentum: '+sigLbl,
+      rsiCtx, maCtx, posCtx, spyCtx,
+      (st.earnings_days!==null&&st.earnings_days!==undefined ? 'EARNINGS in '+st.earnings_days+' days - price risk' : ''),
+      (st.vol_spike ? 'VOLUME spike - unusual activity this week' : ''),
+      action
+    ].filter(Boolean).join(' | ');
+    return '<tr class="tip" data-tip="'+esc(tip)+'" style="cursor:default">'+
       '<td>'+(i+1)+'</td>'+
       '<td>'+esc(st.company)+'</td>'+
       '<td>'+esc(st.ticker)+'</td>'+
@@ -999,7 +1031,13 @@ function renderHistTable(stocks) {
     var maLbl=st.above_ma50===null?'-':st.above_ma50?'^ 50MA':'v 50MA';
     var maCls=st.above_ma50===null?'':st.above_ma50?'ma-above':'ma-below';
     var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'-';
-    return '<tr title="'+esc(st.company)+' | RSI: '+(st.rsi14||'N/A')+' | 52W: '+(st.pos_52w!==null?st.pos_52w+'%':'N/A')+'">'+
+    var htip = st.company+' ('+st.ticker+')'+
+      ' | Price: $'+fmt(st.price)+
+      ' | RSI: '+(st.rsi14!==null?st.rsi14+(st.rsi14<30?' oversold':st.rsi14>70?' overbought':' neutral'):'N/A')+
+      ' | 50MA: '+(st.above_ma50!==null?(st.above_ma50?'Above (uptrend)':'Below (downtrend)'):'N/A')+
+      ' | 52W: '+(st.pos_52w!==null?st.pos_52w+'%':'N/A')+
+      ' | 1W: '+pn(st.pct_1w)+' | 1M: '+pn(st.pct_1m)+' | YTD: '+pn(st.pct_ytd);
+    return '<tr class="tip" data-tip="'+esc(htip)+'">'+
       '<td>'+(i+1)+'</td>'+
       '<td>'+esc(st.company)+'</td>'+
       '<td>'+esc(st.ticker)+'</td>'+
