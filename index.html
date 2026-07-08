@@ -845,6 +845,7 @@ function renderHeatmap_old(hm) {
 
 function renderEvents(events) {
   var el=document.getElementById('events');
+  if (!el) return;
   if (!events||!events.length){ el.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">No earnings in the next 30 days.</div>'; return; }
   el.innerHTML=events.map(function(e){
     var warn=e.urgent?' <span class="earn-warn">! '+e.days_away+'d</span>':'';
@@ -920,10 +921,10 @@ function renderRelChart(stocks, spy) {
 var chartPeriod='pct_1w';
 function setChartPeriod(field, label) {
   chartPeriod=field;
-  document.getElementById('chart-period-lbl').textContent=label;
+  var pl=document.getElementById('chart-period-lbl'); if(pl) pl.textContent=label;
   document.querySelectorAll('.period-btn').forEach(function(b){ b.classList.remove('active-period'); });
   var map={pct_1w:'btn-1w',pct_1m:'btn-1m',pct_3m:'btn-3m',pct_ytd:'btn-ytd'};
-  if(map[field]) document.getElementById(map[field]).classList.add('active-period');
+  if(map[field]){ var pb=document.getElementById(map[field]); if(pb) pb.classList.add('active-period'); }
   if(D) renderAllRanked('chart-main',D.stocks,field);
 }
 
@@ -934,7 +935,7 @@ function renderAllRanked(id, stocks, field) {
   var maxAbs=Math.max.apply(null,sorted.map(function(s){ return Math.abs(s[field]); }).concat([.01]));
 
   // Show SPY benchmark line for 1W view
-  var spyLine = document.getElementById('chart-spy-line');
+  var spyLine = document.getElementById('chart-spy-line'); // may be null if charts tab removed
   if (spyLine) {
     if (field === 'pct_1w' && D && D.spy && D.spy.pct_1w !== null) {
       var spyPct = D.spy.pct_1w;
