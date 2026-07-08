@@ -192,11 +192,11 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   </div>
 </header>
 <div class="tabs">
-  <div class="tab active" data-tab="overview">&#127968; Overview</div>
+  <div class="tab active" data-tab="overview">&#127760; US Stocks</div>
+  <div class="tab" data-tab="greek">&#127987; Greek</div>
   <div class="tab" data-tab="signals">&#127919; Signals</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
   <div class="tab" data-tab="dividends">&#128176; Dividends</div>
-  <div class="tab" data-tab="greek">&#127987; Greek</div>
   <div class="tab" data-tab="guide">&#128218; Guide</div>
 </div>
 <main>
@@ -1029,6 +1029,9 @@ function renderGreekWatchlist(greek) {
           var maClr =s.above_ma50===null?'var(--muted)':s.above_ma50?'var(--green)':'var(--red)';
           var maBg  =s.above_ma50===null?'rgba(100,116,139,.1)':s.above_ma50?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)';
           var maLbl =s.above_ma50===null?'MA -':s.above_ma50?'^ 50MA':'v 50MA';
+          var maTipG=s.above_ma50===null?'50-day Moving Average: no data':
+            s.above_ma50?'Above 50MA: price is above its 50-day average. Uptrend in place. Dips are buying opportunities.':
+            'Below 50MA: price is below its 50-day average. Downtrend in place. Rallies may be traps.';
           return '<div style="padding:9px 0;border-bottom:1px solid var(--border)">'+
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
               '<div style="display:flex;align-items:center;gap:8px">'+
@@ -1045,7 +1048,7 @@ function renderGreekWatchlist(greek) {
             '</div>'+
             '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
               '<span class="tip" data-tip="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
-              '<span style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">'+maLbl+'</span>'+
+              '<span class="tip" data-tip="'+maTipG+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+maLbl+'</span>'+
               '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
                 '<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+sw+'/100</span>'+
                 '<div style="width:44px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">'+
@@ -1081,8 +1084,8 @@ function renderGreekTable(greek) {
       '<div class="range-dot" style="left:'+st.pos_52w+'%"></div></div>'+
       '<span class="range-pct">'+st.pos_52w+'%</span></div>':'-';
     var flags='';
-    if(st.alert)     flags+='<span style="background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;margin-right:3px">+5%</span>';
-    if(st.vol_spike) flags+='<span style="background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px">VOL</span>';
+    if(st.alert)     flags+='<span class="tip" data-tip="Moved more than 5% this week - significant price movement" style="background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;margin-right:3px;cursor:help">+5%</span>';
+    if(st.vol_spike) flags+='<span class="tip" data-tip="Volume spike: traded 50%+ above 20-day average this week - confirms price move is significant" style="background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">VOL</span>';
     if(!flags) flags='<span style="color:var(--muted);font-size:11px">-</span>';
 
     return '<tr title="'+esc(st.company)+' | Price: EUR '+fmt(st.price)+' | RSI: '+(st.rsi14||'N/A')+' | Signal: '+sigLbl+'">' +
@@ -1097,8 +1100,9 @@ function renderGreekTable(greek) {
       '<td class="'+pcls(st.pct_1w)+'">'+pn(st.pct_1w)+'</td>'+
       '<td class="'+pcls(st.pct_1m)+'">'+pn(st.pct_1m)+'</td>'+
       '<td class="'+pcls(st.pct_ytd)+'">'+pn(st.pct_ytd)+'</td>'+
-      '<td>'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
-      '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
+      '<td>'+(st.rsi14!==null?
+        '<span class="tip rsi-badge '+rsiCls+'" data-tip="RSI '+( st.rsi14||'')+': '+(st.rsi14<30?'Oversold - stock may bounce, possible entry':st.rsi14>70?'Overbought - may pull back, caution':'Neutral range')+'">'+st.rsi14+'</span>':'-')+'</td>'+
+      '<td><span class="tip '+maCls+'" data-tip="'+(st.above_ma50===null?'50MA not available':st.above_ma50?'Above 50MA: uptrend in place. Dips are buying opportunities.':'Below 50MA: downtrend in place. Rallies may be traps.')+'">'+maLbl+'</span></td>'+
       '<td>'+range52+'</td>'+
       '<td>'+makeSpark(st.spark||[],50,18)+'</td>'+
       '<td>'+flags+'</td>'+
