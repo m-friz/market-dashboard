@@ -1773,46 +1773,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Tooltip for .tip elements
   var tipEl = document.getElementById('tip-popup');
+
+  function positionTip(mouseX, mouseY) {
+    var tw = 240, mg = 16;
+    var th = tipEl.offsetHeight || 60;
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    // X: right of cursor unless too close to right edge
+    var x = (mouseX + 20 + tw + mg < vw) ? mouseX + 20 : mouseX - tw - 20;
+    // Y: above cursor unless too close to top
+    var y = (mouseY - th - 20 > mg) ? mouseY - th - 20 : mouseY + 20;
+    // Clamp
+    x = Math.max(mg, Math.min(x, vw - tw - mg));
+    y = Math.max(mg, Math.min(y, vh - th - mg));
+    tipEl.style.left = x + 'px';
+    tipEl.style.top  = y + 'px';
+  }
+
   document.addEventListener('mouseover', function(e) {
     var t = e.target.closest('.tip');
     if (t && tipEl) {
       tipEl.textContent = t.getAttribute('data-tip');
-      // Position off-screen first so we can measure it
-      tipEl.style.left = '-9999px';
-      tipEl.style.top  = '-9999px';
       tipEl.style.display = 'block';
+      positionTip(e.clientX, e.clientY);
     }
   });
   document.addEventListener('mousemove', function(e) {
     if (tipEl && tipEl.style.display === 'block') {
-      var tw = 260; // fixed width matches CSS
-      var th = tipEl.offsetHeight || 80;
-      var mg = 16;
-      var vw = window.innerWidth;
-      var vh = window.innerHeight;
-
-      var x, y;
-
-      // Decide horizontal: prefer right of cursor, flip left if not enough room
-      if (e.clientX + 20 + tw + mg <= vw) {
-        x = e.clientX + 20;
-      } else {
-        x = e.clientX - tw - 20;
-      }
-
-      // Decide vertical: prefer above cursor, flip below if not enough room
-      if (e.clientY - th - 20 >= mg) {
-        y = e.clientY - th - 20;
-      } else {
-        y = e.clientY + 20;
-      }
-
-      // Final clamp — never go outside viewport
-      x = Math.max(mg, Math.min(x, vw - tw - mg));
-      y = Math.max(mg, Math.min(y, vh - th - mg));
-
-      tipEl.style.left = x + 'px';
-      tipEl.style.top  = y + 'px';
+      positionTip(e.clientX, e.clientY);
     }
   });
   document.addEventListener('mouseout', function(e) {
