@@ -1572,6 +1572,18 @@ function renderWatchlist(stocks) {
                 '</div>'+
               '</div>'+
             '</div>'+
+            // Timing badge + 20D chart row
+            (function(){
+              var bz = buyZone(s);
+              return '<div style="display:flex;align-items:center;gap:8px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">'+
+                makeChart20(s.chart20||[], 100, 30)+
+                '<div style="display:flex;flex-direction:column;gap:3px;margin-left:6px">'+
+                  (s.pct_vs_avg20!==null&&s.pct_vs_avg20!==undefined?
+                    '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average — extended':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs avg</span>':'')+
+                '</div>'+
+                '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto;font-size:10px;padding:3px 8px">'+bz.label+'</span>'+
+              '</div>';
+            })()+
           '</div>';
         }).join('')+
       '</div>';
