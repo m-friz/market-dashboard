@@ -225,12 +225,12 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <div class="summary-grid" id="summary-cards"></div>
     <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
   <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
-  <button class="wl-filter active-filter" data-filter="all" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--accent);color:#fff">All</button>
-  <button class="wl-filter" data-filter="entry" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)">&#10003; Possible Entry</button>
-  <button class="wl-filter" data-filter="extended" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)">&#9888; Extended</button>
-  <button class="wl-filter" data-filter="oversold" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">RSI &lt;35</button>
-  <button class="wl-filter" data-filter="above50" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8679; Above 50MA</button>
-  <button class="wl-filter" data-filter="below50" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8681; Below 50MA</button>
+  <button class="wl-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--accent);color:#fff">All</button>
+  <button class="wl-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)">&#10003; Possible Entry</button>
+  <button class="wl-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)">&#9888; Extended</button>
+  <button class="wl-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">RSI &lt;35</button>
+  <button class="wl-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8679; Above 50MA</button>
+  <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8681; Below 50MA</button>
 </div>
 <div id="ov-watchlist" style="margin-bottom:16px"></div>
     <div class="panel" style="margin-bottom:16px">
@@ -526,12 +526,12 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <!-- Watchlist Strong/Neutral/Weak -->
     <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
   <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
-  <button class="gk-filter active-filter" data-filter="all" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--accent);color:#fff">All</button>
-  <button class="gk-filter" data-filter="entry" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)">&#10003; Possible Entry</button>
-  <button class="gk-filter" data-filter="extended" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)">&#9888; Extended</button>
-  <button class="gk-filter" data-filter="oversold" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">RSI &lt;35</button>
-  <button class="gk-filter" data-filter="above50" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8679; Above 50MA</button>
-  <button class="gk-filter" data-filter="below50" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8681; Below 50MA</button>
+  <button class="gk-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--accent);color:#fff">All</button>
+  <button class="gk-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)">&#10003; Possible Entry</button>
+  <button class="gk-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)">&#9888; Extended</button>
+  <button class="gk-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">RSI &lt;35</button>
+  <button class="gk-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8679; Above 50MA</button>
+  <button class="gk-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8681; Below 50MA</button>
 </div>
 <div id="greek-watchlist" style="margin-bottom:16px"></div>
 
@@ -1554,7 +1554,7 @@ function renderSummary(stocks, spy) {
   var alerts  = stocks.filter(function(s){ return s.alert; }).length;
   var earnSoon= stocks.filter(function(s){ return s.earnings_days!==null&&s.earnings_days!==undefined; }).length;
   document.getElementById('summary-cards').innerHTML = [
-    { lbl:'Tracked',         val:stocks.length, sub:'large-caps' },
+    { lbl:'Tracked',         val:stocks.length, sub:'US large-caps' },
     { lbl:'Weekly Gainers',  val:gainers+'/20',  sub:'this week' },
     { lbl:'Strong Momentum', val:strong,         sub:'of 20 stocks' },
     { lbl:'Best 1W',         val:best.ticker,    sub:p(best.pct_1w) },
