@@ -137,6 +137,19 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 
 .sparkline{display:inline-block;vertical-align:middle}
 .spark-up{stroke:#10b981}.spark-down{stroke:#ef4444}.spark-flat{stroke:#64748b}
+
+/* Buy zone badge */
+.bz-entry { background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.4);font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+.bz-wait   { background:rgba(239,68,68,.15); color:var(--red);  border:1px solid rgba(239,68,68,.4); font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+.bz-watch  { background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.4);font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+/* vs avg20 */
+.vs-avg-pos{ color:var(--red);  font-family:var(--mono);font-size:11px;font-weight:700 }
+.vs-avg-neg{ color:var(--green);font-family:var(--mono);font-size:11px;font-weight:700 }
+/* 4W range bar */
+.range4w-wrap{ display:flex;align-items:center;gap:5px;min-width:90px }
+.range4w-track{ flex:1;height:6px;background:var(--border);border-radius:3px;position:relative }
+.range4w-fill{ position:absolute;left:0;top:0;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red)) }
+.range4w-dot{ position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--cyan);z-index:1 }
 </style>
 </head>
 <body>
@@ -293,6 +306,12 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
             <th class="sort" data-f="pos_52w" data-tbl="action"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
             <th><span class="tip" data-tip="5-day price trend: shows direction of price movement over the last 5 trading days">Trend</span></th>
+            <th class="sort" data-f="pct_vs_avg20" data-tbl="action">
+              <span class="tip" data-tip="% above or below the 20-day average price. Negative (green) = below average = potential value. Positive (red) = above average = extended.">vs 20MA</span>
+            </th>
+            <th><span class="tip" data-tip="4-week price range bar. Shows where current price sits within the last 4 weeks. Near left = 4-week low. Near right = 4-week high.">4W Pos</span></th>
+            <th><span class="tip" data-tip="20-day price chart with average line. Dashed line = 20-day average. Green/red line = price trend.">20D Chart</span></th>
+            <th><span class="tip" data-tip="Entry timing signal based on RSI, 4-week position, and 20-day average. Possible Entry = conditions look reasonable. Extended = wait for pullback. Monitor = no clear signal.">Timing</span></th>
             <th>Flags</th>
             <th>What it means</th>
           </tr>
@@ -1283,7 +1302,15 @@ function renderETFs(etfs) {
             '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
               (e.rsi14!==null?'<span class="tip rsi-badge '+rsiCls+'" data-tip="RSI '+e.rsi14+': '+(e.rsi14<30?'Oversold - possible entry':e.rsi14>70?'Overbought - caution':'Neutral range')+'">'+e.rsi14+'</span>':'')+
               '<span class="tip '+maCls+'" data-tip="'+(e.above_ma50===null?'50MA not available':e.above_ma50?'Above 50MA: uptrend in place':'Below 50MA: downtrend in place')+'">'+maLbl+'</span>'+
-              '<span style="margin-left:auto">'+makeSpark(e.spark||[], 50, 16)+'</span>'+
+              (function(){
+                var bze=buyZone(e);
+                var rsiTipE=e.rsi14===null?'RSI N/A':e.rsi14<30?'RSI '+e.rsi14+': Oversold':e.rsi14>70?'RSI '+e.rsi14+': Overbought':'RSI '+e.rsi14+': Neutral';
+                return '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'" style="font-size:9px;padding:2px 6px;margin-left:4px">'+bze.label+'</span>'+
+                  '<div style="margin-left:auto;display:flex;align-items:center;gap:6px">'+
+                    makeChart20(e.chart20||[],80,24)+
+                    (e.pct_vs_avg20!==null&&e.pct_vs_avg20!==undefined?vsAvg20(e):'') +
+                  '</div>';
+              })()+
             '</div>'+
           '</div>';
         }).join('')+
@@ -1325,6 +1352,107 @@ function renderETFTable(etfs) {
       '<td>'+makeSpark(e.spark||[],50,18)+'</td>'+
     '</tr>';
   }).join('');
+}
+
+
+// ── Buy Zone analysis ─────────────────────────────────────────
+function buyZone(s) {
+  // Returns { label, cls, tip }
+  var rsi    = s.rsi14;
+  var above  = s.above_ma50;
+  var pos4w  = s.pos_4w;
+  var pctAvg = s.pct_vs_avg20;
+  var sig    = s.signal;
+
+  // Extended / avoid
+  if (rsi !== null && rsi > 72) {
+    return { label:'Extended', cls:'bz-wait',
+      tip:'RSI '+rsi+' is overbought (>72). Stock has risen too fast. Wait for RSI to cool below 60 before entering.' };
+  }
+  if (pos4w !== null && pos4w >= 88) {
+    return { label:'Near 4W High', cls:'bz-wait',
+      tip:'Price is at '+pos4w+'% of its 4-week range — near recent high. Risk/reward is poor here. Wait for a pullback.' };
+  }
+  if (pctAvg !== null && pctAvg > 8) {
+    return { label:'Extended', cls:'bz-wait',
+      tip:'Price is '+pctAvg+'% above its 20-day average. Stretched. Typically mean-reverts. Wait for pullback toward average.' };
+  }
+
+  // Good entry zone
+  if (above === true &&
+      rsi !== null && rsi < 58 &&
+      pos4w !== null && pos4w < 65 &&
+      (sig === 'STRONG' || sig === 'NEUTRAL')) {
+    return { label:'Possible Entry', cls:'bz-entry',
+      tip:'Uptrend intact (above 50MA) + RSI '+rsi+' not overbought + price in lower half of 4-week range. Reasonable entry window.' };
+  }
+
+  // Oversold bounce watch
+  if (rsi !== null && rsi < 35 && above === true) {
+    return { label:'Oversold Watch', cls:'bz-entry',
+      tip:'RSI '+rsi+' is oversold but still above 50MA (uptrend). Potential bounce entry — high reward but watch for further dip.' };
+  }
+
+  // Neutral / monitor
+  return { label:'Monitor', cls:'bz-watch',
+    tip:'No clear entry signal right now. '+(rsi?'RSI '+rsi+'. ':'')+(pos4w?'4W position '+pos4w+'%. ':'')+'Check back after next data refresh.' };
+}
+
+// ── 20-day SVG chart ───────────────────────────────────────────
+function makeChart20(data, w, h) {
+  if (!data || data.length < 5) return makeSpark(data, w, h);
+  var min = Math.min.apply(null, data);
+  var max = Math.max.apply(null, data);
+  var range = max - min || 1;
+  var step  = w / (data.length - 1);
+  var pts   = data.map(function(v, i) {
+    var x = Math.round(i * step);
+    var y = Math.round(h - 4 - ((v - min) / range) * (h - 8));
+    return x + ',' + y;
+  }).join(' ');
+  // Colour based on trend direction
+  var isUp  = data[data.length-1] >= data[0];
+  // Find avg for reference line
+  var avg   = data.reduce(function(a,b){ return a+b; },0)/data.length;
+  var avgY  = Math.round(h - 4 - ((avg - min) / range) * (h - 8));
+  // Current price vs first price for fill colour
+  var clr   = isUp ? 'var(--green)' : 'var(--red)';
+  return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+
+    // Average line
+    '<line x1="0" y1="'+avgY+'" x2="'+w+'" y2="'+avgY+'" stroke="var(--muted)" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.5"/>'+
+    // Price line
+    '<polyline points="'+pts+'" fill="none" stroke="'+clr+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'+
+    // Last point dot
+    '<circle cx="'+Math.round((data.length-1)*step)+'" cy="'+Math.round(h-4-((data[data.length-1]-min)/range)*(h-8))+'" r="2.5" fill="'+clr+'"/>'+
+  '</svg>';
+}
+
+// ── 4-week range bar ───────────────────────────────────────────
+function range4wBar(s) {
+  if (s.pos_4w === null || s.pos_4w === undefined) return '-';
+  var p = s.pos_4w;
+  var tip = 'Current price is at '+p+'% of its 4-week range. '+
+    (p>=80?'Near 4-week HIGH — extended, wait for pullback.':
+     p<=25?'Near 4-week LOW — potential entry if trend intact.':
+     '4-week mid range — reasonable entry zone.');
+  return '<div class="tip range4w-wrap" data-tip="'+tip+'">'+
+    '<div class="range4w-track">'+
+      '<div class="range4w-fill" style="width:100%"></div>'+
+      '<div class="range4w-dot" style="left:'+p+'%"></div>'+
+    '</div>'+
+    '<span style="font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap">'+p+'%</span>'+
+  '</div>';
+}
+
+// ── vs 20-day average ─────────────────────────────────────────
+function vsAvg20(s) {
+  var v = s.pct_vs_avg20;
+  if (v === null || v === undefined) return '-';
+  var cls = v > 0 ? 'vs-avg-pos' : 'vs-avg-neg';
+  var tip = v > 0
+    ? 'Price is '+v+'% ABOVE its 20-day average. Extended — may pull back toward average ($'+(s.avg20||'')+').'
+    : 'Price is '+Math.abs(v)+'% BELOW its 20-day average ($'+(s.avg20||'')+') — potential value entry.';
+  return '<span class="tip '+cls+'" data-tip="'+tip+'">'+(v>0?'+':'')+v+'%</span>';
 }
 
 var D = null;
@@ -1561,8 +1689,12 @@ function renderActionTable(stocks) {
       '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
       '<td>'+range52+'</td>'+
       '<td>'+makeSpark(st.spark||[], 50, 18)+'</td>'+
+      '<td>'+vsAvg20(st)+'</td>'+
+      '<td>'+range4wBar(st)+'</td>'+
+      '<td>'+makeChart20(st.chart20||[], 80, 32)+'</td>'+
+      (function(){ var bz=buyZone(st); return '<td><span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span></td>'; })()+
       '<td style="white-space:nowrap">'+flags+'</td>'+
-      '<td style="text-align:left;max-width:200px;white-space:normal;font-size:11px;color:var(--muted);line-height:1.4">'+esc(meaning)+'</td>'+
+      '<td style="text-align:left;max-width:180px;white-space:normal;font-size:11px;color:var(--muted);line-height:1.4">'+esc(meaning)+'</td>'+
     '</tr>';
   }).join('');
 }
