@@ -150,6 +150,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .range4w-track{ flex:1;height:6px;background:var(--border);border-radius:3px;position:relative }
 .range4w-fill{ position:absolute;left:0;top:0;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red)) }
 .range4w-dot{ position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--cyan);z-index:1 }
+.active-filter{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
 </style>
 </head>
 <body>
@@ -222,7 +223,16 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <div id="warning-banner"></div>
     <div class="spy-bar" id="spy-bar"></div>
     <div class="summary-grid" id="summary-cards"></div>
-    <div id="ov-watchlist" style="margin-bottom:16px"></div>
+    <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+  <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
+  <button class="wl-filter active-filter" data-filter="all" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--accent);color:#fff">All</button>
+  <button class="wl-filter" data-filter="entry" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)">&#10003; Possible Entry</button>
+  <button class="wl-filter" data-filter="extended" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)">&#9888; Extended</button>
+  <button class="wl-filter" data-filter="oversold" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">RSI &lt;35</button>
+  <button class="wl-filter" data-filter="above50" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8679; Above 50MA</button>
+  <button class="wl-filter" data-filter="below50" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8681; Below 50MA</button>
+</div>
+<div id="ov-watchlist" style="margin-bottom:16px"></div>
     <div class="panel" style="margin-bottom:16px">
       <h3>Sector Heatmap <span class="sub">Weekly &amp; Monthly avg</span></h3>
       <div style="display:grid;grid-template-columns:140px 58px 58px 1fr;gap:12px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:6px">
@@ -514,7 +524,16 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <div id="greek-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px"></div>
 
     <!-- Watchlist Strong/Neutral/Weak -->
-    <div id="greek-watchlist" style="margin-bottom:16px"></div>
+    <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+  <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
+  <button class="gk-filter active-filter" data-filter="all" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--accent);color:#fff">All</button>
+  <button class="gk-filter" data-filter="entry" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)">&#10003; Possible Entry</button>
+  <button class="gk-filter" data-filter="extended" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)">&#9888; Extended</button>
+  <button class="gk-filter" data-filter="oversold" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">RSI &lt;35</button>
+  <button class="gk-filter" data-filter="above50" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8679; Above 50MA</button>
+  <button class="gk-filter" data-filter="below50" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8681; Below 50MA</button>
+</div>
+<div id="greek-watchlist" style="margin-bottom:16px"></div>
 
     <!-- Full table -->
     <div class="tbl-wrap">
@@ -1088,7 +1107,7 @@ function renderGreek(greek) {
 
 function renderGreekWatchlist(greek) {
   var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
-  greek.forEach(function(s){ (groups[s.signal]||groups.NEUTRAL).push(s); });
+  greek.forEach(function(s){ if(matchesFilter(s,gkFilter)) (groups[s.signal]||groups.NEUTRAL).push(s); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
 
   var configs = [
@@ -1146,6 +1165,17 @@ function renderGreekWatchlist(greek) {
                 '</div>'+
               '</div>'+
             '</div>'+
+            (function(){
+              var bz=buyZone(s);
+              return '<div style="display:flex;align-items:center;gap:8px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">'+
+                makeChart20(s.chart20||[],100,30)+
+                '<div style="display:flex;flex-direction:column;gap:3px;margin-left:6px">'+
+                  (s.pct_vs_avg20!==null&&s.pct_vs_avg20!==undefined?
+                    '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs avg</span>':'')+
+                '</div>'+
+                '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto;font-size:10px;padding:3px 8px">'+bz.label+'</span>'+
+              '</div>';
+            })()+
           '</div>';
         }).join('')+
       '</div>';
@@ -1455,6 +1485,35 @@ function vsAvg20(s) {
   return '<span class="tip '+cls+'" data-tip="'+tip+'">'+(v>0?'+':'')+v+'%</span>';
 }
 
+
+// ── Watchlist filters ──────────────────────────────────────────
+var wlFilter = 'all', gkFilter = 'all';
+
+function matchesFilter(s, filter) {
+  var bz = buyZone(s);
+  if (filter === 'all')      return true;
+  if (filter === 'entry')    return bz.label === 'Possible Entry' || bz.label === 'Oversold Watch';
+  if (filter === 'extended') return bz.label === 'Extended' || bz.label === 'Near 4W High';
+  if (filter === 'oversold') return s.rsi14 !== null && s.rsi14 < 35;
+  if (filter === 'above50')  return s.above_ma50 === true;
+  if (filter === 'below50')  return s.above_ma50 === false;
+  return true;
+}
+
+function filterWatchlist(filter, btn) {
+  wlFilter = filter;
+  document.querySelectorAll('.wl-filter').forEach(function(b){ b.classList.remove('active-filter'); });
+  btn.classList.add('active-filter');
+  if (D) renderWatchlist(D.stocks);
+}
+
+function filterGreekWatchlist(filter, btn) {
+  gkFilter = filter;
+  document.querySelectorAll('.gk-filter').forEach(function(b){ b.classList.remove('active-filter'); });
+  btn.classList.add('active-filter');
+  if (D) renderGreekWatchlist(D.greek);
+}
+
 var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
@@ -1510,7 +1569,7 @@ function renderSummary(stocks, spy) {
 
 function renderWatchlist(stocks) {
   var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
-  stocks.forEach(function(s){ (groups[s.signal]||groups.NEUTRAL).push(s); });
+  stocks.forEach(function(s){ if(matchesFilter(s,wlFilter)) (groups[s.signal]||groups.NEUTRAL).push(s); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
   var configs = [
     { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Trending up - consider entry if RSI not overbought', color:'var(--green)', border:'rgba(16,185,129,.25)' },
@@ -2109,6 +2168,14 @@ document.addEventListener('DOMContentLoaded', function() {
   if(si) si.addEventListener('input', function(){ filterSignals(this.value); });
   var rb=document.getElementById('refresh-btn');
   if(rb) rb.addEventListener('click', function(){ loadData(); });
+
+  // Watchlist filter buttons
+  document.querySelectorAll('.wl-filter').forEach(function(btn) {
+    btn.addEventListener('click', function() { filterWatchlist(this.dataset.filter, this); });
+  });
+  document.querySelectorAll('.gk-filter').forEach(function(btn) {
+    btn.addEventListener('click', function() { filterGreekWatchlist(this.dataset.filter, this); });
+  });
   // Settings panel
   var settingsBtn   = document.getElementById('settings-btn');
   var settingsPanel = document.getElementById('settings-panel');
