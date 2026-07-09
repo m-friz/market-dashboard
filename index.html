@@ -197,6 +197,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div class="tab" data-tab="signals">&#127919; Signals</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
   <div class="tab" data-tab="dividends">&#128176; Dividends</div>
+  <div class="tab" data-tab="etfs">&#128640; ETFs</div>
   <div class="tab" data-tab="guide">&#128218; Guide</div>
 </div>
 <main>
@@ -535,6 +536,77 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
       Greek market hours: 10:00-17:30 Athens time (Mon-Fri).
     </div>
 
+  </div>
+</div>
+
+
+<!-- ETFs -->
+<div id="panel-etfs" class="tab-panel">
+  <div id="etf-content" style="display:none">
+
+    <!-- What is an ETF -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 32px;font-size:12px;color:var(--muted)">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">What is an ETF?</div>
+          A basket of stocks or bonds that trades like a single stock. One purchase gives you exposure to dozens or hundreds of companies instantly.
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">
+            <span class="tip" data-tip="Expense Ratio: annual fee charged by the ETF manager. 0.03% means you pay $3 per year for every $10,000 invested. Lower is always better. Vanguard and iShares are known for very low costs.">Expense Ratio</span>
+          </div>
+          Annual fee as % of your investment. Even small differences compound dramatically over decades. Prefer under 0.20%.
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">ETF vs Individual Stocks</div>
+          ETFs spread risk across many companies — if one drops, it has limited impact. Best for long-term, low-maintenance investing. The stocks tab is for active monitoring.
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div id="etf-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px"></div>
+
+    <!-- ETF cards by category -->
+    <div id="etf-categories"></div>
+
+    <!-- Full sortable table -->
+    <div style="font-size:12px;font-weight:700;color:var(--text);margin:18px 0 10px">All ETFs — Sortable Table</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="sort" data-f="name" data-tbl="etf">Name</th>
+            <th>Ticker</th>
+            <th>Category</th>
+            <th class="sort" data-f="expense" data-tbl="etf">
+              <span class="tip" data-tip="Expense Ratio: annual fee. Lower = better. 0.03% = $3/yr per $10,000.">Expense</span>
+            </th>
+            <th class="sort" data-f="price" data-tbl="etf">Price</th>
+            <th class="sort sd" data-f="pct_1w" data-tbl="etf">&#916; 1W</th>
+            <th class="sort" data-f="pct_1m" data-tbl="etf">&#916; 1M</th>
+            <th class="sort" data-f="pct_ytd" data-tbl="etf">&#916; YTD</th>
+            <th class="sort" data-f="rsi14" data-tbl="etf">
+              <span class="tip" data-tip="RSI-14: momentum indicator. Under 30 = oversold (possible entry). Over 70 = overbought (caution).">RSI-14</span>
+            </th>
+            <th>
+              <span class="tip" data-tip="50-Day Moving Average. Above = uptrend. Below = downtrend.">50MA</span>
+            </th>
+            <th class="sort" data-f="pos_52w" data-tbl="etf">
+              <span class="tip" data-tip="52-Week Position. 100% = at yearly high. 0% = at yearly low.">52W Pos</span>
+            </th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody id="etf-body"></tbody>
+      </table>
+    </div>
+
+    <div style="font-size:11px;color:var(--muted);padding:10px 4px;line-height:1.7">
+      Data via Yahoo Finance. Expense ratios are static reference values.
+      Past performance does not guarantee future results. Not financial advice.
+    </div>
   </div>
 </div>
 
@@ -1109,6 +1181,152 @@ function renderGreekTable(greek) {
   }).join('');
 }
 
+
+// ── ETF Tab ────────────────────────────────────────────────────
+var etfSortField = 'pct_1w', etfSortDir = 'desc';
+
+var ETF_META = {
+  'VOO': { category:'Broad Market', expense:0.03, desc:'Tracks S&P 500. Best core holding for most investors. Near-zero cost.' },
+  'VTI': { category:'Broad Market', expense:0.03, desc:'Covers entire US market including small & mid caps. 3,700+ stocks.' },
+  'QQQ': { category:'Broad Market', expense:0.20, desc:'Top 100 Nasdaq companies. Heavy tech/AI. Higher growth, higher risk.' },
+  'VT':  { category:'Broad Market', expense:0.06, desc:'Global diversification. 10,000+ stocks across all countries.' },
+  'VGT': { category:'Growth & Tech', expense:0.10, desc:'Pure technology exposure. Apple, Microsoft, Nvidia. Strong AI play.' },
+  'VUG': { category:'Growth & Tech', expense:0.04, desc:'Large-cap US growth stocks. Lower cost alternative to QQQ.' },
+  'SCHD':{ category:'Dividend',     expense:0.06, desc:'Quality dividend payers screened for financial strength. Yield ~3-4%.' },
+  'VYM': { category:'Dividend',     expense:0.06, desc:'~400 high-yield US stocks. Pairs well with SCHD for income.' },
+  'AGG': { category:'Defensive',    expense:0.03, desc:'US investment-grade bonds. Reduces volatility. Yield ~4-5%.' },
+  'GLD': { category:'Defensive',    expense:0.40, desc:'Physical gold exposure. Hedge against inflation and currency risk.' },
+  'IAU': { category:'Defensive',    expense:0.25, desc:'Same as GLD but cheaper. Lower cost gold ETF.' },
+  'BOTZ':{ category:'Thematic',     expense:0.68, desc:'AI, robotics, and automation companies. High growth, high volatility.' },
+  'IBIT':{ category:'Thematic',     expense:0.25, desc:'Direct Bitcoin exposure. $70B+ AUM. High risk, high potential.' }
+};
+
+var ETF_CAT_COLORS = {
+  'Broad Market': { color:'var(--accent)', border:'rgba(59,130,246,.25)', icon:'&#127760;' },
+  'Growth & Tech':{ color:'var(--cyan)',   border:'rgba(6,182,212,.25)',  icon:'&#128200;' },
+  'Dividend':     { color:'var(--green)',  border:'rgba(16,185,129,.25)', icon:'&#128176;' },
+  'Defensive':    { color:'var(--amber)',  border:'rgba(245,158,11,.25)', icon:'&#128737;' },
+  'Thematic':     { color:'var(--purple)', border:'rgba(139,92,246,.25)', icon:'&#128640;' }
+};
+
+function renderETFs(etfs) {
+  var el = document.getElementById('etf-content');
+  if (!el) return;
+  el.style.display = 'block';
+
+  if (!etfs || !etfs.length) {
+    document.getElementById('etf-body').innerHTML =
+      '<tr><td colspan="13" style="text-align:center;padding:24px;color:var(--muted)">No ETF data. Run fetchAndStore() in GAS to populate.</td></tr>';
+    return;
+  }
+
+  // Enrich with static metadata
+  etfs = etfs.map(function(e) {
+    var m = ETF_META[e.ticker] || {};
+    e.category = e.category || m.category || 'Other';
+    e.expense   = e.expense  || m.expense  || null;
+    e.desc      = e.desc     || m.desc     || '';
+    return e;
+  });
+
+  // Summary cards
+  var best    = etfs.filter(function(e){ return e.pct_1w!==null; }).reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }, etfs[0]);
+  var gainers = etfs.filter(function(e){ return (e.pct_1w||0)>0; }).length;
+  var above50 = etfs.filter(function(e){ return e.above_ma50===true; }).length;
+  var avgYTD  = (etfs.reduce(function(s,e){ return s+(e.pct_ytd||0); },0)/etfs.length).toFixed(1);
+
+  document.getElementById('etf-summary').innerHTML = [
+    { lbl:'Tracked ETFs',   val:etfs.length,             sub:'across 5 categories' },
+    { lbl:'Weekly Gainers', val:gainers+'/'+etfs.length, sub:'up this week' },
+    { lbl:'Best 1W',        val:best.ticker,             sub:p(best.pct_1w) },
+    { lbl:'Above 50MA',     val:above50+'/'+etfs.length, sub:'in uptrend' },
+    { lbl:'Avg YTD',        val:(avgYTD>0?'+':'')+avgYTD+'%', sub:'ETF universe' }
+  ].map(function(c){
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+  }).join('');
+
+  // Category cards
+  var catOrder = ['Broad Market','Growth & Tech','Dividend','Defensive','Thematic'];
+  var groups   = {};
+  etfs.forEach(function(e){ if(!groups[e.category]) groups[e.category]=[]; groups[e.category].push(e); });
+
+  document.getElementById('etf-categories').innerHTML =
+    catOrder.filter(function(c){ return groups[c] && groups[c].length; }).map(function(cat) {
+      var items = groups[cat];
+      var cfg   = ETF_CAT_COLORS[cat] || { color:'var(--muted)', border:'rgba(100,116,139,.25)', icon:'&#9632;' };
+      return '<div style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px;margin-bottom:12px">'+
+        '<div style="font-size:13px;font-weight:700;color:'+cfg.color+';margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
+          cfg.icon+' '+cat+' <span style="font-size:11px;color:var(--muted);font-weight:400">('+items.length+' ETFs)</span>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">'+
+        items.map(function(e){
+          var pctClr = (e.pct_1w||0)>=0?'var(--green)':'var(--red)';
+          var rsiCls = !e.rsi14?'rsi-mid':e.rsi14<30?'rsi-os':e.rsi14>70?'rsi-ob':'rsi-mid';
+          var maCls  = e.above_ma50===null?'':e.above_ma50?'ma-above':'ma-below';
+          var maLbl  = e.above_ma50===null?'MA -':e.above_ma50?'^ 50MA':'v 50MA';
+          var expClr = !e.expense?'var(--muted)':e.expense<0.10?'var(--green)':e.expense<0.30?'var(--cyan)':e.expense<0.60?'var(--amber)':'var(--red)';
+          return '<div style="background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">'+
+            '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'+
+              '<div>'+
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'+
+                  '<span style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--accent)">'+esc(e.ticker)+'</span>'+
+                  '<span class="tip" data-tip="Expense ratio: '+e.expense+'% per year = $'+(e.expense*100).toFixed(0)+' per $10,000 invested annually" style="font-size:10px;color:'+expClr+';font-family:var(--mono);cursor:help">'+e.expense+'%</span>'+
+                '</div>'+
+                '<div style="font-size:11px;font-weight:600;color:var(--text)">'+esc(e.name)+'</div>'+
+              '</div>'+
+              '<div style="text-align:right">'+
+                '<div style="font-family:var(--mono);font-size:14px;font-weight:800;color:'+pctClr+'">'+(e.pct_1w!==null?(e.pct_1w>=0?'+':'')+e.pct_1w+'%':'N/A')+'</div>'+
+                '<div style="font-size:10px;color:var(--muted)">this week</div>'+
+              '</div>'+
+            '</div>'+
+            '<div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">'+esc(e.desc)+'</div>'+
+            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
+              (e.rsi14!==null?'<span class="tip rsi-badge '+rsiCls+'" data-tip="RSI '+e.rsi14+': '+(e.rsi14<30?'Oversold - possible entry':e.rsi14>70?'Overbought - caution':'Neutral range')+'">'+e.rsi14+'</span>':'')+
+              '<span class="tip '+maCls+'" data-tip="'+(e.above_ma50===null?'50MA not available':e.above_ma50?'Above 50MA: uptrend in place':'Below 50MA: downtrend in place')+'">'+maLbl+'</span>'+
+              '<span style="margin-left:auto">'+makeSpark(e.spark||[], 50, 16)+'</span>'+
+            '</div>'+
+          '</div>';
+        }).join('')+
+        '</div>'+
+      '</div>';
+    }).join('');
+
+  renderETFTable(etfs);
+}
+
+function renderETFTable(etfs) {
+  var sorted = etfs.slice().sort(function(a,b){
+    var av=a[etfSortField],bv=b[etfSortField];
+    if(av===null||av===undefined) av=etfSortDir==='desc'?-9999:9999;
+    if(bv===null||bv===undefined) bv=etfSortDir==='desc'?-9999:9999;
+    if(typeof av==='string') return etfSortDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);
+    return etfSortDir==='desc'?bv-av:av-bv;
+  });
+
+  document.getElementById('etf-body').innerHTML = sorted.map(function(e,i){
+    var rsiCls  = !e.rsi14?'rsi-mid':e.rsi14<30?'rsi-os':e.rsi14>70?'rsi-ob':'rsi-mid';
+    var maLbl   = e.above_ma50===null?'-':e.above_ma50?'^ 50MA':'v 50MA';
+    var maCls   = e.above_ma50===null?'':e.above_ma50?'ma-above':'ma-below';
+    var range52 = e.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+e.pos_52w+'%"></div></div><span class="range-pct">'+e.pos_52w+'%</span></div>':'-';
+    var cfg     = ETF_CAT_COLORS[e.category] || { color:'var(--muted)' };
+    return '<tr title="'+esc(e.name)+' ('+e.ticker+') | '+e.category+' | Expense: '+e.expense+'% | RSI: '+(e.rsi14||'N/A')+'">' +
+      '<td>'+(i+1)+'</td>'+
+      '<td style="font-weight:600">'+esc(e.name)+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--accent);font-weight:700">'+esc(e.ticker)+'</td>'+
+      '<td style="font-size:11px;color:'+cfg.color+'">'+esc(e.category)+'</td>'+
+      '<td style="font-family:var(--mono)">'+(e.expense!==null?e.expense+'%':'-')+'</td>'+
+      '<td style="font-family:var(--mono)">$'+fmt(e.price)+'</td>'+
+      '<td class="'+pcls(e.pct_1w)+'">'+pn(e.pct_1w)+'</td>'+
+      '<td class="'+pcls(e.pct_1m)+'">'+pn(e.pct_1m)+'</td>'+
+      '<td class="'+pcls(e.pct_ytd)+'">'+pn(e.pct_ytd)+'</td>'+
+      '<td>'+(e.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+e.rsi14+'</span>':'-')+'</td>'+
+      '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
+      '<td>'+range52+'</td>'+
+      '<td>'+makeSpark(e.spark||[],50,18)+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
 var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
@@ -1500,6 +1718,11 @@ function sortTbl(tbl, el) {
     sorts.action={f:actionSortField,d:actionSortDir};
     if(D) renderActionTable(D.stocks);
     document.querySelectorAll('#panel-signals th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===actionSortField) th.classList.add(actionSortDir==='desc'?'sd':'sa'); });
+  } else if (tbl === 'etf') {
+    if(etfSortField===field) etfSortDir=etfSortDir==='desc'?'asc':'desc';
+    else{ etfSortField=field; etfSortDir=(field==='name'||field==='category')?'asc':'desc'; }
+    if(D && D.etfs) renderETFTable(D.etfs);
+    document.querySelectorAll('#panel-etfs th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===etfSortField) th.classList.add(etfSortDir==='desc'?'sd':'sa'); });
   } else if (tbl === 'greek') {
     if(greekSortField===field) greekSortDir=greekSortDir==='desc'?'asc':'desc';
     else{ greekSortField=field; greekSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
@@ -1692,6 +1915,7 @@ function renderAll(data) {
   document.getElementById('hist-content').style.display = 'block';
   var dc=document.getElementById('div-content'); if(dc) dc.style.display='block';
   var gc=document.getElementById('greek-content'); if(gc) gc.style.display='block';
+  var ec2=document.getElementById('etf-content'); if(ec2) ec2.style.display='block';
 
   var wb = document.getElementById('warning-banner');
   var ws = data.warnings || [];
@@ -1709,7 +1933,8 @@ function renderAll(data) {
     ['renderHistTable',  function(){ renderHistTable(data.stocks); }],
     ['initAlerts',       function(){ initAlerts(data.stocks); }],
     ['renderDividends',  function(){ renderDividends(data.dividends, data.stocks); }],
-    ['renderGreek',      function(){ renderGreek(data.greek); }]
+    ['renderGreek',      function(){ renderGreek(data.greek); }],
+    ['renderETFs',       function(){ renderETFs(data.etfs); }]
   ];
 
   fns.forEach(function(pair) {
