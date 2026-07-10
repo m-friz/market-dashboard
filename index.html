@@ -158,6 +158,17 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .etf-filter[data-filter="extended"],.wl-filter[data-filter="extended"],.gk-filter[data-filter="extended"]{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)}
 .etf-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
 .wl-filter[data-filter="oversold"],.gk-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
+
+.top3-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px }
+.top3-card { background:var(--surf2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px }
+.top3-card.up   { border-left:3px solid var(--green) }
+.top3-card.down { border-left:3px solid var(--red) }
+.top3-ticker { font-family:var(--mono); font-weight:800; font-size:12px; color:var(--accent) }
+.top3-name   { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.top3-pct    { font-family:var(--mono); font-weight:800; font-size:14px }
+.top3-pct.up   { color:var(--green) }
+.top3-pct.down { color:var(--red) }
+.top3-badges { display:flex; gap:4px; flex-wrap:wrap; align-items:center; margin-top:2px }
 </style>
 </head>
 <body>
@@ -230,6 +241,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div id="ov-content" style="display:none">
     <div id="warning-banner"></div>
     <div class="spy-bar" id="spy-bar"></div>
+    <div id="ov-top3" style="margin-bottom:0"></div>
     <div class="summary-grid" id="summary-cards"></div>
     <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
   <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
@@ -523,6 +535,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     </div>
 
     <!-- Summary cards -->
+    <div id="gk-top3" style="margin-bottom:0"></div>
     <div id="greek-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px"></div>
 
     <!-- Watchlist Strong/Neutral/Weak -->
@@ -614,6 +627,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     </div>
 
     <!-- Summary cards -->
+    <div id="etf-top3" style="margin-bottom:0"></div>
     <div id="etf-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px"></div>
 
     <!-- ETF filter bar -->
@@ -1189,6 +1203,10 @@ function renderGreek(greek) {
   var strong  = greek.filter(function(s){ return s.signal==='STRONG'; }).length;
   var avgW    = greek.length ? (greek.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/greek.length).toFixed(2) : '0.00';
 
+  // Top3/Bottom3 strip
+  var gkTop3El = document.getElementById('gk-top3');
+  if (gkTop3El) gkTop3El.innerHTML = makeTop3Strip(greek, 'EUR');
+
   document.getElementById('greek-summary').innerHTML = [
     { lbl:'Tracked',         val:greek.length,              sub:'ATHEX stocks' },
     { lbl:'Weekly Gainers',  val:gainers+'/'+greek.length,  sub:'this week' },
@@ -1424,6 +1442,13 @@ function renderETFs(etfs) {
       '<span style="color:var(--text)">Above 50MA: <span style="color:var(--cyan)">'+aboveAll+'/'+totalEtfs+'</span></span>';
   }
 
+  // Top3/Bottom3 strip
+  var etfTop3El = document.getElementById('etf-top3');
+  if (etfTop3El) {
+    var allForTop3 = D && D.etfs ? D.etfs : etfs;
+    etfTop3El.innerHTML = makeTop3Strip(allForTop3, 'USD');
+  }
+
   document.getElementById('etf-summary').innerHTML = [
     { lbl:'Tracked ETFs',   val:etfs.length,             sub:'across 5 categories' },
     { lbl:'Weekly Gainers', val:gainers+'/'+etfs.length, sub:'up this week' },
@@ -1556,6 +1581,51 @@ function supportResistance(s) {
     '<span style="color:var(--green)">S:'+sym+sup+'</span>'+
     ' <span style="color:var(--border)">|</span> '+
     '<span style="color:var(--red)">R:'+sym+res+'</span>'+
+  '</div>';
+}
+
+
+// ── Top 3 / Bottom 3 strip ────────────────────────────────────
+function makeTop3Strip(stocks, currency) {
+  var sym = currency === 'EUR' ? '&#8364;' : '$';
+  var valid = stocks.filter(function(s){ return s.pct_1w !== null && s.pct_1w !== undefined; });
+  if (valid.length < 2) return '';
+
+  var sorted = valid.slice().sort(function(a,b){ return (b.pct_1w||0) - (a.pct_1w||0); });
+  var top3    = sorted.slice(0, 3);
+  var bot3    = sorted.slice(-3).reverse();
+
+  function card(s, dir) {
+    var bz     = buyZone(s);
+    var sigCls = s.signal==='STRONG'?'sig-s':s.signal==='WEAK'?'sig-w':'sig-n';
+    var sigLbl = s.signal==='STRONG'?'Strong':s.signal==='WEAK'?'Weak':s.signal?'Neutral':'';
+    var name   = s.name || s.company || s.ticker;
+    return '<div class="top3-card '+dir+'">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+        '<div>' +
+          '<div class="top3-ticker">'+esc(s.ticker)+'</div>' +
+          '<div class="top3-name">'+esc(name)+'</div>' +
+        '</div>' +
+        '<div class="top3-pct '+dir+'">'+(s.pct_1w>=0?'+':'')+s.pct_1w+'%</div>' +
+      '</div>' +
+      '<div class="top3-badges">' +
+        (sigLbl ? '<span class="sig '+sigCls+'">'+sigLbl+'</span>' : '') +
+        '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="font-size:9px;padding:2px 6px">'+bz.label+'</span>' +
+        (s.rsi14!==null&&s.rsi14!==undefined ? '<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">RSI '+s.rsi14+'</span>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  return '<div style="margin-bottom:14px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+      '<span style="font-size:11px;font-weight:700;color:var(--green)">&#9650; Top 3 this week</span>' +
+      '<span style="font-size:11px;font-weight:700;color:var(--red)">&#9660; Worst 3 this week</span>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 4px 1fr 1fr 1fr;gap:8px;align-items:stretch">' +
+      top3.map(function(s){ return card(s,'up'); }).join('') +
+      '<div style="background:var(--border);border-radius:2px"></div>' +
+      bot3.map(function(s){ return card(s,'down'); }).join('') +
+    '</div>' +
   '</div>';
 }
 
