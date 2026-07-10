@@ -151,8 +151,12 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .range4w-fill{ position:absolute;left:0;top:0;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red)) }
 .range4w-dot{ position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--cyan);z-index:1 }
 .active-filter{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
-.etf-filter,.wl-filter,.gk-filter{padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted);transition:all .15s}
+.etf-filter,.wl-filter,.gk-filter{padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted);transition:all .15s;font-weight:500}
 .etf-filter:hover,.wl-filter:hover,.gk-filter:hover{color:var(--text);border-color:var(--accent)}
+.etf-filter[data-filter="entry"],.wl-filter[data-filter="entry"],.gk-filter[data-filter="entry"]{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)}
+.etf-filter[data-filter="extended"],.wl-filter[data-filter="extended"],.gk-filter[data-filter="extended"]{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)}
+.etf-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
+.wl-filter[data-filter="oversold"],.gk-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
 </style>
 </head>
 <body>
@@ -227,12 +231,12 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <div class="summary-grid" id="summary-cards"></div>
     <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
   <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
-  <button class="wl-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--accent);color:#fff">All</button>
-  <button class="wl-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)">&#10003; Possible Entry</button>
-  <button class="wl-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)">&#9888; Extended</button>
-  <button class="wl-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">RSI &lt;35</button>
-  <button class="wl-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8679; Above 50MA</button>
-  <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8681; Below 50MA</button>
+  <button class="wl-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend.">All</button>
+  <button class="wl-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window.">&#10003; Possible Entry</button>
+  <button class="wl-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+  <button class="wl-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering.">RSI &lt;35</button>
+  <button class="wl-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#8679; Above 50MA</button>
+  <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#8681; Below 50MA</button>
 </div>
 <div id="ov-watchlist" style="margin-bottom:16px"></div>
     <div class="panel" style="margin-bottom:16px">
@@ -528,12 +532,12 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <!-- Watchlist Strong/Neutral/Weak -->
     <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
   <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
-  <button class="gk-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--accent);color:#fff">All</button>
-  <button class="gk-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)">&#10003; Possible Entry</button>
-  <button class="gk-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)">&#9888; Extended</button>
-  <button class="gk-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">RSI &lt;35</button>
-  <button class="gk-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8679; Above 50MA</button>
-  <button class="gk-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived." style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)">&#8681; Below 50MA</button>
+  <button class="gk-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend.">All</button>
+  <button class="gk-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window.">&#10003; Possible Entry</button>
+  <button class="gk-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+  <button class="gk-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering.">RSI &lt;35</button>
+  <button class="gk-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#8679; Above 50MA</button>
+  <button class="gk-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#8681; Below 50MA</button>
 </div>
 <div id="greek-watchlist" style="margin-bottom:16px"></div>
 
@@ -1296,20 +1300,7 @@ function renderETFs(etfs) {
     return e;
   });
 
-  // Apply filter
-  var filtered = etfs.filter(function(e) {
-    var f = etfWatchFilter;
-    if (f === 'all') return true;
-    var bz = buyZone(e);
-    if (f === 'entry')    return bz.label === 'Possible Entry' || bz.label === 'Oversold Watch';
-    if (f === 'extended') return bz.label === 'Extended' || bz.label === 'Near 4W High';
-    if (f === 'oversold') return e.rsi14 !== null && e.rsi14 < 35;
-    if (f === 'above50')  return e.above_ma50 === true;
-    if (f === 'below50')  return e.above_ma50 === false;
-    // Category filters
-    return e.category === f;
-  });
-  etfs = filtered;
+  etfs = applyETFFilter(etfs);
 
   // Summary cards
   var best    = etfs.filter(function(e){ return e.pct_1w!==null; }).reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }, etfs[0]);
@@ -1522,6 +1513,20 @@ function vsAvg20(s) {
 
 // ── ETF filter ─────────────────────────────────────────────────
 var etfWatchFilter = 'all';
+
+function applyETFFilter(etfs) {
+  var f = etfWatchFilter;
+  if (f === 'all') return etfs;
+  return etfs.filter(function(e) {
+    var bz = buyZone(e);
+    if (f === 'entry')    return bz.label === 'Possible Entry' || bz.label === 'Oversold Watch';
+    if (f === 'extended') return bz.label === 'Extended' || bz.label === 'Near 4W High';
+    if (f === 'oversold') return e.rsi14 !== null && e.rsi14 < 35;
+    if (f === 'above50')  return e.above_ma50 === true;
+    if (f === 'below50')  return e.above_ma50 === false;
+    return e.category === f; // category filter
+  });
+}
 
 function filterETFs(filter, btn) {
   etfWatchFilter = filter;
@@ -1968,7 +1973,7 @@ function sortTbl(tbl, el) {
   } else if (tbl === 'etf') {
     if(etfSortField===field) etfSortDir=etfSortDir==='desc'?'asc':'desc';
     else{ etfSortField=field; etfSortDir=(field==='name'||field==='category')?'asc':'desc'; }
-    if(D && D.etfs) renderETFTable(D.etfs);
+    if(D && D.etfs) { var _fe=applyETFFilter(D.etfs); renderETFTable(_fe); }
     document.querySelectorAll('#panel-etfs th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===etfSortField) th.classList.add(etfSortDir==='desc'?'sd':'sa'); });
   } else if (tbl === 'greek') {
     if(greekSortField===field) greekSortDir=greekSortDir==='desc'?'asc':'desc';
