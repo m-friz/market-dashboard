@@ -1104,8 +1104,8 @@ function renderGreek(greek) {
 
   // Summary cards
   var gainers = greek.filter(function(s){ return (s.pct_1w||0)>0; }).length;
-  var best    = greek.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; });
-  var worst   = greek.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; });
+  var best    = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
+  var worst   = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; });
   var strong  = greek.filter(function(s){ return s.signal==='STRONG'; }).length;
   var avgW    = (greek.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/greek.length).toFixed(2);
 
@@ -1137,6 +1137,13 @@ function renderGreekWatchlist(greek) {
     { key:'NEUTRAL', label:'Neutral',         icon:'&#9679;', sub:'In line with Greek peers',  color:'var(--amber)', border:'rgba(245,158,11,.25)' },
     { key:'WEAK',   label:'Weak Momentum',   icon:'&#9679;', sub:'Lagging Greek peers',        color:'var(--red)',   border:'rgba(239,68,68,.25)' }
   ];
+
+  var totalGkItems = Object.keys(groups).reduce(function(t,k){ return t + groups[k].length; }, 0);
+  if (totalGkItems === 0) {
+    document.getElementById('greek-watchlist').innerHTML =
+      '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">No Greek stocks match this filter. Try a different filter or click All.</div>';
+    return;
+  }
 
   document.getElementById('greek-watchlist').innerHTML =
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
@@ -1302,11 +1309,22 @@ function renderETFs(etfs) {
 
   etfs = applyETFFilter(etfs);
 
+  // Show empty state if filter returns no results
+  if (!etfs.length) {
+    document.getElementById('etf-summary').innerHTML = '';
+    document.getElementById('etf-categories').innerHTML =
+      '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px">No ETFs match this filter.</div>';
+    document.getElementById('etf-body').innerHTML =
+      '<tr><td colspan="13" style="text-align:center;padding:24px;color:var(--muted)">No ETFs match this filter.</td></tr>';
+    return;
+  }
+
   // Summary cards
-  var best    = etfs.filter(function(e){ return e.pct_1w!==null; }).reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }, etfs[0]);
+  var validPct = etfs.filter(function(e){ return e.pct_1w!==null; });
+  var best    = validPct.length ? validPct.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : etfs[0];
   var gainers = etfs.filter(function(e){ return (e.pct_1w||0)>0; }).length;
   var above50 = etfs.filter(function(e){ return e.above_ma50===true; }).length;
-  var avgYTD  = (etfs.reduce(function(s,e){ return s+(e.pct_ytd||0); },0)/etfs.length).toFixed(1);
+  var avgYTD  = etfs.length ? (etfs.reduce(function(s,e){ return s+(e.pct_ytd||0); },0)/etfs.length).toFixed(1) : '0.0';
 
   document.getElementById('etf-summary').innerHTML = [
     { lbl:'Tracked ETFs',   val:etfs.length,             sub:'across 5 categories' },
@@ -1596,8 +1614,8 @@ function renderSpyBar(spy) {
 
 function renderSummary(stocks, spy) {
   var gainers = stocks.filter(function(s){ return (s.pct_1w||0)>0; }).length;
-  var best    = stocks.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; });
-  var worst   = stocks.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; });
+  var best    = stocks.length ? stocks.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
+  var worst   = stocks.length ? stocks.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
   var avgW    = (stocks.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/stocks.length).toFixed(2);
   var strong  = stocks.filter(function(s){ return s.signal==='STRONG'; }).length;
   var alerts  = stocks.filter(function(s){ return s.alert; }).length;
@@ -1625,6 +1643,14 @@ function renderWatchlist(stocks) {
     { key:'NEUTRAL', label:'Neutral',         icon:'&#9679;', sub:'No strong signal - wait for confirmation',           color:'var(--amber)', border:'rgba(245,158,11,.25)' },
     { key:'WEAK',   label:'Weak Momentum',   icon:'&#9679;', sub:'Lagging peers - avoid or wait for reversal',         color:'var(--red)',   border:'rgba(239,68,68,.25)' }
   ];
+  // Check if all groups empty (filter returned nothing)
+  var totalItems = Object.keys(groups).reduce(function(t,k){ return t + groups[k].length; }, 0);
+  if (totalItems === 0) {
+    document.getElementById('ov-watchlist').innerHTML =
+      '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">No stocks match this filter. Try a different filter or click All.</div>';
+    return;
+  }
+
   document.getElementById('ov-watchlist').innerHTML =
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
     configs.map(function(cfg){
