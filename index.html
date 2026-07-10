@@ -337,13 +337,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
         <tbody id="action-body"></tbody>
       </table>
     </div>
-    <div class="panel" style="margin-bottom:16px">
-      <h3>Relative Strength vs SPY - This Week
-        <span id="spy-1w-lbl" style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:6px"></span>
-      </h3>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Green = beat SPY &middot; Red = lagged SPY &middot; Number = difference from SPY return</div>
-      <div class="bar-chart" id="chart-rel"></div>
-    </div>
+
     <div class="panel" style="margin-bottom:16px">
       <h3>&#128276; Price Alerts <span class="sub">Email when price crosses your target</span></h3>
       <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Run <strong>setupAlertTrigger()</strong> once in GAS editor to enable hourly checks.</div>
@@ -2120,24 +2114,6 @@ function buildMeaning(s){
   return parts.join(' ');
 }
 
-function renderRelChart(stocks, spy) {
-  var valid=stocks.filter(function(s){ return s.rel_1w!==null; });
-  if(!valid.length||!spy){ document.getElementById('chart-rel').innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">SPY data unavailable.</div>'; return; }
-  var spyLbl=document.getElementById('spy-1w-lbl');
-  if(spyLbl&&spy.pct_1w!==null) spyLbl.textContent='(SPY this week: '+p(spy.pct_1w)+')';
-  var sorted=valid.slice().sort(function(a,b){ return b.rel_1w-a.rel_1w; });
-  var maxAbs=Math.max.apply(null,sorted.map(function(s){ return Math.abs(s.rel_1w); }).concat([.01]));
-  var out=sorted.filter(function(s){ return s.rel_1w>=0; });
-  var lag=sorted.filter(function(s){ return s.rel_1w<0; });
-  var spyRow='<div style="display:grid;grid-template-columns:18px 54px 1fr;gap:8px;align-items:center;padding:4px;margin:4px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)"><div></div><div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--cyan);text-align:right">SPY</div><div style="height:2px;background:var(--cyan);border-radius:2px;opacity:.5"></div></div>';
-  var html='';
-  if(out.length){ html+='<div class="section-lbl" style="color:var(--green)">Beat SPY ('+out.length+')</div>'; html+=out.map(function(s,i){ return makeBar(s,i+1,s.rel_1w,maxAbs,'pos'); }).join(''); }
-  html+=spyRow;
-  if(lag.length){ html+='<div class="section-lbl" style="color:var(--red)">Lagged SPY ('+lag.length+')</div>'; html+=lag.map(function(s,i){ return makeBar(s,i+1,s.rel_1w,maxAbs,'neg'); }).join(''); }
-  document.getElementById('chart-rel').innerHTML=html;
-}
-
-var chartPeriod='pct_1w';
 function setChartPeriod(field, label) {
   chartPeriod=field;
   var pl=document.getElementById('chart-period-lbl'); if(pl) pl.textContent=label;
@@ -2471,7 +2447,6 @@ function renderAll(data) {
     ['renderHeatmap',    function(){ renderHeatmap(data.sector_heatmap); }],
     ['renderEvents',     function(){ renderEvents(data.events); }],
     ['renderActionTable',function(){ renderActionTable(data.stocks); }],
-    ['renderRelChart',   function(){ renderRelChart(data.stocks, data.spy); }],
     ['renderHistTable',  function(){ renderHistTable(data.stocks); }],
     ['initAlerts',       function(){ initAlerts(data.stocks); }],
     ['renderDividends',  function(){ renderDividends(data.dividends, data.stocks); }],
