@@ -1008,7 +1008,7 @@ function renderDividends(dividends, stocks) {
   }
 
   // Summary cards
-  var avgYield  = (dividends.reduce(function(s,d){ return s+d.yield; },0)/dividends.length).toFixed(2);
+  var avgYield  = dividends.length ? (dividends.reduce(function(s,d){ return s+d.yield; },0)/dividends.length).toFixed(2) : '0.00';
   var bestYield = dividends[0];
   var bestGrow  = dividends.slice().sort(function(a,b){ return (b.grow5y||0)-(a.grow5y||0); })[0];
   var sustCount = dividends.filter(function(d){ return d.sustainable===true; }).length;
@@ -1105,9 +1105,9 @@ function renderGreek(greek) {
   // Summary cards
   var gainers = greek.filter(function(s){ return (s.pct_1w||0)>0; }).length;
   var best    = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
-  var worst   = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; });
+  var worst   = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
   var strong  = greek.filter(function(s){ return s.signal==='STRONG'; }).length;
-  var avgW    = (greek.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/greek.length).toFixed(2);
+  var avgW    = greek.length ? (greek.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/greek.length).toFixed(2) : '0.00';
 
   document.getElementById('greek-summary').innerHTML = [
     { lbl:'Tracked',         val:greek.length,              sub:'ATHEX stocks' },
