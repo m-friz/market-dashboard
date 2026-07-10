@@ -584,22 +584,31 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 <div id="panel-etfs" class="tab-panel">
   <div id="etf-content" style="display:none">
 
-    <!-- What is an ETF -->
-    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 32px;font-size:12px;color:var(--muted)">
+    <!-- Header banner (matches Greek style) -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Exchange Traded Funds (ETFs) &#8212; 13 Tracked</div>
+        <div style="font-size:11px;color:var(--muted)">Prices in USD &#183; Data via Yahoo Finance &#183; Across 5 categories: Broad Market, Growth, Dividend, Defensive, Thematic</div>
+      </div>
+      <div id="etf-inline-strip" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
+    </div>
+
+    <!-- What is an ETF (collapsible explanation) -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 20px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 32px;font-size:11px;color:var(--muted)">
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">What is an ETF?</div>
-          A basket of stocks or bonds that trades like a single stock. One purchase gives you exposure to dozens or hundreds of companies instantly.
+          <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">What is an ETF?</div>
+          A basket of stocks or bonds that trades like a single stock. One purchase gives instant exposure to dozens or hundreds of companies.
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">
-            <span class="tip" data-tip="Expense Ratio: annual fee charged by the ETF manager. 0.03% means you pay $3 per year for every $10,000 invested. Lower is always better. Vanguard and iShares are known for very low costs.">Expense Ratio</span>
+          <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+            <span class="tip" data-tip="Expense Ratio: annual fee charged by the ETF manager. 0.03% = $3/yr per $10,000 invested. Lower is always better.">Expense Ratio</span>
           </div>
-          Annual fee as % of your investment. Even small differences compound dramatically over decades. Prefer under 0.20%.
+          Annual fee as % of investment. Small differences compound significantly over decades. Prefer under 0.20%.
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">ETF vs Individual Stocks</div>
-          ETFs spread risk across many companies — if one drops, it has limited impact. Best for long-term, low-maintenance investing. The stocks tab is for active monitoring.
+          <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">ETF vs Individual Stocks</div>
+          ETFs spread risk across many companies. Best for long-term, low-maintenance investing. Stocks tab is for active monitoring.
         </div>
       </div>
     </div>
@@ -1399,6 +1408,21 @@ function renderETFs(etfs) {
   var gainers = etfs.filter(function(e){ return (e.pct_1w||0)>0; }).length;
   var above50 = etfs.filter(function(e){ return e.above_ma50===true; }).length;
   var avgYTD  = etfs.length ? (etfs.reduce(function(s,e){ return s+(e.pct_ytd||0); },0)/etfs.length).toFixed(1) : '0.0';
+
+  // Populate inline strip in header (matches Greek style)
+  var strip = document.getElementById('etf-inline-strip');
+  if (strip) {
+    var allEtfs = applyETFFilter === applyETFFilter ? (D && D.etfs ? D.etfs : etfs) : etfs;
+    var totalEtfs = D && D.etfs ? D.etfs.length : etfs.length;
+    var aboveAll  = D && D.etfs ? D.etfs.filter(function(e){ return e.above_ma50===true; }).length : above50;
+    var bestEtf   = D && D.etfs && D.etfs.length ? D.etfs.filter(function(e){ return e.pct_1w!==null; }).reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : (best||{});
+    strip.innerHTML =
+      '<span style="color:var(--muted)">'+totalEtfs+' ETFs</span>' +
+      '<span style="color:var(--border)">|</span>' +
+      '<span style="color:var(--text)">Best 1W: <span style="color:var(--green)">'+(bestEtf.ticker||'-')+' '+(bestEtf.pct_1w!==null?(bestEtf.pct_1w>=0?'+':'')+bestEtf.pct_1w+'%':'')+'</span></span>' +
+      '<span style="color:var(--border)">|</span>' +
+      '<span style="color:var(--text)">Above 50MA: <span style="color:var(--cyan)">'+aboveAll+'/'+totalEtfs+'</span></span>';
+  }
 
   document.getElementById('etf-summary').innerHTML = [
     { lbl:'Tracked ETFs',   val:etfs.length,             sub:'across 5 categories' },
