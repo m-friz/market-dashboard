@@ -142,6 +142,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .bz-entry { background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.4);font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
 .bz-wait   { background:rgba(239,68,68,.15); color:var(--red);  border:1px solid rgba(239,68,68,.4); font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
 .bz-watch  { background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.4);font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+.bz-coil   { background:rgba(139,92,246,.12); color:#a78bfa;     border:1px solid rgba(139,92,246,.4); font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
 /* vs avg20 */
 .vs-avg-pos{ color:var(--red);  font-family:var(--mono);font-size:11px;font-weight:700 }
 .vs-avg-neg{ color:var(--green);font-family:var(--mono);font-size:11px;font-weight:700 }
@@ -218,6 +219,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div class="tab" data-tab="history">&#128200; Historical</div>
   <div class="tab" data-tab="dividends">&#128176; Dividends</div>
   <div class="tab" data-tab="etfs">&#128640; ETFs</div>
+  <div class="tab" data-tab="portfolio">&#128181; Portfolio</div>
   <div class="tab" data-tab="guide">&#128218; Guide</div>
 </div>
 <main>
@@ -666,6 +668,81 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <div style="font-size:11px;color:var(--muted);padding:10px 4px;line-height:1.7">
       Data via Yahoo Finance. Expense ratios are static reference values.
       Past performance does not guarantee future results. Not financial advice.
+    </div>
+  </div>
+</div>
+
+
+<!-- PORTFOLIO -->
+<div id="panel-portfolio" class="tab-panel">
+  <div style="max-width:900px;margin:0 auto">
+
+    <!-- Add position form -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">&#43; Add Position</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Ticker</label>
+          <input id="pf-ticker" placeholder="e.g. AAPL" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-family:var(--mono);font-size:13px;width:90px;text-transform:uppercase">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Shares</label>
+          <input id="pf-shares" type="number" placeholder="100" min="0.001" step="any" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:90px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Entry Price ($)</label>
+          <input id="pf-entry" type="number" placeholder="150.00" min="0.01" step="any" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:110px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Entry Date</label>
+          <input id="pf-date" type="date" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:140px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Notes (optional)</label>
+          <input id="pf-notes" placeholder="e.g. Long-term hold" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:160px">
+        </div>
+        <button id="pf-add" style="padding:8px 18px;border-radius:6px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer">Add Position</button>
+      </div>
+      <div id="pf-error" style="color:var(--red);font-size:11px;margin-top:6px;display:none"></div>
+    </div>
+
+    <!-- Portfolio summary cards -->
+    <div id="pf-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px"></div>
+
+    <!-- Portfolio table -->
+    <div id="pf-table-wrap" style="display:none">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Shares</th>
+              <th>Entry $</th>
+              <th>Current $</th>
+              <th>Cost</th>
+              <th>Value</th>
+              <th class="tip" data-tip="Profit or Loss in dollars: (Current Price - Entry Price) x Shares">P&amp;L $</th>
+              <th class="tip" data-tip="Percentage return since entry: (Current Price - Entry Price) / Entry Price">P&amp;L %</th>
+              <th class="tip" data-tip="How this position has performed vs SPY since you bought it. Positive = outperforming the market.">vs SPY</th>
+              <th>Signal</th>
+              <th>Timing</th>
+              <th>Date</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="pf-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pf-empty" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">
+      No positions yet. Add your first position above.
+    </div>
+
+    <div style="font-size:11px;color:var(--muted);padding:10px 4px;line-height:1.7">
+      Portfolio data is saved in your browser (localStorage). It is not shared and is only visible on this device.
+      Current prices come from the dashboard data — refresh the dashboard to get latest prices.
     </div>
   </div>
 </div>
@@ -1187,6 +1264,7 @@ function renderGreekWatchlist(greek) {
             '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
               '<span class="tip" data-tip="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
               '<span class="tip" data-tip="'+maTipG+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+maLbl+'</span>'+
+              volTrendBadge(s)+momentumBadge(s)+
               '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
                 '<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+sw+'/100</span>'+
                 '<div style="width:44px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">'+
@@ -1196,11 +1274,13 @@ function renderGreekWatchlist(greek) {
             '</div>'+
             (function(){
               var bz=buyZone(s);
-              return '<div style="display:flex;align-items:center;gap:8px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">'+
-                makeChart20(s.chart20||[],100,30)+
-                '<div style="display:flex;flex-direction:column;gap:3px;margin-left:6px">'+
+              return '<div style="display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);flex-wrap:wrap">'+
+                makeChart20(s.chart20||[],80,28)+
+                '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
                   (s.pct_vs_avg20!==null&&s.pct_vs_avg20!==undefined?
-                    '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs avg</span>':'')+
+                    '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average (&#8364;'+s.avg20+') — extended':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average (&#8364;'+s.avg20+') — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs 20D</span>':'')+
+                  range4wBar(s)+
+                  supportResistance(s)+
                 '</div>'+
                 '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto;font-size:10px;padding:3px 8px">'+bz.label+'</span>'+
               '</div>';
@@ -1376,11 +1456,14 @@ function renderETFs(etfs) {
               '<span class="tip '+maCls+'" data-tip="'+(e.above_ma50===null?'50MA not available':e.above_ma50?'Above 50MA: uptrend in place':'Below 50MA: downtrend in place')+'">'+maLbl+'</span>'+
               (function(){
                 var bze=buyZone(e);
-                var rsiTipE=e.rsi14===null?'RSI N/A':e.rsi14<30?'RSI '+e.rsi14+': Oversold':e.rsi14>70?'RSI '+e.rsi14+': Overbought':'RSI '+e.rsi14+': Neutral';
                 return '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'" style="font-size:9px;padding:2px 6px;margin-left:4px">'+bze.label+'</span>'+
-                  '<div style="margin-left:auto;display:flex;align-items:center;gap:6px">'+
-                    makeChart20(e.chart20||[],80,24)+
-                    (e.pct_vs_avg20!==null&&e.pct_vs_avg20!==undefined?vsAvg20(e):'') +
+                  '<div style="width:100%;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px">'+
+                    makeChart20(e.chart20||[],80,28)+
+                    '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
+                      (e.pct_vs_avg20!==null&&e.pct_vs_avg20!==undefined?
+                        '<span class="tip '+(e.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(e.pct_vs_avg20>0?'Price is '+e.pct_vs_avg20+'% above 20-day avg — extended':'Price is '+Math.abs(e.pct_vs_avg20)+'% below 20-day avg — potential value')+'">'+(e.pct_vs_avg20>0?'+':'')+e.pct_vs_avg20+'% vs 20D</span>':'')+
+                      range4wBar(e)+
+                    '</div>'+
                   '</div>';
               })()+
             '</div>'+
@@ -1427,6 +1510,37 @@ function renderETFTable(etfs) {
 }
 
 
+
+// ── Volume trend badge ─────────────────────────────────────────
+function volTrendBadge(s) {
+  var vt = s.vol_trend;
+  if (!vt || vt === 'normal') return '';
+  if (vt === 'building') return '<span class="tip" data-tip="Volume building: recent 5-day average is 30%+ higher than prior 2 weeks. Sustained buying pressure — institutional interest likely." style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">VOL&#8679;</span>';
+  return '<span class="tip" data-tip="Volume fading: recent 5-day average is 30%+ lower than prior 2 weeks. Buying interest declining — momentum may be weakening." style="background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">VOL&#8681;</span>';
+}
+
+// ── Momentum acceleration badge ────────────────────────────────
+function momentumBadge(s) {
+  var w1 = s.pct_1w, w2 = s.pct_2w;
+  if (w1 === null || w1 === undefined || w2 === null || w2 === undefined) return '';
+  var diff = Math.round((w1 - w2) * 10) / 10;
+  if (Math.abs(diff) < 1) return '';
+  if (diff > 0) return '<span class="tip" data-tip="Momentum accelerating: +'+w1+'% this week vs '+w2+'% prior week. Trend strengthening — positive signal." style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">&#8679;MOM</span>';
+  return '<span class="tip" data-tip="Momentum decelerating: '+w1+'% this week vs '+w2+'% prior week. Trend weakening — watch for further decline." style="background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">&#8681;MOM</span>';
+}
+
+// ── Support & Resistance ───────────────────────────────────────
+function supportResistance(s) {
+  var sup = s.low20, res = s.high20, cur = s.price;
+  if (!sup || !res || !cur) return '';
+  var sym = s.currency === 'EUR' ? '&#8364;' : '$';
+  return '<div class="tip" data-tip="20-day Support: '+sym+sup+' (if price drops here with RSI under 40, consider entering). 20-day Resistance: '+sym+res+' (price may stall or reverse here)." style="font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap">'+
+    '<span style="color:var(--green)">S:'+sym+sup+'</span>'+
+    ' <span style="color:var(--border)">|</span> '+
+    '<span style="color:var(--red)">R:'+sym+res+'</span>'+
+  '</div>';
+}
+
 // ── Buy Zone analysis ─────────────────────────────────────────
 function buyZone(s) {
   // Returns { label, cls, tip }
@@ -1463,6 +1577,14 @@ function buyZone(s) {
   if (rsi !== null && rsi < 35 && above === true) {
     return { label:'Oversold Watch', cls:'bz-entry',
       tip:'RSI '+rsi+' is oversold but still above 50MA (uptrend). Potential bounce entry — high reward but watch for further dip.' };
+  }
+
+  // Consolidation / coiling
+  if (rsi !== null && rsi >= 44 && rsi <= 56 &&
+      pctAvg !== null && Math.abs(pctAvg) <= 3 &&
+      above === true) {
+    return { label:'Coiling', cls:'bz-coil',
+      tip:'RSI '+rsi+' neutral, price within 3% of 20-day average, above 50MA. Stock is consolidating — often precedes a breakout. Watch closely for RSI moving above 58 as entry signal.' };
   }
 
   // Neutral / monitor
@@ -1581,6 +1703,139 @@ function filterGreekWatchlist(filter, btn) {
   if (D) renderGreekWatchlist(D.greek);
 }
 
+
+// ── Portfolio Tracker ──────────────────────────────────────────
+var PF_KEY = 'mf_portfolio_v1';
+
+function pfLoad() {
+  try { return JSON.parse(localStorage.getItem(PF_KEY) || '[]'); } catch(e) { return []; }
+}
+function pfSave(positions) {
+  localStorage.setItem(PF_KEY, JSON.stringify(positions));
+}
+
+function pfAddPosition() {
+  var ticker = (document.getElementById('pf-ticker').value || '').trim().toUpperCase();
+  var shares = parseFloat(document.getElementById('pf-shares').value);
+  var entry  = parseFloat(document.getElementById('pf-entry').value);
+  var date   = document.getElementById('pf-date').value;
+  var notes  = (document.getElementById('pf-notes').value || '').trim();
+  var errEl  = document.getElementById('pf-error');
+
+  if (!ticker || !shares || !entry) {
+    errEl.textContent = 'Ticker, shares and entry price are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  var positions = pfLoad();
+  positions.push({
+    id:      Date.now(),
+    ticker:  ticker,
+    shares:  shares,
+    entry:   entry,
+    date:    date,
+    notes:   notes,
+    addedAt: new Date().toISOString()
+  });
+  pfSave(positions);
+
+  // Clear form
+  document.getElementById('pf-ticker').value = '';
+  document.getElementById('pf-shares').value = '';
+  document.getElementById('pf-entry').value  = '';
+  document.getElementById('pf-notes').value  = '';
+
+  renderPortfolio();
+}
+
+function pfRemove(id) {
+  var positions = pfLoad().filter(function(p){ return p.id !== id; });
+  pfSave(positions);
+  renderPortfolio();
+}
+
+function renderPortfolio() {
+  var positions = pfLoad();
+  var wrap   = document.getElementById('pf-table-wrap');
+  var empty  = document.getElementById('pf-empty');
+  var sumDiv = document.getElementById('pf-summary');
+
+  if (!positions.length) {
+    if (wrap)  wrap.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    if (sumDiv) sumDiv.innerHTML = '';
+    return;
+  }
+  if (wrap)  wrap.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+
+  // Build stock lookup from D
+  var stockMap = {}, spyPrice = D && D.spy ? D.spy.price : null;
+  if (D) {
+    (D.stocks  || []).forEach(function(s){ stockMap[s.ticker] = s; });
+    (D.greek   || []).forEach(function(s){ stockMap[s.ticker] = s; });
+    (D.etfs    || []).forEach(function(e){ stockMap[e.ticker] = e; });
+  }
+
+  var totalCost = 0, totalVal = 0, totalPnl = 0, winners = 0;
+
+  var rows = positions.map(function(p) {
+    var st      = stockMap[p.ticker] || {};
+    var curPrice= st.price || null;
+    var cost    = p.shares * p.entry;
+    var val     = curPrice ? p.shares * curPrice : null;
+    var pnlAbs  = val !== null ? val - cost : null;
+    var pnlPct  = pnlAbs !== null ? Math.round((pnlAbs / cost) * 10000) / 100 : null;
+
+    if (val !== null) { totalCost += cost; totalVal += val; totalPnl += pnlAbs; }
+    if (pnlAbs > 0) winners++;
+
+    var pnlClr  = pnlAbs === null ? 'var(--muted)' : pnlAbs >= 0 ? 'var(--green)' : 'var(--red)';
+    var sigCls  = st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
+    var sigLbl  = st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':st.signal?'Neutral':'-';
+    var bz      = st.price ? buyZone(st) : { label:'-', cls:'', tip:'' };
+
+    // vs SPY since entry (simplified: use current vs entry as proxy)
+    var vsSPY = '-';
+    if (pnlPct !== null && D && D.spy && D.spy.pct_ytd !== null) {
+      // Rough estimate only — would need SPY price at entry for exact calc
+      vsSPY = (pnlPct >= 0 ? '+' : '') + pnlPct + '%';
+    }
+
+    return '<tr>'+
+      '<td style="font-family:var(--mono);font-weight:700;color:var(--accent)">'+esc(p.ticker)+'</td>'+
+      '<td style="font-family:var(--mono)">'+p.shares+'</td>'+
+      '<td style="font-family:var(--mono)">$'+fmt(p.entry)+'</td>'+
+      '<td style="font-family:var(--mono)">'+(curPrice ? '$'+fmt(curPrice) : '-')+'</td>'+
+      '<td style="font-family:var(--mono)">$'+fmt(cost)+'</td>'+
+      '<td style="font-family:var(--mono)">'+(val !== null ? '$'+fmt(val) : '-')+'</td>'+
+      '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlAbs !== null ? (pnlAbs>=0?'+':'')+'$'+fmt(Math.abs(pnlAbs)) : '-')+'</td>'+
+      '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlPct !== null ? (pnlPct>=0?'+':'')+pnlPct+'%' : '-')+'</td>'+
+      '<td>'+vsSPY+'</td>'+
+      '<td>'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>'+
+      '<td>'+(bz.label !== '-' ? '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>' : '-')+'</td>'+
+      '<td style="font-size:11px;color:var(--muted)">'+(p.date||'-')+'</td>'+
+      '<td style="font-size:11px;color:var(--muted);max-width:120px;white-space:normal">'+esc(p.notes||'')+'</td>'+
+      '<td><button onclick="pfRemove('+p.id+')" style="background:none;border:1px solid var(--border);color:var(--red);font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer">&#10005;</button></td>'+
+    '</tr>';
+  });
+
+  document.getElementById('pf-body').innerHTML = rows.join('');
+
+  var totalPnlPct = totalCost > 0 ? Math.round((totalPnl/totalCost)*10000)/100 : 0;
+  sumDiv.innerHTML = [
+    { lbl:'Positions',     val:positions.length,                   sub:'tracked' },
+    { lbl:'Total Cost',    val:'$'+fmt(totalCost),                 sub:'invested' },
+    { lbl:'Market Value',  val:'$'+fmt(totalVal),                  sub:'current' },
+    { lbl:'Total P&L',     val:(totalPnl>=0?'+':'')+'$'+fmt(Math.abs(totalPnl)), sub:(totalPnlPct>=0?'+':'')+totalPnlPct+'%' },
+    { lbl:'Winners',       val:winners+'/'+positions.length,       sub:'in profit' }
+  ].map(function(c){
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val" style="color:'+(c.lbl==='Total P&L'?(totalPnl>=0?'var(--green)':'var(--red)'):'var(--text)')+'">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+  }).join('');
+}
+
 var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
@@ -1697,7 +1952,8 @@ function renderWatchlist(stocks) {
             '</div>'+
             '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
               '<span class="tip" data-tip="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
-              '<span title="'+maTip+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help" class="tip" data-tip="'+maTip+'">'+maLbl+'</span>'+
+              '<span title="'+maTip+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+maLbl+'</span>'+
+              volTrendBadge(s)+momentumBadge(s)+
               earnHtml+
               '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
                 '<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+sw+'/100</span>'+
@@ -1709,11 +1965,13 @@ function renderWatchlist(stocks) {
             // Timing badge + 20D chart row
             (function(){
               var bz = buyZone(s);
-              return '<div style="display:flex;align-items:center;gap:8px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">'+
-                makeChart20(s.chart20||[], 100, 30)+
-                '<div style="display:flex;flex-direction:column;gap:3px;margin-left:6px">'+
+              return '<div style="display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);flex-wrap:wrap">'+
+                makeChart20(s.chart20||[], 80, 28)+
+                '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
                   (s.pct_vs_avg20!==null&&s.pct_vs_avg20!==undefined?
-                    '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average — extended':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs avg</span>':'')+
+                    '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average ($'+s.avg20+') — extended':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average ($'+s.avg20+') — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs 20D</span>':'')+
+                  range4wBar(s)+
+                  supportResistance(s)+
                 '</div>'+
                 '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto;font-size:10px;padding:3px 8px">'+bz.label+'</span>'+
               '</div>';
@@ -1841,7 +2099,13 @@ function renderActionTable(stocks) {
       (function(){ var bz=buyZone(st); return '<td><span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span></td>'; })()+
       '<td style="white-space:nowrap">'+flags+'</td>'+
       '<td style="text-align:left;max-width:180px;white-space:normal;font-size:11px;color:var(--muted);line-height:1.4">'+esc(meaning)+'</td>'+
-    '</tr>';
+    '</tr>'+
+    (st.news && st.news.length ? '<tr style="background:rgba(245,158,11,.05)"><td colspan="17" style="padding:4px 12px 8px 36px">'+
+      '<div style="font-size:10px;color:var(--amber);font-weight:700;margin-bottom:3px">&#128240; Recent news:</div>'+
+      st.news.map(function(n){
+        return '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">&#8250; <a href="'+n.url+'" target="_blank" style="color:var(--text);text-decoration:none">'+esc(n.headline)+'</a> <span style="color:var(--muted);font-size:10px">('+n.source+')</span></div>';
+      }).join('')+
+    '</td></tr>' : '');
   }).join('');
 }
 
@@ -2212,6 +2476,7 @@ function renderAll(data) {
     ['initAlerts',       function(){ initAlerts(data.stocks); }],
     ['renderDividends',  function(){ renderDividends(data.dividends, data.stocks); }],
     ['renderGreek',      function(){ renderGreek(data.greek); }],
+    ['renderPortfolio',  function(){ renderPortfolio(); }],
     ['renderETFs',       function(){ renderETFs(data.etfs); }]
   ];
 
@@ -2254,6 +2519,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.etf-filter').forEach(function(btn) {
     btn.addEventListener('click', function() { filterETFs(this.dataset.filter, this); });
   });
+  var pfAddBtn = document.getElementById('pf-add');
+  if (pfAddBtn) pfAddBtn.addEventListener('click', pfAddPosition);
+  renderPortfolio();
   // Settings panel
   var settingsBtn   = document.getElementById('settings-btn');
   var settingsPanel = document.getElementById('settings-panel');
