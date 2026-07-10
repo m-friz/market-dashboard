@@ -151,6 +151,8 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .range4w-fill{ position:absolute;left:0;top:0;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red)) }
 .range4w-dot{ position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--cyan);z-index:1 }
 .active-filter{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
+.etf-filter,.wl-filter,.gk-filter{padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted);transition:all .15s}
+.etf-filter:hover,.wl-filter:hover,.gk-filter:hover{color:var(--text);border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -604,6 +606,22 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 
     <!-- Summary cards -->
     <div id="etf-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px"></div>
+
+    <!-- ETF filter bar -->
+    <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
+      <button class="etf-filter active-filter tip" data-filter="all" data-tip="Show all ETFs regardless of signal, RSI or trend.">All</button>
+      <button class="etf-filter tip" data-filter="entry" data-tip="Possible Entry: ETF where RSI is not overbought, price is in lower half of 4-week range, and uptrend is intact.">&#10003; Possible Entry</button>
+      <button class="etf-filter tip" data-filter="extended" data-tip="Extended: ETF that has run up too fast. RSI over 72, near 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+      <button class="etf-filter tip" data-filter="oversold" data-tip="RSI under 35: ETF has been sold too aggressively. Price may bounce. Watch for confirmation.">RSI &lt;35</button>
+      <button class="etf-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend structurally intact. Best ETFs to buy on dips.">&#8679; Above 50MA</button>
+      <button class="etf-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying.">&#8681; Below 50MA</button>
+      <button class="etf-filter tip" data-filter="Broad Market"   data-tip="Show only Broad Market ETFs: VOO, VTI, QQQ, VT.">&#127760; Broad Market</button>
+      <button class="etf-filter tip" data-filter="Growth & Tech"  data-tip="Show only Growth & Tech ETFs: VGT, VUG.">&#128200; Growth</button>
+      <button class="etf-filter tip" data-filter="Dividend"       data-tip="Show only Dividend ETFs: SCHD, VYM.">&#128176; Dividend</button>
+      <button class="etf-filter tip" data-filter="Defensive"      data-tip="Show only Defensive ETFs: AGG, GLD, IAU.">&#128737; Defensive</button>
+      <button class="etf-filter tip" data-filter="Thematic"       data-tip="Show only Thematic ETFs: BOTZ, IBIT.">&#128640; Thematic</button>
+    </div>
 
     <!-- ETF cards by category -->
     <div id="etf-categories"></div>
@@ -1278,6 +1296,21 @@ function renderETFs(etfs) {
     return e;
   });
 
+  // Apply filter
+  var filtered = etfs.filter(function(e) {
+    var f = etfWatchFilter;
+    if (f === 'all') return true;
+    var bz = buyZone(e);
+    if (f === 'entry')    return bz.label === 'Possible Entry' || bz.label === 'Oversold Watch';
+    if (f === 'extended') return bz.label === 'Extended' || bz.label === 'Near 4W High';
+    if (f === 'oversold') return e.rsi14 !== null && e.rsi14 < 35;
+    if (f === 'above50')  return e.above_ma50 === true;
+    if (f === 'below50')  return e.above_ma50 === false;
+    // Category filters
+    return e.category === f;
+  });
+  etfs = filtered;
+
   // Summary cards
   var best    = etfs.filter(function(e){ return e.pct_1w!==null; }).reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }, etfs[0]);
   var gainers = etfs.filter(function(e){ return (e.pct_1w||0)>0; }).length;
@@ -1485,6 +1518,17 @@ function vsAvg20(s) {
   return '<span class="tip '+cls+'" data-tip="'+tip+'">'+(v>0?'+':'')+v+'%</span>';
 }
 
+
+
+// ── ETF filter ─────────────────────────────────────────────────
+var etfWatchFilter = 'all';
+
+function filterETFs(filter, btn) {
+  etfWatchFilter = filter;
+  document.querySelectorAll('.etf-filter').forEach(function(b){ b.classList.remove('active-filter'); });
+  btn.classList.add('active-filter');
+  if (D && D.etfs) renderETFs(D.etfs);
+}
 
 // ── Watchlist filters ──────────────────────────────────────────
 var wlFilter = 'all', gkFilter = 'all';
@@ -2175,6 +2219,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.querySelectorAll('.gk-filter').forEach(function(btn) {
     btn.addEventListener('click', function() { filterGreekWatchlist(this.dataset.filter, this); });
+  });
+  document.querySelectorAll('.etf-filter').forEach(function(btn) {
+    btn.addEventListener('click', function() { filterETFs(this.dataset.filter, this); });
   });
   // Settings panel
   var settingsBtn   = document.getElementById('settings-btn');
