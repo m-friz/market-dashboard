@@ -92,4 +92,1194 @@
     .score-bar{width:48px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
     .score-fill{height:100%;border-radius:2px}
     .vol-lo{background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px}
-    .vol-
+    .vol-mi{background:rgba(245,158,11,.12);color:var(--amber);font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px}
+    .vol-hi{background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 5px;border-radius:4px}
+    .range-wrap{display:flex;align-items:center;gap:5px;min-width:100px}
+    .range-track{flex:1;height:6px;background:var(--border);border-radius:3px;position:relative}
+    .range-grad{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
+    .range-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--accent);z-index:1}
+    .range-pct{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+    .heatmap-row{display:grid;grid-template-columns:140px 58px 58px 1fr;align-items:center;gap:12px;padding:6px 8px;border-bottom:1px solid var(--border)}
+    .heatmap-row:last-child{border-bottom:none}
+    .hm-name{font-size:12px;font-weight:600}
+    .hm-avg{font-family:var(--mono);font-size:12px;font-weight:700;text-align:right}
+    .hm-chips{display:flex;flex-wrap:wrap;gap:4px}
+    .hm-chip{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px}
+    .hm-g{background:rgba(16,185,129,.15);color:var(--green)}.hm-r{background:rgba(239,68,68,.15);color:var(--red)}
+    .insight-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+    .insight-item:last-child{border-bottom:none}
+    .ibadge{font-family:var(--mono);font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;white-space:nowrap;min-width:44px;text-align:center}
+    .ibg{background:rgba(16,185,129,.15);color:var(--green)}.ibr{background:rgba(239,68,68,.15);color:var(--red)}.ibb{background:rgba(59,130,246,.15);color:var(--accent)}
+    .itext{font-size:12px;line-height:1.5}
+    .event-row{display:grid;grid-template-columns:88px 1fr auto;align-items:center;gap:12px;padding:7px 8px;border-radius:6px;transition:background .12s}
+    .event-row:hover{background:var(--surf2)}
+    .ev-date{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--amber)}
+    .ev-name{font-size:12px}.ev-tick{font-family:var(--mono);font-size:10px;color:var(--muted)}
+    .tbl-wrap{background:var(--surf);border:1px solid var(--border);border-radius:10px;overflow-x:auto;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    thead th{background:var(--surf2);padding:9px 12px;text-align:right;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+    thead th:nth-child(-n+3){text-align:left}
+    th.sort{cursor:pointer;user-select:none}
+    th.sort:hover{color:var(--accent)}
+    th.sa::after{content:' ^';color:var(--accent)}
+    th.sd::after{content:' v';color:var(--accent)}
+    tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:var(--surf2)}
+    tbody td{padding:9px 12px;text-align:right;white-space:nowrap}
+    tbody td:first-child{text-align:center;color:var(--muted);font-size:11px}
+    tbody td:nth-child(2){text-align:left;font-weight:600}
+    tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:700}
+    .tp{font-family:var(--mono);font-weight:600}
+    .tg{color:var(--green);font-family:var(--mono);font-weight:700}
+    .tr{color:var(--red);font-family:var(--mono);font-weight:700}
+    .tm{color:var(--muted);font-family:var(--mono);font-size:11px}
+    .section-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:4px 0 6px 26px;font-weight:600}
+    .period-btn{background:var(--surf2);color:var(--muted);border:1px solid var(--border);padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+    .period-btn:hover{color:var(--text);border-color:var(--accent)}
+    .active-period{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
+    .tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
+    #tip-popup{display:none;position:fixed;background:#1e3a5f;color:#e8f0fe;border:1px solid #4a90d9;border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.8;white-space:normal;word-break:break-word;width:240px;max-width:240px;z-index:2147483647;box-shadow:0 6px 32px rgba(0,0,0,.85);pointer-events:none;font-family:sans-serif;font-weight:400}
+    footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px}
+    .sparkline{display:inline-block;vertical-align:middle}
+    .spark-up{stroke:#10b981}.spark-down{stroke:#ef4444}.spark-flat{stroke:#64748b}
+    .bz-entry { background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.4);font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+    .bz-wait   { background:rgba(239,68,68,.15); color:var(--red);  border:1px solid rgba(239,68,68,.4); font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+    .bz-watch  { background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.4);font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+    .bz-coil   { background:rgba(139,92,246,.12); color:#a78bfa;     border:1px solid rgba(139,92,246,.4); font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+    .vs-avg-pos{ color:var(--red);  font-family:var(--mono);font-size:11px;font-weight:700 }
+    .vs-avg-neg{ color:var(--green);font-family:var(--mono);font-size:11px;font-weight:700 }
+    .range4w-wrap{ display:flex;align-items:center;gap:5px;min-width:90px }
+    .range4w-track{ flex:1;height:6px;background:var(--border);border-radius:3px;position:relative }
+    .range4w-fill{ position:absolute;left:0;top:0;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red)) }
+    .range4w-dot{ position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--cyan);z-index:1 }
+    .active-filter{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
+    .etf-filter,.wl-filter,.gk-filter{padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted);transition:all .15s;font-weight:500}
+    .etf-filter:hover,.wl-filter:hover,.gk-filter:hover{color:var(--text);border-color:var(--accent)}
+    .etf-filter[data-filter="entry"],.wl-filter[data-filter="entry"],.gk-filter[data-filter="entry"]{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)}
+    .etf-filter[data-filter="extended"],.wl-filter[data-filter="extended"],.gk-filter[data-filter="extended"]{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)}
+    .etf-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
+    .wl-filter[data-filter="oversold"],.gk-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
+    .top3-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px }
+    .top3-card { background:var(--surf2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px }
+    .top3-card.up   { border-left:3px solid var(--green) }
+    .top3-card.down { border-left:3px solid var(--red) }
+    .top3-ticker { font-family:var(--mono); font-weight:800; font-size:12px; color:var(--accent) }
+    .top3-name   { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+    .top3-pct    { font-family:var(--mono); font-weight:800; font-size:14px }
+    .top3-pct.up   { color:var(--green) }
+    .top3-pct.down { color:var(--red) }
+    .top3-badges { display:flex; gap:4px; flex-wrap:wrap; align-items:center; margin-top:2px }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-mark">MF</div>
+    <div class="logo-text">Market Dashboard</div>
+  </div>
+  <div class="header-right">
+    <button id="settings-btn" style="background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s" title="Display settings">&#9881; Display</button>
+
+    <div id="settings-panel" style="display:none;position:fixed;top:57px;right:16px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:18px 20px;z-index:9998;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:260px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">Display Settings</div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Theme</div>
+        <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Light</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="theme-opt" data-theme="light"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#f0f4f8;color:#1e293b">Light</button>
+          <button class="theme-opt" data-theme="pearl"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#f8f6f2;color:#2d2a26">Pearl</button>
+          <button class="theme-opt" data-theme="sky"      style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#e8f4fd;color:#0f2942">Sky</button>
+          <button class="theme-opt" data-theme="mint"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#ecfdf5;color:#064e3b">Mint</button>
+          <button class="theme-opt" data-theme="rose"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#fff1f2;color:#4c0519">Rose</button>
+        </div>
+        <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Dark</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <button class="theme-opt" data-theme="dark"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#1a2640;color:#e2e8f0">Dark</button>
+          <button class="theme-opt" data-theme="navy"     style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0d1b2a;color:#e2e8f0">Navy</button>
+          <button class="theme-opt" data-theme="slate"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#1e1e2e;color:#cdd6f4">Slate</button>
+          <button class="theme-opt" data-theme="forest"   style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0d1f13;color:#d1fae5">Forest</button>
+          <button class="theme-opt" data-theme="midnight" style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#09090b;color:#fafafa">Midnight</button>
+          <button class="theme-opt" data-theme="ocean"    style="padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#0c1926;color:#e0f2fe">Ocean</button>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Font Size</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button id="font-down" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:14px;cursor:pointer;font-weight:700">A-</button>
+          <span id="font-size-lbl" style="font-size:12px;color:var(--text);font-family:var(--mono);min-width:40px;text-align:center">14px</span>
+          <button id="font-up"   style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:14px;cursor:pointer;font-weight:700">A+</button>
+          <button id="font-reset" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:11px;cursor:pointer">Reset</button>
+        </div>
+      </div>
+      <button id="settings-close" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;margin-top:4px">Close</button>
+    </div>
+    <div id="last-updated">Loading...</div>
+    <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="overview">&#127760; US Stocks</div>
+  <div class="tab" data-tab="greek">&#127987; Greek</div>
+  <div class="tab" data-tab="signals">&#127919; Signals</div>
+  <div class="tab" data-tab="history">&#128200; Historical</div>
+  <div class="tab" data-tab="dividends">&#128176; Dividends</div>
+  <div class="tab" data-tab="etfs">&#128640; ETFs</div>
+  <div class="tab" data-tab="portfolio">&#128181; Portfolio</div>
+  <div class="tab" data-tab="guide">&#128218; Guide</div>
+</div>
+
+<main>
+  <div id="panel-overview" class="tab-panel active">
+    <div id="ov-loading" class="state-box"><div class="spinner"></div><p>Fetching market data...</p></div>
+    <div id="ov-content" style="display:none">
+      <div id="warning-banner"></div>
+      <div class="spy-bar" id="spy-bar"></div>
+      <div id="ov-top3" style="margin-bottom:0"></div>
+      <div class="summary-grid" id="summary-cards"></div>
+      <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
+        <button class="wl-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend.">All</button>
+        <button class="wl-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window.">&#10003; Possible Entry</button>
+        <button class="wl-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+        <button class="wl-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering.">RSI &lt;35</button>
+        <button class="wl-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#8679; Above 50MA</button>
+        <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#8681; Below 50MA</button>
+      </div>
+      <div id="ov-watchlist" style="margin-bottom:16px"></div>
+      <div class="panel" style="margin-bottom:16px">
+        <h3>Sector Heatmap <span class="sub">Weekly &amp; Monthly avg</span></h3>
+        <div style="display:grid;grid-template-columns:140px 58px 58px 1fr;gap:12px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:6px">
+          <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);cursor:pointer" id="hm-h-sector">Sector</div>
+          <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);text-align:right;cursor:pointer" id="hm-h-1w">1W Avg &#9660;</div>
+          <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);text-align:right;cursor:pointer" id="hm-h-1m">1M Avg</div>
+          <div style="font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)">Stocks</div>
+        </div>
+        <div id="sector-heatmap"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-signals" class="tab-panel">
+    <div id="sig-content" style="display:none">
+      <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.9">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 32px">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Score (0-100)</div>
+            Composite rank across peers: 1W momentum 30% &middot; 1M trend 25% &middot; YTD 20% &middot; 52W position 15% &middot; low volatility 10%<br>
+            <span class="sig sig-s" style="margin-top:4px;display:inline-block">Strong</span> &ge;72 &nbsp;
+            <span class="sig sig-n">Neutral</span> 45-71 &nbsp;
+            <span class="sig sig-w">Weak</span> &lt;45
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">
+              <span class="tip" data-tip="Relative Strength Index - measures if a stock was bought or sold too aggressively. Scale 0-100. Does NOT compare stocks to each other.">RSI</span> - Relative Strength Index
+            </div>
+            <span style="color:var(--green)">Under 30 = oversold</span> - price fell a lot, may bounce. Potential buy zone.<br>
+            <span style="color:var(--red)">Over 70 = overbought</span> - price rose a lot, may pull back. Caution.<br>
+            <span style="color:var(--muted)">30-70 = neutral.</span>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">
+              <span class="tip" data-tip="Moving Average - average closing price over last 50 trading days. Smooths out noise to show trend direction.">50MA</span> - 50-Day Moving Average
+            </div>
+            <span style="color:var(--green)">Above 50MA</span> - uptrend in place.<br>
+            <span style="color:var(--red)">Below 50MA</span> - downtrend in place.<br>
+            <span style="color:var(--muted)">Best entries: above 50MA + RSI under 50 (uptrend, not overbought).</span>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Other indicators</div>
+            <span class="tip" data-tip="Where current price sits between yearly low and high. 100% = at 52-week high. 0% = at 52-week low.">52W Pos</span> - position in 52-week range &nbsp;&middot;&nbsp;
+            <span class="tip" data-tip="How much this stock gained or lost vs S&P 500 this week. Positive = beat the market.">vs SPY</span> - vs S&amp;P 500 &nbsp;&middot;&nbsp;
+            * moved &gt;5% this week &nbsp;&middot;&nbsp;
+            <span class="tip" data-tip="Volume spike: this week trading volume was 50%+ above the 20-day average. High volume confirms a move is significant.">vol spike</span> &nbsp;&middot;&nbsp;
+            ! earnings within 14 days
+          </div>
+        </div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
+          Momentum signals only. Not financial advice. Always check fundamentals before acting.
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <div style="position:relative;flex:1;min-width:200px;max-width:340px">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">&#128269;</span>
+          <input id="sig-search" type="text" placeholder="Filter by ticker or company..." style="width:100%;background:var(--surf2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:8px 10px 8px 32px;font-size:12px;outline:none">
+        </div>
+        <div id="sig-count" style="font-size:11px;color:var(--muted)"></div>
+        <button id="clear-filter-btn" style="background:none;border:1px solid var(--border);color:var(--muted);padding:7px 12px;border-radius:6px;font-size:11px;cursor:pointer">Clear</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="sort" data-f="company" data-tbl="action">Company</th>
+              <th>Ticker</th>
+              <th class="sort" data-f="score" data-tbl="action">Score</th>
+              <th class="sort" data-f="signal" data-tbl="action">Momentum</th>
+              <th class="sort sd" data-f="pct_1w" data-tbl="action"><span class="tip" data-tip="One-week % price change (last 5 trading days).">1W</span></th>
+              <th class="sort" data-f="pct_1m" data-tbl="action"><span class="tip" data-tip="One-month % price change (last ~22 trading days).">1M</span></th>
+              <th class="sort" data-f="pct_ytd" data-tbl="action"><span class="tip" data-tip="Year-to-Date: % change since January 1st of this year.">YTD</span></th>
+              <th class="sort" data-f="rel_1w" data-tbl="action"><span class="tip" data-tip="Performance vs S&P 500 this week. Positive = beat the market. Negative = underperformed.">vs SPY</span></th>
+              <th class="sort" data-f="rsi14" data-tbl="action"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
+              <th><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
+              <th class="sort" data-f="pos_52w" data-tbl="action"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
+              <th><span class="tip" data-tip="5-day price trend: shows direction of price movement over the last 5 trading days">Trend</span></th>
+              <th class="sort" data-f="pct_vs_avg20" data-tbl="action"><span class="tip" data-tip="% above or below the 20-day average price. Negative (green) = below average = potential value. Positive (red) = above average = extended.">vs 20MA</span></th>
+              <th><span class="tip" data-tip="4-week price range bar. Shows where current price sits within the last 4 weeks. Near left = 4-week low. Near right = 4-week high.">4W Pos</span></th>
+              <th><span class="tip" data-tip="20-day price chart with average line. Dashed line = 20-day average. Green/red line = price trend.">20D Chart</span></th>
+              <th><span class="tip" data-tip="Entry timing signal based on RSI, 4-week position, and 20-day average. Possible Entry = conditions look reasonable. Extended = wait for pullback. Monitor = no clear signal.">Timing</span></th>
+              <th>Flags</th>
+              <th>What it means</th>
+            </tr>
+          </thead>
+          <tbody id="action-body"></tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <h3>&#128276; Price Alerts <span class="sub">Email when price crosses your target</span></h3>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Run <strong>setupAlertTrigger()</strong> once in GAS editor to enable hourly checks.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;padding:14px;background:var(--surf2);border-radius:8px;border:1px solid var(--border)">
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Ticker</div>
+            <select id="alert-ticker" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;font-family:var(--mono);font-weight:700;cursor:pointer"><option value="">Select...</option></select>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Condition</div>
+            <select id="alert-condition" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;cursor:pointer">
+              <option value="above">Price rises above</option>
+              <option value="below">Price falls below</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Target Price ($)</div>
+            <input id="alert-price" type="number" step="0.01" placeholder="e.g. 300.00" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;font-family:var(--mono);width:130px">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Email</div>
+            <input id="alert-email" type="email" placeholder="your@email.com" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;width:200px">
+          </div>
+          <button id="add-alert-btn" class="btn" style="padding:8px 20px;white-space:nowrap">+ Add Alert</button>
+        </div>
+        <div id="alerts-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-history" class="tab-panel">
+    <div id="hist-content" style="display:none">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="sort" data-f="company" data-tbl="hist">Company</th>
+              <th>Ticker</th>
+              <th class="sort" data-f="price" data-tbl="hist">Price</th>
+              <th class="sort" data-f="pct_1w" data-tbl="hist">&#916; 1W</th>
+              <th class="sort" data-f="pct_1m" data-tbl="hist">&#916; 1M</th>
+              <th class="sort" data-f="pct_3m" data-tbl="hist">&#916; 3M</th>
+              <th class="sort sd" data-f="pct_ytd" data-tbl="hist">&#916; YTD</th>
+              <th>3M Ago</th><th>YTD Start</th>
+              <th class="sort" data-f="signal" data-tbl="hist">Signal</th>
+              <th class="sort" data-f="rsi14" data-tbl="hist"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
+              <th class="sort" data-f="above_ma50" data-tbl="hist"><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
+              <th class="sort" data-f="pos_52w" data-tbl="hist"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
+              <th><span class="tip" data-tip="Market Capitalisation: total market value of the company. T = trillion, B = billion.">Mkt Cap</span></th>
+            </tr>
+          </thead>
+          <tbody id="hist-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-dividends" class="tab-panel">
+    <div id="div-content" style="display:none">
+      <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.8">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px 32px">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+              <span class="tip" data-tip="Dividend Yield: annual dividend divided by current stock price. Higher is not always better - very high yields can signal the stock price dropped sharply.">Yield %</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;font-size:11px">
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></span><span style="color:var(--muted)">&lt;1% minimal income</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--cyan);flex-shrink:0"></span><span>1-4% healthy range</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></span><span>4%+ high, check payout</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span><span style="color:var(--muted)">6%+ may be unsustainable</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+              <span class="tip" data-tip="Annual Dividend Per Share: cash paid per share per year. Multiply by shares owned to get your annual income. Example: $5 DPS x 100 shares = $500/year.">Annual DPS</span>
+            </div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.8">Cash per share per year.<br>Multiply by shares you own<br>to get your annual income.</div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+              <span class="tip" data-tip="Payout Ratio: % of earnings paid as dividends. Low = more buffer if earnings fall. Over 100% means paying more than it earns.">Payout Ratio</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;font-size:11px">
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></span><span>&lt;60% sustainable</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0"></span><span>60-80% monitor</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span><span style="color:var(--muted)">&gt;80% at risk</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+              <span class="tip" data-tip="5-Year Dividend Growth Rate: avg annual % increase in dividend. Companies that consistently raise dividends tend to be financially strong.">5Y Growth</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;font-size:11px">
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0"></span><span style="color:var(--muted)">&lt;0% dividend was cut</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></span><span style="color:var(--muted)">0-3% stable, slow</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--cyan);flex-shrink:0"></span><span>3-7% healthy growth</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></span><span>7%+ excellent</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
+          Only stocks from the tracked 20 that currently pay a dividend are shown. Data from Finnhub.
+        </div>
+      </div>
+      <div id="div-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="sort" data-f="company" data-tbl="div">Company</th>
+              <th>Ticker</th>
+              <th>Sector</th>
+              <th class="sort sd" data-f="yield" data-tbl="div"><span class="tip" data-tip="Annual dividend yield. Higher = more income per dollar invested. But check payout ratio — very high yields can be unsustainable.">Yield %</span></th>
+              <th class="sort" data-f="dps" data-tbl="div"><span class="tip" data-tip="Annual Dividend Per Share: cash you receive per share per year.">Ann. DPS</span></th>
+              <th class="sort" data-f="payout" data-tbl="div"><span class="tip" data-tip="Payout Ratio: % of earnings paid as dividends. Under 60% is healthy and sustainable.">Payout %</span></th>
+              <th class="sort" data-f="grow5y" data-tbl="div"><span class="tip" data-tip="5-Year Dividend Growth Rate: average annual % increase in dividend. Positive means the company has been raising its dividend.">5Y Growth</span></th>
+              <th>Sustainability</th>
+              <th>Signal</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody id="div-body"></tbody>
+        </table>
+      </div>
+      <div style="background:var(--surf);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:16px 20px;margin-top:4px">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px">&#10003; What makes a good dividend stock?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 32px;font-size:12px;color:var(--muted);line-height:1.8">
+          <div>&#10003; Yield 2-5% (higher can mean the price dropped — investigate why)</div>
+          <div>&#10003; Payout ratio under 60% (sustainable, room to grow)</div>
+          <div>&#10003; 5Y growth rate positive (company committed to raising dividend)</div>
+          <div>&#10003; Stock in Strong or Neutral Momentum (healthy underlying business)</div>
+          <div>&#10003; Above 50MA (stock price in uptrend — total return matters too)</div>
+          <div>&#10003; No earnings flag (avoid buying just before earnings report)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-greek" class="tab-panel">
+    <div id="greek-content" style="display:none">
+      <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Athens Exchange (ATHEX) &#8212; Top 10 Greek Stocks</div>
+          <div style="font-size:11px;color:var(--muted)">Prices in EUR &#183; Data via Yahoo Finance &#183; Scores ranked within Greek universe only</div>
+        </div>
+        <div id="greek-summary-inline" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
+      </div>
+      <div id="gk-top3" style="margin-bottom:0"></div>
+      <div id="greek-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px"></div>
+      <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
+        <button class="gk-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend.">All</button>
+        <button class="gk-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window.">&#10003; Possible Entry</button>
+        <button class="gk-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+        <button class="gk-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering.">RSI &lt;35</button>
+        <button class="gk-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#8679; Above 50MA</button>
+        <button class="gk-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#8681; Below 50MA</button>
+      </div>
+      <div id="greek-watchlist" style="margin-bottom:16px"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="sort" data-f="company" data-tbl="greek">Company</th>
+              <th>Ticker</th>
+              <th>Sector</th>
+              <th class="sort" data-f="price" data-tbl="greek">Price (EUR)</th>
+              <th class="sort" data-f="score" data-tbl="greek">Score</th>
+              <th class="sort" data-f="signal" data-tbl="greek">Signal</th>
+              <th class="sort sd" data-f="pct_1w" data-tbl="greek">&#916; 1W</th>
+              <th class="sort" data-f="pct_1m" data-tbl="greek">&#916; 1M</th>
+              <th class="sort" data-f="pct_ytd" data-tbl="greek">&#916; YTD</th>
+              <th class="sort" data-f="rsi14" data-tbl="greek"><span class="tip" data-tip="Relative Strength Index (14-day). Under 30 = oversold. Over 70 = overbought.">RSI-14</span></th>
+              <th><span class="tip" data-tip="50-Day Moving Average. Above = uptrend. Below = downtrend.">50MA</span></th>
+              <th class="sort" data-f="pos_52w" data-tbl="greek"><span class="tip" data-tip="52-Week Position: where price sits between yearly low and high. 100% = at yearly high.">52W Pos</span></th>
+              <th>Trend</th>
+              <th>Flags</th>
+            </tr>
+          </thead>
+          <tbody id="greek-body"></tbody>
+        </table>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:10px 4px;line-height:1.7">
+        * Scores are calculated relative to the Greek universe only, not vs US stocks. &#183; Earnings calendar and market cap not available for Greek stocks on free tier. &#183; Greek market hours: 10:00-17:30 Athens time (Mon-Fri).
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-etfs" class="tab-panel">
+    <div id="etf-content" style="display:none">
+      <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Exchange Traded Funds (ETFs) &#8212; 13 Tracked</div>
+          <div style="font-size:11px;color:var(--muted)">Prices in USD &#183; Data via Yahoo Finance &#183; Across 5 categories: Broad Market, Growth, Dividend, Defensive, Thematic</div>
+        </div>
+        <div id="etf-inline-strip" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
+      </div>
+      <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 20px;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 32px;font-size:11px;color:var(--muted)">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">What is an ETF?</div>A basket of stocks or bonds that trades like a single stock. One purchase gives instant exposure to dozens or hundreds of companies.
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+              <span class="tip" data-tip="Expense Ratio: annual fee charged by the ETF manager. 0.03% = $3/yr per $10,000 invested. Lower is always better.">Expense Ratio</span>
+            </div>Annual fee as % of investment. Small differences compound significantly over decades. Prefer under 0.20%.
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">ETF vs Individual Stocks</div>ETFs spread risk across many companies. Best for long-term, low-maintenance investing. Stocks tab is for active monitoring.
+          </div>
+        </div>
+      </div>
+      <div id="etf-top3" style="margin-bottom:0"></div>
+      <div id="etf-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px"></div>
+      <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
+        <button class="etf-filter active-filter tip" data-filter="all" data-tip="Show all ETFs regardless of signal, RSI or trend.">All</button>
+        <button class="etf-filter tip" data-filter="entry" data-tip="Possible Entry: ETF where RSI is not overbought, price is in lower half of 4-week range, and uptrend is intact.">&#10003; Possible Entry</button>
+        <button class="etf-filter tip" data-filter="extended" data-tip="Extended: ETF that has run up too fast. RSI over 72, near 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+        <button class="etf-filter tip" data-filter="oversold" data-tip="RSI under 35: ETF has been sold too aggressively. Price may bounce. Watch for confirmation.">RSI &lt;35</button>
+        <button class="etf-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend structurally intact. Best ETFs to buy on dips.">&#8679; Above 50MA</button>
+        <button class="etf-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying.">&#8681; Below 50MA</button>
+        <button class="etf-filter tip" data-filter="Broad Market"   data-tip="Show only Broad Market ETFs: VOO, VTI, QQQ, VT.">&#127760; Broad Market</button>
+        <button class="etf-filter tip" data-filter="Growth & Tech"  data-tip="Show only Growth & Tech ETFs: VGT, VUG.">&#128200; Growth</button>
+        <button class="etf-filter tip" data-filter="Dividend"       data-tip="Show only Dividend ETFs: SCHD, VYM.">&#128176; Dividend</button>
+        <button class="etf-filter tip" data-filter="Defensive"      data-tip="Show only Defensive ETFs: AGG, GLD, IAU.">&#128737; Defensive</button>
+        <button class="etf-filter tip" data-filter="Thematic"       data-tip="Show only Thematic ETFs: BOTZ, IBIT.">&#128640; Thematic</button>
+      </div>
+      <div id="etf-categories"></div>
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin:18px 0 10px">All ETFs — Sortable Table</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="sort" data-f="name" data-tbl="etf">Name</th>
+              <th>Ticker</th>
+              <th>Category</th>
+              <th class="sort" data-f="expense" data-tbl="etf"><span class="tip" data-tip="Expense Ratio: annual fee. Lower = better. 0.03% = $3/yr per $10,000.">Expense</span></th>
+              <th class="sort" data-f="price" data-tbl="etf">Price</th>
+              <th class="sort sd" data-f="pct_1w" data-tbl="etf">&#916; 1W</th>
+              <th class="sort" data-f="pct_1m" data-tbl="etf">&#916; 1M</th>
+              <th class="sort" data-f="pct_ytd" data-tbl="etf">&#916; YTD</th>
+              <th class="sort" data-f="rsi14" data-tbl="etf"><span class="tip" data-tip="RSI-14: momentum indicator. Under 30 = oversold (possible entry). Over 70 = overbought (caution).">RSI-14</span></th>
+              <th><span class="tip" data-tip="50-Day Moving Average. Above = uptrend. Below = downtrend.">50MA</span></th>
+              <th class="sort" data-f="pos_52w" data-tbl="etf"><span class="tip" data-tip="52-Week Position. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
+              <th>Trend</th>
+            </tr>
+          </thead>
+          <tbody id="etf-body"></tbody>
+        </table>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:10px 4px;line-height:1.7">Past performance does not guarantee future results. Not financial advice.</div>
+    </div>
+  </div>
+
+  <div id="panel-portfolio" class="tab-panel">
+    <div style="max-width:900px;margin:0 auto">
+      <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">&#43; Add Position</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Ticker</label>
+            <input id="pf-ticker" placeholder="e.g. AAPL" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-family:var(--mono);font-size:13px;width:90px;text-transform:uppercase">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Shares</label>
+            <input id="pf-shares" type="number" placeholder="100" min="0.001" step="any" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:90px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Entry Price ($)</label>
+            <input id="pf-entry" type="number" placeholder="150.00" min="0.01" step="any" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:110px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Entry Date</label>
+            <input id="pf-date" type="date" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:140px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Notes (optional)</label>
+            <input id="pf-notes" placeholder="e.g. Long-term hold" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:160px">
+          </div>
+          <button id="pf-add" style="padding:8px 18px;border-radius:6px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer">Add Position</button>
+        </div>
+        <div id="pf-error" style="color:var(--red);font-size:11px;margin-top:6px;display:none"></div>
+      </div>
+      <div id="pf-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px"></div>
+      <div id="pf-table-wrap" style="display:none">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Shares</th>
+                <th>Entry $</th>
+                <th>Current $</th>
+                <th>Cost</th>
+                <th>Value</th>
+                <th class="tip" data-tip="Profit or Loss in dollars: (Current Price - Entry Price) x Shares">P&amp;L $</th>
+                <th class="tip" data-tip="Percentage return since entry: (Current Price - Entry Price) / Entry Price">P&amp;L %</th>
+                <th class="tip" data-tip="How this position has performed vs SPY since you bought it. Positive = outperforming the market.">vs SPY</th>
+                <th>Signal</th>
+                <th>Timing</th>
+                <th>Date</th>
+                <th>Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="pf-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="pf-empty" style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">No positions yet. Add your first position above.</div>
+      <div style="font-size:11px;color:var(--muted);padding:10px 4px;line-height:1.7">Portfolio data is saved in your browser (localStorage). It is not shared and is only visible on this device. Current prices come from the dashboard data.</div>
+    </div>
+  </div>
+
+  <div id="panel-guide" class="tab-panel">
+    <div style="max-width:820px;margin:0 auto;padding:8px 0">
+      <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--amber);line-height:1.7">
+        <strong>Important:</strong> This dashboard shows momentum signals based on price data only. It does NOT consider company fundamentals. <strong>Not financial advice.</strong>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">1</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Start with the Overview tab — find Strong Momentum stocks</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+            The three watchlist columns (Strong / Neutral / Weak) give you the first filter. <strong style="color:var(--green)">Only consider stocks in Strong Momentum for buying.</strong> Neutral and Weak stocks are either going sideways or declining — not the right time to enter.
+          </div>
+        </div>
+        <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">2</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Check RSI — is it a good time to enter?</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+            RSI tells you whether a stock has been bought too aggressively already.
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;max-width:480px">
+              <span style="color:var(--green);font-family:var(--mono);font-weight:700">RSI &lt; 40</span><span>Pulled back significantly — good entry zone</span>
+              <span style="color:var(--green);font-family:var(--mono);font-weight:700">RSI 40-60</span><span>Neutral — reasonable entry, not stretched</span>
+              <span style="color:var(--amber);font-family:var(--mono);font-weight:700">RSI 60-70</span><span>Getting stretched — consider waiting for a pullback</span>
+              <span style="color:var(--red);font-family:var(--mono);font-weight:700">RSI &gt; 70</span><span>Overbought — the move likely already happened, do not chase</span>
+            </div>
+            <div style="margin-top:10px;color:var(--text);font-weight:600">Best entry: Strong Momentum + RSI under 60</div>
+          </div>
+        </div>
+        <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">3</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Check 50MA — is the trend structurally intact?</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+            The 50-day Moving Average confirms whether the medium-term trend is healthy. Only buy stocks above their 50MA.
+          </div>
+        </div>
+        <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">4</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Use the Signals tab for deeper analysis</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">Check 52W position (40-85% is ideal), vs SPY positive outperformance margin, and watch upcoming EARN flags.</div>
+        </div>
+        <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">5</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Check Historical tab for context</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+            <div style="background:var(--surf2);border-radius:8px;padding:12px 14px">
+              <div style="color:var(--text);font-weight:600;margin-bottom:6px">Sweet spot to look for:</div>YTD gain 10-40% &nbsp;&#183;&nbsp; Strong Momentum &nbsp;&#183;&nbsp; Above 50MA &nbsp;&#183;&nbsp; RSI under 60 &nbsp;&#183;&nbsp; No EARN flag
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">Quick Reference Cheat Sheet</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Indicator</th>
+                  <th style="padding:8px 12px;text-align:center;color:var(--green);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Good to Buy</th>
+                  <th style="padding:8px 12px;text-align:center;color:var(--amber);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Caution</th>
+                  <th style="padding:8px 12px;text-align:center;color:var(--red);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Avoid / Sell</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:9px 12px;font-weight:600">Momentum Signal</td>
+                  <td style="padding:9px 12px;text-align:center"><span style="background:rgba(16,185,129,.15);color:var(--green);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Strong</span></td>
+                  <td style="padding:9px 12px;text-align:center"><span style="background:rgba(245,158,11,.15);color:var(--amber);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Neutral</span></td>
+                  <td style="padding:9px 12px;text-align:center"><span style="background:rgba(239,68,68,.15);color:var(--red);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Weak</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:9px 12px;font-weight:600">RSI-14</td>
+                  <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">&lt; 60</td>
+                  <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">60 - 70</td>
+                  <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 70</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:9px 12px;font-weight:600">50MA</td>
+                  <td style="padding:9px 12px;text-align:center;color:var(--green)">^ Above</td>
+                  <td style="padding:9px 12px;text-align:center;color:var(--muted)">Just crossed</td>
+                  <td style="padding:9px 12px;text-align:center;color:var(--red)">v Below</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Data pushed daily by GAS &#183; Not financial advice.</footer>
+
+<script>
+// Display settings
+var THEMES = ['dark','light','pearl','sky','mint','rose','navy','slate','forest','midnight','ocean'];
+var currentTheme = localStorage.getItem('dashTheme') || 'dark';
+var currentFont  = parseInt(localStorage.getItem('dashFont') || '14');
+
+function applyTheme(t) {
+  currentTheme = t;
+  THEMES.forEach(function(th){ document.body.classList.remove(th); });
+  if (t !== 'dark') document.body.classList.add(t);
+  localStorage.setItem('dashTheme', t);
+  document.querySelectorAll('.theme-opt').forEach(function(b){
+    b.style.outline = b.dataset.theme === t ? '2px solid var(--accent)' : 'none';
+  });
+}
+
+function applyFont(size) {
+  currentFont = Math.min(20, Math.max(11, size));
+  document.documentElement.style.zoom = (currentFont / 14).toFixed(2);
+  document.documentElement.style.fontSize = currentFont + 'px';
+  localStorage.setItem('dashFont', currentFont);
+  var lbl = document.getElementById('font-size-lbl');
+  if (lbl) lbl.textContent = currentFont + 'px';
+}
+
+applyTheme(currentTheme);
+applyFont(currentFont);
+
+// Sparkline generation
+function makeSpark(data, w, h) {
+  if (!data || data.length < 2) return '<span style="color:var(--muted);font-size:10px">-</span>';
+  var min = Math.min.apply(null, data);
+  var max = Math.max.apply(null, data);
+  var range = max - min || 1;
+  var step  = w / (data.length - 1);
+  var pts   = data.map(function(v, i) {
+    var x = Math.round(i * step);
+    var y = Math.round(h - ((v - min) / range) * (h - 2) - 1);
+    return x + ',' + y;
+  }).join(' ');
+  var trend = data[data.length-1] >= data[0] ? 'spark-up' : 'spark-down';
+  return '<svg class="sparkline" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
+    '<polyline points="'+pts+'" fill="none" class="'+trend+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+  '</svg>';
+}
+
+// Global state holding cache payload records
+var D = null;
+var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
+
+// IMPORTANT CONFIGURATION VARIABLES
+// 1. DATA_URL points to your public Github repository's static data file
+var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
+// 2. GAS_URL must point to your unique live deployed Google Apps Script Web App macro link
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwnpyNAuRBUQNMhIT2dct0gHtEBL282pT0MtFG2Vrzh_WWfC_NX38qRjZV2rBGv3X9CMw/exec';
+
+var divSortField = 'yield', divSortDir = 'desc';
+var greekSortField = 'pct_1w', greekSortDir = 'desc';
+var etfSortField = 'pct_1w', etfSortDir = 'desc';
+var wlFilter = 'all', gkFilter = 'all', etfWatchFilter = 'all';
+
+function renderDividends(dividends, stocks) {
+  var el = document.getElementById('div-content');
+  if (!el) return;
+  el.style.display = 'block';
+  if (!dividends || !dividends.length) {
+    document.getElementById('div-body').innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--muted)">No dividend data available.</td></tr>';
+    return;
+  }
+  var avgYield  = dividends.length ? (dividends.reduce(function(s,d){ return s+d.yield; },0)/dividends.length).toFixed(2) : '0.00';
+  var bestYield = dividends[0];
+  var bestGrow  = dividends.slice().sort(function(a,b){ return (b.grow5y||0)-(a.grow5y||0); })[0];
+  var sustCount = dividends.filter(function(d){ return d.sustainable===true; }).length;
+
+  document.getElementById('div-summary').innerHTML = [
+    { lbl:'Dividend Payers', val:dividends.length,    sub:'of 20 tracked' },
+    { lbl:'Avg Yield',       val:avgYield+'%',         sub:'universe avg' },
+    { lbl:'Highest Yield',   val:bestYield.ticker,     sub:bestYield.yield+'%' },
+    { lbl:'Best 5Y Growth',  val:bestGrow.ticker,      sub:'+'+(bestGrow.grow5y||0)+'%/yr' },
+    { lbl:'Sustainable',     val:sustCount+'/'+dividends.length, sub:'payout < 60%' }
+  ].map(function(c){
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+  }).join('');
+
+  renderDivTable(dividends, stocks);
+}
+
+function renderDivTable(dividends, stocks) {
+  var stockMap = {};
+  if (stocks) stocks.forEach(function(s){ stockMap[s.ticker] = s; });
+  var sorted = dividends.slice().sort(function(a,b){
+    var av = a[divSortField], bv = b[divSortField];
+    if (av===null||av===undefined) av = divSortDir==='desc'?-9999:9999;
+    if (bv===null||bv===undefined) bv = divSortDir==='desc'?-9999:9999;
+    return divSortDir==='desc'?bv-av:av-bv;
+  });
+  document.getElementById('div-body').innerHTML = sorted.map(function(d, i) {
+    var st = stockMap[d.ticker] || {};
+    var sustBg  = d.sustainable===true  ? 'rgba(16,185,129,.15)' : d.sustainable===null  ? 'rgba(245,158,11,.15)' : 'rgba(239,68,68,.15)';
+    var sustClr = d.sustainable===true  ? 'var(--green)' : d.sustainable===null  ? 'var(--amber)' : 'var(--red)';
+    var sustLbl = d.sustainable===true  ? 'Sustainable' : d.sustainable===null  ? 'Monitor' : 'At Risk';
+    var sustTip = d.sustainable===true  ? 'Payout ratio '+d.payout+'% - healthy' : d.sustainable===null  ? 'Payout ratio '+d.payout+'% - elevated' : 'Dividend at risk';
+    var yldClr = d.yield >= 4 ? 'var(--green)' : d.yield >= 2 ? 'var(--cyan)' : 'var(--muted)';
+    var gClr = !d.grow5y ? 'var(--muted)' : d.grow5y >= 5 ? 'var(--green)' : d.grow5y >= 0 ? 'var(--cyan)' : 'var(--red)';
+    var sigCls = st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
+    var sigLbl = st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':st.signal?'Neutral':'-';
+
+    return '<tr>' +
+      '<td>'+(i+1)+'</td>' +
+      '<td style="font-weight:600">'+esc(d.company)+'</td>' +
+      '<td style="font-family:var(--mono);color:var(--accent);font-weight:700">'+esc(d.ticker)+'</td>' +
+      '<td style="color:var(--muted);font-size:11px">'+esc(d.sector)+'</td>' +
+      '<td><span class="tip" data-tip="Yield info" style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+yldClr+';cursor:help">'+d.yield+'%</span></td>' +
+      '<td style="font-family:var(--mono);color:var(--text)">'+(d.dps ? '$'+d.dps : '-')+'</td>' +
+      '<td style="font-family:var(--mono)">'+(d.payout!==null ? '<span style="color:'+(d.payout<60?'var(--green)':d.payout<80?'var(--amber)':'var(--red)')+'">'+d.payout+'%</span>' : '-')+'</td>' +
+      '<td style="font-family:var(--mono);color:'+gClr+'">'+(d.grow5y!==null?(d.grow5y>=0?'+':'')+d.grow5y+'%':'-')+'</td>' +
+      '<td><span class="tip" data-tip="'+esc(sustTip)+'" style="background:'+sustBg+';color:'+sustClr+';font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;cursor:help">'+sustLbl+'</span></td>' +
+      '<td>'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>' +
+      '<td style="font-family:var(--mono);color:var(--muted)">'+(st.price?'$'+fmt(st.price):'-')+'</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderGreek(greek) {
+  var el = document.getElementById('greek-content');
+  if (!el) return;
+  el.style.display = 'block';
+  if (!greek || !greek.length) {
+    document.getElementById('greek-body').innerHTML = '<tr><td colspan="15" style="text-align:center;padding:24px;color:var(--muted)">No Greek stock data available.</td></tr>';
+    return;
+  }
+  var gainers = greek.filter(function(s){ return (s.pct_1w||0)>0; }).length;
+  var best    = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
+  var worst   = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
+  var strong  = greek.filter(function(s){ return s.signal==='STRONG'; }).length;
+  var avgW    = greek.length ? (greek.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/greek.length).toFixed(2) : '0.00';
+
+  var gkTop3El = document.getElementById('gk-top3');
+  if (gkTop3El) gkTop3El.innerHTML = makeTop3Strip(greek, 'EUR');
+
+  document.getElementById('greek-summary').innerHTML = [
+    { lbl:'Tracked',         val:greek.length,              sub:'ATHEX stocks' },
+    { lbl:'Weekly Gainers',  val:gainers+'/'+greek.length,  sub:'this week' },
+    { lbl:'Strong Momentum', val:strong,                    sub:'vs Greek peers' },
+    { lbl:'Best 1W',         val:best.ticker,               sub:p(best.pct_1w) },
+    { lbl:'Worst 1W',        val:worst.ticker,              sub:p(worst.pct_1w) },
+    { lbl:'Avg 1W',          val:(avgW>0?'+':'')+avgW+'%',  sub:'Greek universe' }
+  ].map(function(c){
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+  }).join('');
+
+  renderGreekWatchlist(greek);
+  renderGreekTable(greek);
+}
+
+function renderGreekWatchlist(greek) {
+  var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
+  greek.forEach(function(s){ if(matchesFilter(s,gkFilter)) (groups[s.signal]||groups.NEUTRAL).push(s); });
+  Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
+  var configs = [
+    { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Outperforming Greek peers', color:'var(--green)', border:'rgba(16,185,129,.25)' },
+    { key:'NEUTRAL', label:'Neutral',         icon:'&#9679;', sub:'In line with Greek peers',  color:'var(--amber)', border:'rgba(245,158,11,.25)' },
+    { key:'WEAK',   label:'Weak Momentum',   icon:'&#9679;', sub:'Lagging Greek peers',        color:'var(--red)',   border:'rgba(239,68,68,.25)' }
+  ];
+  var totalGkItems = Object.keys(groups).reduce(function(t,k){ return t + groups[k].length; }, 0);
+  if (totalGkItems === 0) {
+    document.getElementById('greek-watchlist').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">No Greek stocks match this filter.</div>';
+    return;
+  }
+  document.getElementById('greek-watchlist').innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
+    configs.map(function(cfg){
+      var items = groups[cfg.key];
+      return '<div style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
+          '<div><div style="font-size:13px;font-weight:700;color:'+cfg.color+'">'+cfg.icon+' '+cfg.label+'</div><div style="font-size:10px;color:var(--muted);margin-top:2px">'+cfg.sub+'</div></div>'+
+          '<span style="font-size:22px;font-weight:800;font-family:var(--mono);color:'+cfg.color+';opacity:.6">'+items.length+'</span>'+
+        '</div>'+
+        items.map(function(s){
+          var pctClr = (s.pct_1w||0)>=0?'var(--green)':'var(--red)';
+          var sw=s.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
+          var bz=buyZone(s);
+          return '<div style="padding:9px 0;border-bottom:1px solid var(--border)">'+
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+              '<div><div style="font-size:12px;font-weight:600">'+esc(s.company)+'</div><div style="font-size:10px;color:var(--muted)">'+esc(s.ticker)+' &middot; EUR '+fmt(s.price)+'</div></div>'+
+              '<div style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+pctClr+'">'+(s.pct_1w>=0?'+':'')+s.pct_1w+'%</div>'+
+            '</div>'+
+            '<div style="display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);flex-wrap:wrap">'+
+              makeChart20(s.chart20||[],80,28)+
+              '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto;font-size:10px;padding:3px 8px">'+bz.label+'</span>'+
+            '</div>'+
+          '</div>';
+        }).join('')+
+      '</div>';
+    }).join('') + '</div>';
+}
+
+function renderGreekTable(greek) {
+  var sorted = greek.slice().sort(function(a,b){
+    var av=a[greekSortField],bv=b[greekSortField];
+    if(av===null||av===undefined) av=greekSortDir==='desc'?-9999:9999;
+    if(bv===null||bv===undefined) bv=greekSortDir==='desc'?-9999:9999;
+    return greekSortDir==='desc'?bv-av:av-bv;
+  });
+  document.getElementById('greek-body').innerHTML = sorted.map(function(st,i){
+    var sigCls=st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
+    var sigLbl=st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':'Neutral';
+    var sw=st.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
+    return '<tr>' +
+      '<td>'+(i+1)+'</td>'+
+      '<td>'+esc(st.company)+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--accent);font-weight:700">'+esc(st.ticker)+'</td>'+
+      '<td>'+esc(st.sector)+'</td>'+
+      '<td>&#8364;'+fmt(st.price)+'</td>'+
+      '<td><div class="score-wrap" style="justify-content:flex-end"><span class="tm">'+sw+'</span></div></td>'+
+      '<td><span class="sig '+sigCls+'">'+sigLbl+'</span></td>'+
+      '<td class="'+pcls(st.pct_1w)+'">'+pn(st.pct_1w)+'</td>'+
+      '<td class="'+pcls(st.pct_1m)+'">'+pn(st.pct_1m)+'</td>'+
+      '<td class="'+pcls(st.pct_ytd)+'">'+pn(st.pct_ytd)+'</td>'+
+      '<td>'+(st.rsi14||'-')+'</td>'+
+      '<td>'+(st.above_ma50?'Above':'Below')+'</td>'+
+      '<td>'+(st.pos_52w||'-')+'%</td>'+
+      '<td>'+makeSpark(st.spark||[],50,18)+'</td>'+
+      '<td>-</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderETFs(etfs) {
+  var el = document.getElementById('etf-content');
+  if (!el) return;
+  el.style.display = 'block';
+  if (!etfs || !etfs.length) {
+    document.getElementById('etf-body').innerHTML = '<tr><td colspan="13" style="text-align:center;padding:24px;color:var(--muted)">No ETF data available.</td></tr>';
+    return;
+  }
+  etfs = etfs.map(function(e) {
+    var m = ETF_META[e.ticker] || {};
+    e.category = e.category || m.category || 'Other';
+    e.expense   = e.expense  || m.expense  || null;
+    e.desc      = e.desc     || m.desc     || '';
+    return e;
+  });
+  etfs = applyETFFilter(etfs);
+  if (!etfs.length) {
+    document.getElementById('etf-summary').innerHTML = '';
+    document.getElementById('etf-categories').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px">No ETFs match this filter.</div>';
+    return;
+  }
+  var validPct = etfs.filter(function(e){ return e.pct_1w !== null; });
+  var best    = validPct.length ? validPct.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : etfs[0];
+  var gainers = etfs.filter(function(e){ return (e.pct_1w||0)>0; }).length;
+  var above50 = etfs.filter(function(e){ return e.above_ma50===true; }).length;
+  var avgYTD  = etfs.length ? (etfs.reduce(function(s,e){ return s+(e.pct_ytd||0); },0)/etfs.length).toFixed(1) : '0.0';
+
+  document.getElementById('etf-summary').innerHTML = [
+    { lbl:'Tracked ETFs',   val:etfs.length,             sub:'across 5 categories' },
+    { lbl:'Weekly Gainers', val:gainers+'/'+etfs.length, sub:'up this week' },
+    { lbl:'Best 1W',        val:best.ticker,             sub:p(best.pct_1w) },
+    { lbl:'Above 50MA',     val:above50+'/'+etfs.length, sub:'in uptrend' },
+    { lbl:'Avg YTD',        val:(avgYTD>0?'+':'')+avgYTD+'%', sub:'ETF universe' }
+  ].map(function(c){
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+  }).join('');
+
+  var catOrder = ['Broad Market','Growth & Tech','Dividend','Defensive','Thematic'];
+  var groups   = {};
+  etfs.forEach(function(e){ if(!groups[e.category]) groups[e.category]=[]; groups[e.category].push(e); });
+
+  document.getElementById('etf-categories').innerHTML = catOrder.filter(function(c){ return groups[c] && groups[c].length; }).map(function(cat) {
+    var items = groups[cat];
+    var cfg   = ETF_CAT_COLORS[cat] || { color:'var(--muted)', border:'rgba(100,116,139,.25)', icon:'&#9632;' };
+    return '<div style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px;margin-bottom:12px">'+
+      '<div style="font-size:13px;font-weight:700;color:'+cfg.color+';margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+cfg.icon+' '+cat+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">'+
+      items.map(function(e){
+        var pctClr = (e.pct_1w||0)>=0?'var(--green)':'var(--red)';
+        var bze=buyZone(e);
+        return '<div style="background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">'+
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'+
+            '<div><span style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--accent)">'+esc(e.ticker)+'</span></div>'+
+            '<div style="font-family:var(--mono);font-size:14px;font-weight:800;color:'+pctClr+'">'+(e.pct_1w!==null?(e.pct_1w>=0?'+':'')+e.pct_1w+'%':'N/A')+'</div>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
+            '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'">'+bze.label+'</span>'+
+          '</div>'+
+        '</div>';
+      }).join('')+'</div></div>';
+  }).join('');
+
+  renderETFTable(etfs);
+}
+
+function renderETFTable(etfs) {
+  var sorted = etfs.slice().sort(function(a,b){
+    var av=a[etfSortField],bv=b[etfSortField];
+    if(av===null||av===undefined) av=etfSortDir==='desc'?-9999:9999;
+    if(bv===null||bv===undefined) bv=etfSortDir==='desc'?-9999:9999;
+    return etfSortDir==='desc'?bv-av:av-bv;
+  });
+  document.getElementById('etf-body').innerHTML = sorted.map(function(e,i){
+    return '<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td>'+esc(e.name)+'</td>'+
+      '<td>'+esc(e.ticker)+'</td>'+
+      '<td>'+esc(e.category)+'</td>'+
+      '<td>'+(e.expense?e.expense+'%':'-')+'</td>'+
+      '<td>$'+fmt(e.price)+'</td>'+
+      '<td class="'+pcls(e.pct_1w)+'">'+pn(e.pct_1w)+'</td>'+
+      '<td class="'+pcls(e.pct_1m)+'">'+pn(e.pct_1m)+'</td>'+
+      '<td class="'+pcls(e.pct_ytd)+'">'+pn(e.pct_ytd)+'</td>'+
+      '<td>'+(e.rsi14||'-')+'</td>'+
+      '<td>'+(e.above_ma50?'Above':'Below')+'</td>'+
+      '<td>'+(e.pos_52w||'-')+'%</td>'+
+      '<td>'+makeSpark(e.spark||[],50,18)+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function volTrendBadge(s) {
+  var vt = s.vol_trend;
+  if (!vt || vt === 'normal') return '';
+  if (vt === 'building') return '<span class="tip" data-tip="Volume building" style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">VOL&#8679;</span>';
+  return '<span class="tip" data-tip="Volume fading" style="background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">VOL&#8681;</span>';
+}
+
+function momentumBadge(s) {
+  var w1 = s.pct_1w, w2 = s.pct_2w;
+  if (w1 === null || w1 === undefined || w2 === null || w2 === undefined) return '';
+  var diff = Math.round((w1 - w2) * 10) / 10;
+  if (Math.abs(diff) < 1) return '';
+  if (diff > 0) return '<span class="tip" data-tip="Accelerating" style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">&#8679;MOM</span>';
+  return '<span class="tip" data-tip="Decelerating" style="background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:help">&#8681;MOM</span>';
+}
+
+var PF_KEY = 'mf_portfolio_v1';
+function pfLoad() { try { return JSON.parse(localStorage.getItem(PF_KEY) || '[]'); } catch(e) { return []; } }
+function pfSave(positions) { localStorage.setItem(PF_KEY, JSON.stringify(positions)); }
+
+function pfAddPosition() {
+  var ticker = (document.getElementById('pf-ticker').value || '').trim().toUpperCase();
+  var shares = parseFloat(document.getElementById('pf-shares').value);
+  var entry  = parseFloat(document.getElementById('pf-entry').value);
+  var date   = document.getElementById('pf-date').value;
+  var notes  = (document.getElementById('pf-notes').value || '').trim();
+  if (!ticker || !shares || !entry) return;
+
+  var positions = pfLoad();
+  positions.push({ id: Date.now(), ticker: ticker, shares: shares, entry: entry, date: date, notes: notes });
+  pfSave(positions);
+  renderPortfolio();
+}
+
+function pfRemove(id) {
+  var positions = pfLoad().filter(function(p){ return p.id !== id; });
+  pfSave(positions);
+  renderPortfolio();
+}
+
+function renderPortfolio() {
+  var positions = pfLoad();
+  var wrap = document.getElementById('pf-table-wrap');
+  var empty = document.getElementById('pf-empty');
+  if (!positions.length) { if(wrap) wrap.style.display='none'; if(empty) empty.style.display='block'; return; }
+  if (wrap) wrap.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+
+  var stockMap = {};
+  if (D) {
+    (D.stocks || []).forEach(function(s){ stockMap[s.ticker] = s; });
+    (D.etfs || []).forEach(function(e){ stockMap[e.ticker] = e; });
+  }
+  document.getElementById('pf-body').innerHTML = positions.map(function(p) {
+    var st = stockMap[p.ticker] || {};
+    var curPrice = st.price || p.entry;
+    var cost = p.shares * p.entry;
+    var val = p.shares * curPrice;
+    var pnl = val - cost;
+    return '<tr>'+
+      '<td>'+esc(p.ticker)+'</td>'+
+      '<td>'+p.shares+'</td>'+
+      '<td>$'+fmt(p.entry)+'</td>'+
+      '<td>$'+fmt(curPrice)+'</td>'+
+      '<td>$'+fmt(cost)+'</td>'+
+      '<td>$'+fmt(val)+'</td>'+
+      '<td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">$'+fmt(pnl)+'</td>'+
+      '<td>-</td><td>-</td><td>-</td><td>-</td><td>'+esc(p.date)+'</td><td>'+esc(p.notes)+'</td>'+
+      '<td><button onclick="pfRemove('+p.id+')">&#10005;</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
+// CORPORATE FIREWALL BYPASS DATA INGESTION ENGINE
+function loadData() {
+  var lu = document.getElementById('last-updated');
+  if (lu) lu.textContent = 'Syncing...';
+
+  // Build target proxy URL linking directly to Google Macro environment infrastructure 
+  var sourceStream = GAS_URL + '?action=get';
+
+  fetch(sourceStream + '&t=' + Date.now())
+    .then(function(response) {
+      if (!r.ok && response.status === 404) {
+        // Fallback trace to secondary Github raw deployment cache asset if Google Macro returns clean 404
+        return fetch(DATA_URL + '?t=' + Date.now());
+      }
+      if (!response.ok) throw new Error('Network status: ' + response.status);
+      return response.json();
+    })
+    .then(function(data) {
+      D = data;
+      renderAll(data);
+    })
+    .catch(function(error) {
+      console.warn("Direct connection failed. Attempting primary database fallback.", error);
+      // Fallback query routing through target alternate repository path channels
+      fetch(DATA_URL + '?t=' + Date.now())
+        .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function(fallbackData) {
+          D = fallbackData;
+          renderAll(fallbackData);
+        })
+        .catch(function(err) {
+          if (lu) lu.textContent = 'Connection Blocked';
+          var ov = document.getElementById('ov-loading');
+          if (ov) ov.innerHTML = '<div class="state-box"><p class="err-txt">Pipeline Connection Interrupted.<br>Error: ' + err.message + '<br><br>Verify target GAS_URL deployment properties config macro string.</p></div>';
+        });
+    });
+}
+
+function renderAll(data) {
+  document.getElementById('ov-loading').style.display = 'none';
+  document.getElementById('ov-content').style.display = 'block';
+  document.getElementById('sig-content').style.display = 'block';
+  document.getElementById('hist-content').style.display = 'block';
+
+  renderSpyBar(data.spy);
+  renderSummary(data.stocks, data.spy);
+  renderWatchlist(data.stocks);
+  renderHeatmapData(data.sector_heatmap);
+  renderActionTable(data.stocks);
+  renderHistTable(data.stocks);
+  renderGreek(data.greek);
+  renderETFs(data.etfs);
+  renderPortfolio();
+}
+
+function renderSpyBar(spy) {
+  if (!spy) return;
+  document.getElementById('spy-bar').innerHTML = '<div>SPY Price: $'+fmt(spy.price)+' | 1W: '+pn(spy.pct_1w)+'</div>';
+}
+
+function renderSummary(stocks, spy) {
+  document.getElementById('summary-cards').innerHTML = '<div class="card"><div class="lbl">Total Assets</div><div class="val">'+stocks.length+'</div></div>';
+}
+
+function renderWatchlist(stocks) {
+  var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">';
+  ['STRONG', 'NEUTRAL', 'WEAK'].forEach(function(sig) {
+    var filtered = stocks.filter(function(s){ return s.signal === sig && matchesFilter(s, wlFilter); });
+    html += '<div class="card"><h3>'+sig+' ('+filtered.length+')</h3>';
+    filtered.forEach(function(s) {
+      html += '<div style="padding:4px 0">'+esc(s.ticker)+' - $'+fmt(s.price)+'</div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('ov-watchlist').innerHTML = html;
+}
+
+function renderHeatmapData(hm) {
+  if(!hm) return;
+  document.getElementById('sector-heatmap').innerHTML = hm.map(function(sec){
+    return '<div class="heatmap-row"><div>'+esc(sec.sector)+'</div><div>'+pn(sec.avg_1w)+'</div><div>'+pn(sec.avg_1m)+'</div><div>'+sec.stocks.length+' Stocks</div></div>';
+  }).join('');
+}
+
+function renderActionTable(stocks) {
+  var sorted = sortArr(stocks, sorts.action.f, sorts.action.d);
+  document.getElementById('action-body').innerHTML = sorted.map(function(st, i) {
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(st.company)+'</td><td>'+esc(st.ticker)+'</td><td>'+st.score+'</td><td>'+st.signal+'</td><td>'+pn(st.pct_1w)+'</td><td>'+pn(st.pct_1m)+'</td><td>'+pn(st.pct_ytd)+'</td><td>'+pn(st.rel_1w)+'</td><td>'+st.rsi14+'</td><td>'+(st.above_ma50?'Above':'Below')+'</td><td>'+st.pos_52w+'%</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>';
+  }).join('');
+}
+
+function renderHistTable(stocks) {
+  var sorted = sortArr(stocks, sorts.hist.f, sorts.hist.d);
+  document.getElementById('hist-body').innerHTML = sorted.map(function(st, i) {
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(st.company)+'</td><td>'+esc(st.ticker)+'</td><td>$'+fmt(st.price)+'</td><td>'+pn(st.pct_1w)+'</td><td>'+pn(st.pct_1m)+'</td><td>'+pn(st.pct_3m)+'</td><td>'+pn(st.pct_ytd)+'</td><td>-</td><td>-</td><td>'+st.signal+'</td><td>'+st.rsi14+'</td><td>'+st.above_ma50+'</td><td>-</td><td>'+esc(st.market_cap)+'</td></tr>';
+  }).join('');
+}
+
+function buyZone(s) {
+  if (s.rsi14 > 70) return { label: 'Extended', cls: 'bz-wait', tip: 'Overbought structure.' };
+  if (s.rsi14 < 35) return { label: 'Oversold', cls: 'bz-entry', tip: 'Potential value window.' };
+  return { label: 'Monitor', cls: 'bz-watch', tip: 'Neutral context paths.' };
+}
+
+function makeTop3Strip(stocks, cur) { return ''; }
+function range4wBar(s) { return ''; }
+var applyETFFilter = function(e) { return e; };
+function matchesFilter(s, f) { return true; }
+function sortArr(arr, f, d) { return arr.slice().sort(function(a,b){ return d==='desc'?b[f]-a[f]:a[f]-b[f]; }); }
+function fmt(n){ return Number(n).toFixed(2); }
+function p(n){ return n+'%'; }
+function pn(n){ return n+'%'; }
+function pcls(v){ return v>=0?'tg':'tr'; }
+function esc(s){ return String(s); }
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelector('[data-tab="'+name+'"]').classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.tab[data-tab]').forEach(function(el) {
+    el.addEventListener('click', function(){ switchTab(this.dataset.tab); });
+  });
+  var pfAddBtn = document.getElementById('pf-add');
+  if (pfAddBtn) pfAddBtn.addEventListener('click', pfAddPosition);
+  loadData();
+});
+</script>
+<div id="tip-popup"></div>
+</body>
+</html>
