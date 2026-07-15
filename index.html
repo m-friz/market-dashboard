@@ -1324,6 +1324,7 @@ function renderGreekWatchlist(greek) {
                 '<div>'+
                   '<div style="font-size:12px;font-weight:600">'+esc(s.company)+'</div>'+
                   '<div style="font-size:10px;color:var(--muted)">'+esc(s.sector)+' &#183; &#8364;'+fmt(s.price)+'</div>'+
+                  '<div style="font-size:10px;color:var(--muted)">&#8364;'+fmt(s.low_52w||0)+' - &#8364;'+fmt(s.high_52w||0)+' (52W)</div>'+
                 '</div>'+
               '</div>'+
               '<div style="text-align:right">'+
@@ -1345,7 +1346,7 @@ function renderGreekWatchlist(greek) {
             (function(){
               var bz=buyZone(s);
               return '<div style="display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);flex-wrap:wrap">'+
-                chartHoverWrap(makeChart20(s.chart20||[],80,28), s.chart20||[], s.ticker)+
+                chartHoverWrap(makeChart20(s.chart20||[],80,28), s.chart20||[], s.ticker, '&#8364;')+
                 '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
                   (s.pct_vs_avg20!==null&&s.pct_vs_avg20!==undefined?
                     '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average (&#8364;'+s.avg20+') — extended':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average (&#8364;'+s.avg20+') — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs 20D</span>':'')+
@@ -1733,8 +1734,8 @@ function buyZone(s) {
 // Wraps a mini chart SVG so hovering/tapping it can show an enlarged
 // version in a popup. Stores the raw data on the element itself so the
 // popup handler can redraw at a larger size without re-fetching anything.
-function chartHoverWrap(svg, data, ticker) {
-  return '<span class="chart-hover" data-chart=\'' + JSON.stringify(data||[]) + '\' data-ticker="' + esc(ticker||'') + '">' + svg + '</span>';
+function chartHoverWrap(svg, data, ticker, currency) {
+  return '<span class="chart-hover" data-chart=\'' + JSON.stringify(data||[]) + '\' data-ticker="' + esc(ticker||'') + '" data-currency="' + esc(currency||'$') + '">' + svg + '</span>';
 }
 
 function makeChart20(data, w, h) {
@@ -2904,8 +2905,25 @@ document.addEventListener('DOMContentLoaded', function() {
   function showChartPop(el, mouseX, mouseY) {
     var data; try { data = JSON.parse(el.getAttribute('data-chart') || '[]'); } catch(e) { data = []; }
     if (!data.length) return;
-    var ticker = el.getAttribute('data-ticker') || '';
-    chartPopEl.innerHTML = (ticker ? '<div class="cp-title">'+esc(ticker)+' &middot; 20-day</div>' : '') + makeChart20(data, 232, 84);
+    var ticker   = el.getAttribute('data-ticker') || '';
+    var currency = el.getAttribute('data-currency') || '$';
+    var high  = Math.max.apply(null, data);
+    var low   = Math.min.apply(null, data);
+    var first = data[0];
+    var last  = data[data.length - 1];
+    var pctChange = first ? Math.round(((last - first) / first) * 10000) / 100 : 0;
+    var chClr = pctChange >= 0 ? 'var(--green)' : 'var(--red)';
+
+    chartPopEl.innerHTML =
+      (ticker ? '<div class="cp-title">'+esc(ticker)+' &middot; 20-day</div>' : '') +
+      '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px">'+
+        '<span>High: '+currency+fmt(high)+'</span><span>Low: '+currency+fmt(low)+'</span>'+
+      '</div>'+
+      makeChart20(data, 232, 84) +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--mono)">'+
+        '<span style="font-size:10px;color:var(--muted)">20d ago: '+currency+fmt(first)+'</span>'+
+        '<span style="font-size:14px;font-weight:800;color:'+chClr+'">'+currency+fmt(last)+' ('+(pctChange>=0?'+':'')+pctChange+'%)</span>'+
+      '</div>';
     chartPopEl.style.display = 'block';
     positionChartPop(mouseX, mouseY);
   }
