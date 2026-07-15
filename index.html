@@ -2079,6 +2079,48 @@ function triggerGASRefresh(onTick) {
   });
 }
 
+// raw.githubusercontent.com is served through a caching CDN that can lag
+// several minutes behind an actual push, regardless of cache-busting query
+// strings — that lag is on GitHub's side, not fixable from the client.
+// The Contents API reads straight from git instead, so right after a live
+// refresh we use that to confirm we're actually seeing the new data before
+// rendering, rather than silently re-showing the same stale snapshot.
+function fetchLatestFromGitHubAPI() {
+  var url = 'https://api.github.com/repos/m-friz/market-dashboard/contents/data.json?ref=main&t=' + Date.now();
+  return fetch(url, { headers: { 'Accept': 'application/vnd.github.v3.raw' } })
+    .then(function(r) {
+      if (!r.ok) throw new Error('GitHub API HTTP ' + r.status);
+      return r.json();
+    });
+}
+
+function pollForFreshData(expectedTimestamp, attemptsLeft, lu, btn, icon) {
+  fetchLatestFromGitHubAPI()
+    .then(function(data) {
+      var isFresh = data.lastUpdated === expectedTimestamp;
+      if (isFresh || attemptsLeft <= 1) {
+        D = data;
+        renderAll(data);
+        if (btn)  btn.disabled = false;
+        if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
+        if (lu) {
+          lu.textContent = isFresh
+            ? 'Updated: ' + data.lastUpdated
+            : 'Loaded latest available — GitHub may still be catching up to the very newest push';
+          lu.style.color = isFresh ? 'var(--green)' : 'var(--amber)';
+          setTimeout(function(){ lu.style.color = ''; }, 3000);
+        }
+      } else {
+        if (lu) lu.textContent = 'Live fetch done — waiting for GitHub to catch up... (' + (11 - attemptsLeft) + '/10)';
+        setTimeout(function() { pollForFreshData(expectedTimestamp, attemptsLeft - 1, lu, btn, icon); }, 3000);
+      }
+    })
+    .catch(function(e) {
+      console.log('[liveRefresh] GitHub API poll error, falling back to cached load:', e.message);
+      loadData();
+    });
+}
+
 // Called by the Refresh button. Triggers a live GAS fetch (new prices),
 // then reloads data.json once GAS confirms it pushed the update.
 function liveRefresh() {
@@ -2094,15 +2136,13 @@ function liveRefresh() {
     if (lu) lu.textContent = 'Fetching live prices... (' + elapsedSec + 's elapsed)';
   })
     .then(function(resp) {
-      // GAS confirmed it pushed a new data.json — pull it now.
-      // Note: doGet() can return ok:true with a non-null error field if one
-      // data source (e.g. Yahoo/Finnhub) partially failed but others succeeded.
-      if (resp && resp.error) {
-        if (lu) lu.textContent = 'Refreshed with a warning: ' + resp.error;
-      } else if (lu) {
-        lu.textContent = 'Live fetch complete — loading new data...';
-      }
-      loadData();
+      // GAS confirmed it pushed a new data.json. Note: doGet() can return
+      // ok:true with a non-null error field if one data source (e.g.
+      // Yahoo/Finnhub) partially failed but others succeeded — that's just
+      // a heads-up, not a reason to skip loading what did get pushed.
+      if (resp && resp.error) console.log('[liveRefresh] GAS reported a partial warning:', resp.error);
+      if (lu) lu.textContent = 'Live fetch complete — confirming GitHub has it...';
+      pollForFreshData(resp.lastUpdated, 10, lu, btn, icon);
     })
     .catch(function(e) {
       if (btn)  btn.disabled = false;
