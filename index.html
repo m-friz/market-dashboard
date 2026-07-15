@@ -2015,7 +2015,7 @@ syncTabFades();
 // cached file. Uses JSONP (script-tag injection) instead of fetch() because
 // Apps Script web apps have inconsistent CORS support for XHR/fetch — the
 // callback param your doGet() already handles avoids that entirely.
-function triggerGASRefresh() {
+function triggerGASRefresh(onTick) {
   return new Promise(function(resolve, reject) {
     if (!GAS_URL || GAS_URL === 'YOUR_GAS_URL_HERE') {
       reject(new Error('GAS_URL not configured — set it near the top of the script.'));
@@ -2023,27 +2023,56 @@ function triggerGASRefresh() {
     }
     var cbName = 'gasRefreshCb_' + Date.now();
     var script = document.createElement('script');
+    var startedAt = Date.now();
+    console.log('[liveRefresh] requesting', GAS_URL + '?action=refresh&callback=' + cbName);
 
     // fetchAndStore() walks ~58 tickers with rate-limit delays and can take
     // several minutes; give it plenty of room before giving up client-side.
     var timeoutId = setTimeout(function() {
       cleanup();
-      reject(new Error('Timed out waiting for GAS. It may still finish in the background — try refreshing again shortly.'));
+      reject(new Error('Timed out after 6 min waiting for GAS. It may still finish in the background — check the Apps Script Executions log.'));
     }, 6 * 60 * 1000);
+
+    // Surface progress every 5s so "nothing happening" is distinguishable
+    // from "still running" instead of a silent multi-minute wait.
+    var tickId = onTick ? setInterval(function() {
+      onTick(Math.round((Date.now() - startedAt) / 1000));
+    }, 5000) : null;
 
     function cleanup() {
       clearTimeout(timeoutId);
+      if (tickId) clearInterval(tickId);
       delete window[cbName];
       if (script.parentNode) script.parentNode.removeChild(script);
     }
 
     window[cbName] = function(resp) {
+      console.log('[liveRefresh] callback fired', resp);
       cleanup();
       if (resp && resp.ok) resolve(resp);
       else reject(new Error((resp && resp.error) || 'GAS refresh failed'));
     };
 
-    script.onerror = function() { cleanup(); reject(new Error('Could not reach the GAS endpoint. Check GAS_URL and that the web app is deployed with "Anyone" access.')); };
+    script.onerror = function() {
+      console.log('[liveRefresh] script.onerror — network-level failure reaching GAS_URL');
+      cleanup();
+      reject(new Error('Could not reach the GAS endpoint (network error). Check GAS_URL is correct.'));
+    };
+
+    // If the script tag finishes loading but our callback never ran, the
+    // response wasn't the JSONP we expected — almost always means the
+    // deployment requires login (access isn't set to "Anyone") or is
+    // serving a stale version. This fires in ~seconds, not 6 minutes.
+    script.onload = function() {
+      setTimeout(function() {
+        if (window[cbName]) {
+          console.log('[liveRefresh] script loaded but callback never invoked — likely an auth page or stale deployment');
+          cleanup();
+          reject(new Error('GAS responded but not with valid data — deployment may require login, or needs a new version deployed (Deploy → Manage deployments → Edit → New version).'));
+        }
+      }, 300);
+    };
+
     script.src = GAS_URL + '?action=refresh&callback=' + cbName;
     document.body.appendChild(script);
   });
@@ -2058,9 +2087,11 @@ function liveRefresh() {
 
   if (btn)  btn.disabled = true;
   if (icon) { icon.className = 'btn-spin'; icon.innerHTML = '&#10227;'; }
-  if (lu)   { lu.textContent = 'Fetching live prices... this can take a few minutes'; lu.style.color = ''; }
+  if (lu)   { lu.textContent = 'Fetching live prices... (0s elapsed)'; lu.style.color = ''; }
 
-  triggerGASRefresh()
+  triggerGASRefresh(function(elapsedSec) {
+    if (lu) lu.textContent = 'Fetching live prices... (' + elapsedSec + 's elapsed)';
+  })
     .then(function(resp) {
       // GAS confirmed it pushed a new data.json — pull it now.
       // Note: doGet() can return ok:true with a non-null error field if one
@@ -2076,7 +2107,7 @@ function liveRefresh() {
       if (btn)  btn.disabled = false;
       if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
       if (lu)   { lu.textContent = 'Live refresh failed: ' + e.message; lu.style.color = 'var(--red)'; }
-      console.log('Live refresh error:', e.message);
+      console.log('[liveRefresh] error:', e.message);
     });
 }
 
