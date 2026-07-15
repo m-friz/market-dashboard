@@ -175,6 +175,9 @@ tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;col
 .active-period{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
 .tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
 #tip-popup{display:none;position:fixed;background:#1e3a5f;color:#e8f0fe;border:1px solid #4a90d9;border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.8;white-space:normal;word-break:break-word;width:240px;max-width:240px;z-index:2147483647;box-shadow:0 6px 32px rgba(0,0,0,.85);pointer-events:none;font-family:sans-serif;font-weight:400}
+.chart-hover{display:inline-block;cursor:zoom-in;line-height:0}
+#chart-popup{display:none;position:fixed;background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.5);pointer-events:none}
+#chart-popup .cp-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;font-family:var(--mono);letter-spacing:.3px}
 footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px}
 
 .sparkline{display:inline-block;vertical-align:middle}
@@ -1342,7 +1345,7 @@ function renderGreekWatchlist(greek) {
             (function(){
               var bz=buyZone(s);
               return '<div style="display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);flex-wrap:wrap">'+
-                makeChart20(s.chart20||[],80,28)+
+                chartHoverWrap(makeChart20(s.chart20||[],80,28), s.chart20||[], s.ticker)+
                 '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
                   (s.pct_vs_avg20!==null&&s.pct_vs_avg20!==undefined?
                     '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average (&#8364;'+s.avg20+') — extended':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average (&#8364;'+s.avg20+') — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs 20D</span>':'')+
@@ -1547,7 +1550,7 @@ function renderETFs(etfs) {
                 var bze=buyZone(e);
                 return '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'" style="font-size:9px;padding:2px 6px;margin-left:4px">'+bze.label+'</span>'+
                   '<div style="width:100%;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px">'+
-                    makeChart20(e.chart20||[],80,28)+
+                    chartHoverWrap(makeChart20(e.chart20||[],80,28), e.chart20||[], e.ticker)+
                     '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
                       (e.pct_vs_avg20!==null&&e.pct_vs_avg20!==undefined?
                         '<span class="tip '+(e.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(e.pct_vs_avg20>0?'Price is '+e.pct_vs_avg20+'% above 20-day avg — extended':'Price is '+Math.abs(e.pct_vs_avg20)+'% below 20-day avg — potential value')+'">'+(e.pct_vs_avg20>0?'+':'')+e.pct_vs_avg20+'% vs 20D</span>':'')+
@@ -1727,6 +1730,13 @@ function buyZone(s) {
 }
 
 // ── 20-day SVG chart ───────────────────────────────────────────
+// Wraps a mini chart SVG so hovering/tapping it can show an enlarged
+// version in a popup. Stores the raw data on the element itself so the
+// popup handler can redraw at a larger size without re-fetching anything.
+function chartHoverWrap(svg, data, ticker) {
+  return '<span class="chart-hover" data-chart=\'' + JSON.stringify(data||[]) + '\' data-ticker="' + esc(ticker||'') + '">' + svg + '</span>';
+}
+
 function makeChart20(data, w, h) {
   if (!data || data.length < 5) return makeSpark(data, w, h);
   var min = Math.min.apply(null, data);
@@ -1974,7 +1984,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwJ5s0EIVW7i90W_xhu7NDF5v_GG_qlmgUwPZ3J4xvHaa7qrpoExPg4Y1eK__FzkZ59Mw/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbzlA2OT0ijn3fkLbi7ULKiiLLC_SnFwNlnc8rXRRMq3HgoiVecXNDLAYX3NLLvtqU4EYw/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2268,7 +2278,7 @@ function renderWatchlist(stocks) {
             (function(){
               var bz = buyZone(s);
               return '<div style="display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);flex-wrap:wrap">'+
-                makeChart20(s.chart20||[], 80, 28)+
+                chartHoverWrap(makeChart20(s.chart20||[], 80, 28), s.chart20||[], s.ticker)+
                 '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
                   (s.pct_vs_avg20!==null&&s.pct_vs_avg20!==undefined?
                     '<span class="tip '+(s.pct_vs_avg20>0?'vs-avg-pos':'vs-avg-neg')+'" data-tip="'+(s.pct_vs_avg20>0?'Price is '+s.pct_vs_avg20+'% above 20-day average ($'+s.avg20+') — extended':'Price is '+Math.abs(s.pct_vs_avg20)+'% below 20-day average ($'+s.avg20+') — potential value')+'">'+(s.pct_vs_avg20>0?'+':'')+s.pct_vs_avg20+'% vs 20D</span>':'')+
@@ -2397,7 +2407,7 @@ function renderActionTable(stocks) {
       '<td>'+makeSpark(st.spark||[], 50, 18)+'</td>'+
       '<td>'+vsAvg20(st)+'</td>'+
       '<td>'+range4wBar(st)+'</td>'+
-      '<td>'+makeChart20(st.chart20||[], 80, 32)+'</td>'+
+      '<td>'+chartHoverWrap(makeChart20(st.chart20||[], 80, 32), st.chart20||[], st.ticker)+'</td>'+
       (function(){ var bz=buyZone(st); return '<td><span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span></td>'; })()+
       '<td style="white-space:nowrap">'+flags+'</td>'+
       '<td style="text-align:left;max-width:180px;white-space:normal;font-size:11px;color:var(--muted);line-height:1.4">'+esc(meaning)+'</td>'+
@@ -2873,6 +2883,62 @@ document.addEventListener('DOMContentLoaded', function() {
     if (t && tipEl) tipEl.style.display = 'none';
   });
 
+  // Chart hover/tap-to-zoom: mouseover shows an enlarged redraw of the
+  // same 20-day data for precise mouse hovering; click/tap toggles it too
+  // so it works on touch devices where "hover" doesn't really exist.
+  var chartPopEl = document.getElementById('chart-popup');
+  var chartPinnedEl = null;
+
+  function positionChartPop(mouseX, mouseY) {
+    var pw = 260, mg = 16;
+    var ph = chartPopEl.offsetHeight || 130;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var x = (mouseX + 20 + pw + mg < vw) ? mouseX + 20 : mouseX - pw - 20;
+    var y = (mouseY - ph - 20 > mg) ? mouseY - ph - 20 : mouseY + 20;
+    x = Math.max(mg, Math.min(x, vw - pw - mg));
+    y = Math.max(mg, Math.min(y, vh - ph - mg));
+    chartPopEl.style.left = x + 'px';
+    chartPopEl.style.top  = y + 'px';
+  }
+
+  function showChartPop(el, mouseX, mouseY) {
+    var data; try { data = JSON.parse(el.getAttribute('data-chart') || '[]'); } catch(e) { data = []; }
+    if (!data.length) return;
+    var ticker = el.getAttribute('data-ticker') || '';
+    chartPopEl.innerHTML = (ticker ? '<div class="cp-title">'+esc(ticker)+' &middot; 20-day</div>' : '') + makeChart20(data, 232, 84);
+    chartPopEl.style.display = 'block';
+    positionChartPop(mouseX, mouseY);
+  }
+  function hideChartPop() {
+    if (chartPopEl) chartPopEl.style.display = 'none';
+    chartPinnedEl = null;
+  }
+
+  document.addEventListener('mouseover', function(e) {
+    var t = e.target.closest('.chart-hover');
+    if (t && chartPopEl) showChartPop(t, e.clientX, e.clientY);
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (chartPopEl && chartPopEl.style.display === 'block' && e.target.closest('.chart-hover')) {
+      positionChartPop(e.clientX, e.clientY);
+    }
+  });
+  document.addEventListener('mouseout', function(e) {
+    if (e.target.closest('.chart-hover') && !chartPinnedEl) hideChartPop();
+  });
+  // Tap-to-toggle for touch devices (mouseover/mouseout don't behave like
+  // real hover there); tapping elsewhere closes an open popup.
+  document.addEventListener('click', function(e) {
+    var t = e.target.closest('.chart-hover');
+    if (t) {
+      if (chartPinnedEl === t) { hideChartPop(); return; }
+      chartPinnedEl = t;
+      showChartPop(t, e.clientX, e.clientY);
+    } else if (chartPopEl && chartPopEl.style.display === 'block') {
+      hideChartPop();
+    }
+  });
+
   loadData();
 
   // Auto-refresh figures every hour. Reuses loadData() so cache-busting,
@@ -2898,6 +2964,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <div id="tip-popup"></div>
+<div id="chart-popup"></div>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
