@@ -1404,12 +1404,11 @@ function renderGreekTable(greek) {
         '<span class="tip rsi-badge '+rsiCls+'" data-tip="RSI '+( st.rsi14||'')+': '+(st.rsi14<30?'Oversold - stock may bounce, possible entry':st.rsi14>70?'Overbought - may pull back, caution':'Neutral range')+'">'+st.rsi14+'</span>':'-')+'</td>'+
       '<td><span class="tip '+maCls+'" data-tip="'+(st.above_ma50===null?'50MA not available':st.above_ma50?'Above 50MA: uptrend in place. Dips are buying opportunities.':'Below 50MA: downtrend in place. Rallies may be traps.')+'">'+maLbl+'</span></td>'+
       '<td>'+range52+'</td>'+
-      '<td>'+makeSpark(st.spark||[],50,18)+'</td>'+
+      '<td>'+chartHoverWrap(makeSpark(st.spark||[],50,18), st.spark||[], st.ticker)+'</td>'+
       '<td>'+flags+'</td>'+
     '</tr>';
   }).join('');
 }
-
 
 // ── ETF Tab ────────────────────────────────────────────────────
 var etfSortField = 'pct_1w', etfSortDir = 'desc';
@@ -1597,7 +1596,7 @@ function renderETFTable(etfs) {
       '<td>'+(e.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+e.rsi14+'</span>':'-')+'</td>'+
       '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
       '<td>'+range52+'</td>'+
-      '<td>'+makeSpark(e.spark||[],50,18)+'</td>'+
+      '<td>'+chartHoverWrap(makeSpark(e.spark||[],50,18), e.spark||[], e.ticker)+'</td>'+
     '</tr>';
   }).join('');
 }
@@ -2405,7 +2404,7 @@ function renderActionTable(stocks) {
       '<td>'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
       '<td><span class="'+maCls+'">'+maLbl+'</span></td>'+
       '<td>'+range52+'</td>'+
-      '<td>'+makeSpark(st.spark||[], 50, 18)+'</td>'+
+      '<td>'+chartHoverWrap(makeSpark(st.spark||[], 50, 18), st.spark||[], st.ticker)+'</td>'+
       '<td>'+vsAvg20(st)+'</td>'+
       '<td>'+range4wBar(st)+'</td>'+
       '<td>'+chartHoverWrap(makeChart20(st.chart20||[], 80, 32), st.chart20||[], st.ticker)+'</td>'+
