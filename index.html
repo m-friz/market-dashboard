@@ -43,9 +43,16 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:12px
 .btn:hover{opacity:.85}
 .btn-spin{animation:spin 1s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
-.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;background:var(--surf);overflow-x:auto;position:sticky;top:57px;z-index:99}
-.tab{padding:11px 18px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;margin-bottom:-1px;white-space:nowrap}
+.tabs-wrap{position:sticky;top:var(--header-h,57px);z-index:99;background:var(--surf)}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;background:var(--surf);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:11px 18px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;margin-bottom:-1px;white-space:nowrap;scroll-snap-align:start}
 .tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs-fade{position:absolute;top:0;bottom:1px;width:28px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:1}
+.tabs-fade-l{left:0;background:linear-gradient(to right,var(--surf) 30%,transparent)}
+.tabs-fade-r{right:0;background:linear-gradient(to left,var(--surf) 30%,transparent)}
+.tabs-wrap.show-fade-l .tabs-fade-l{opacity:1}
+.tabs-wrap.show-fade-r .tabs-fade-r{opacity:1}
 main{padding:18px 24px;max-width:1500px;margin:0 auto}
 .tab-panel{display:none}.tab-panel.active{display:block}
 .state-box{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;gap:16px;text-align:center}
@@ -68,12 +75,13 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 
 /* ===== Mobile phone view (<=760px only — desktop/browser view untouched) ===== */
 @media(max-width:760px){
-  header{padding:10px 14px;gap:8px}
+  header{padding:10px 14px;padding-top:max(10px, env(safe-area-inset-top));gap:8px}
   .logo-text{font-size:13px}
   .logo-mark{width:28px;height:28px;font-size:11px}
   main{padding:12px 14px}
-  .tabs{padding:0 14px;top:53px}
-  .tab{padding:9px 12px;font-size:12px}
+  .tabs{padding:0 14px;scroll-snap-type:x proximity}
+  .tab{padding:12px 14px;font-size:12px;min-height:44px;display:flex;align-items:center}
+  .tabs-fade{width:20px}
   body{font-size:13px}
   table{font-size:11px}
   .panel{padding:14px 14px}
@@ -256,6 +264,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
   </div>
 </header>
+<div class="tabs-wrap">
 <div class="tabs">
   <div class="tab active" data-tab="overview">&#127760; US Stocks</div>
   <div class="tab" data-tab="greek">&#127987; Greek</div>
@@ -265,6 +274,9 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div class="tab" data-tab="etfs">&#128640; ETFs</div>
   <div class="tab" data-tab="portfolio">&#128181; Portfolio</div>
   <div class="tab" data-tab="guide">&#128218; Guide</div>
+</div>
+<div class="tabs-fade tabs-fade-l"></div>
+<div class="tabs-fade tabs-fade-r"></div>
 </div>
 <main>
 
@@ -1961,14 +1973,111 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'YOUR_GAS_URL_HERE';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbzlA2OT0ijn3fkLbi7ULKiiLLC_SnFwNlnc8rXRRMq3HgoiVecXNDLAYX3NLLvtqU4EYw/exec';
 
 // Tab switching
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelector('[data-tab="'+name+'"]').classList.add('active');
+  var activeTab = document.querySelector('[data-tab="'+name+'"]');
+  activeTab.classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
+  activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+// Keep the sticky tab bar's top offset in sync with the header's actual
+// rendered height (varies by screen size/font settings) instead of a
+// guessed pixel value that could drift and cause overlap.
+function syncHeaderHeight() {
+  var header = document.querySelector('header');
+  if (header) document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+}
+
+// Show left/right fade hints on the tab bar when there are more tabs
+// scrolled out of view, so it's obvious the bar is swipeable on mobile.
+function syncTabFades() {
+  var wrap = document.querySelector('.tabs-wrap');
+  var tabs = document.querySelector('.tabs');
+  if (!wrap || !tabs) return;
+  wrap.classList.toggle('show-fade-l', tabs.scrollLeft > 4);
+  wrap.classList.toggle('show-fade-r', tabs.scrollLeft + tabs.clientWidth < tabs.scrollWidth - 4);
+}
+
+window.addEventListener('load', function() { syncHeaderHeight(); syncTabFades(); });
+window.addEventListener('resize', function() { syncHeaderHeight(); syncTabFades(); });
+var tabsEl = document.querySelector('.tabs');
+if (tabsEl) tabsEl.addEventListener('scroll', syncTabFades, { passive: true });
+syncHeaderHeight();
+syncTabFades();
+
+// Trigger a LIVE refresh on the GAS backend (re-fetches Finnhub/Yahoo data
+// and pushes a new data.json to GitHub) rather than just re-reading the
+// cached file. Uses JSONP (script-tag injection) instead of fetch() because
+// Apps Script web apps have inconsistent CORS support for XHR/fetch — the
+// callback param your doGet() already handles avoids that entirely.
+function triggerGASRefresh() {
+  return new Promise(function(resolve, reject) {
+    if (!GAS_URL || GAS_URL === 'YOUR_GAS_URL_HERE') {
+      reject(new Error('GAS_URL not configured — set it near the top of the script.'));
+      return;
+    }
+    var cbName = 'gasRefreshCb_' + Date.now();
+    var script = document.createElement('script');
+
+    // fetchAndStore() walks ~58 tickers with rate-limit delays and can take
+    // several minutes; give it plenty of room before giving up client-side.
+    var timeoutId = setTimeout(function() {
+      cleanup();
+      reject(new Error('Timed out waiting for GAS. It may still finish in the background — try refreshing again shortly.'));
+    }, 6 * 60 * 1000);
+
+    function cleanup() {
+      clearTimeout(timeoutId);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = function(resp) {
+      cleanup();
+      if (resp && resp.ok) resolve(resp);
+      else reject(new Error((resp && resp.error) || 'GAS refresh failed'));
+    };
+
+    script.onerror = function() { cleanup(); reject(new Error('Could not reach the GAS endpoint. Check GAS_URL and that the web app is deployed with "Anyone" access.')); };
+    script.src = GAS_URL + '?action=refresh&callback=' + cbName;
+    document.body.appendChild(script);
+  });
+}
+
+// Called by the Refresh button. Triggers a live GAS fetch (new prices),
+// then reloads data.json once GAS confirms it pushed the update.
+function liveRefresh() {
+  var btn  = document.getElementById('refresh-btn');
+  var icon = document.getElementById('btn-icon');
+  var lu   = document.getElementById('last-updated');
+
+  if (btn)  btn.disabled = true;
+  if (icon) { icon.className = 'btn-spin'; icon.innerHTML = '&#10227;'; }
+  if (lu)   { lu.textContent = 'Fetching live prices... this can take a few minutes'; lu.style.color = ''; }
+
+  triggerGASRefresh()
+    .then(function(resp) {
+      // GAS confirmed it pushed a new data.json — pull it now.
+      // Note: doGet() can return ok:true with a non-null error field if one
+      // data source (e.g. Yahoo/Finnhub) partially failed but others succeeded.
+      if (resp && resp.error) {
+        if (lu) lu.textContent = 'Refreshed with a warning: ' + resp.error;
+      } else if (lu) {
+        lu.textContent = 'Live fetch complete — loading new data...';
+      }
+      loadData();
+    })
+    .catch(function(e) {
+      if (btn)  btn.disabled = false;
+      if (icon) { icon.className = ''; icon.innerHTML = '&#10227;'; }
+      if (lu)   { lu.textContent = 'Live refresh failed: ' + e.message; lu.style.color = 'var(--red)'; }
+      console.log('Live refresh error:', e.message);
+    });
 }
 
 // Load data from GitHub raw URL
@@ -2609,7 +2718,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var si=document.getElementById('sig-search');
   if(si) si.addEventListener('input', function(){ filterSignals(this.value); });
   var rb=document.getElementById('refresh-btn');
-  if(rb) rb.addEventListener('click', function(){ loadData(); });
+  if(rb) rb.addEventListener('click', function(){ liveRefresh(); });
 
   // Watchlist filter buttons
   document.querySelectorAll('.wl-filter').forEach(function(btn) {
