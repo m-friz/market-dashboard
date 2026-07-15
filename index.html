@@ -2,8 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Market Dashboard</title>
+
+<!-- PWA / Add to Home Screen support -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1b2a">
+
+<!-- iOS-specific home screen behavior -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Markets">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
 <style>
 :root{--bg:#1a2640;--surf:#223050;--surf2:#2a3a60;--border:#354870;--accent:#3b82f6;--cyan:#06b6d4;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono','Fira Mono',monospace;--sans:'Inter',system-ui,sans-serif}
 /* Light themes */
@@ -52,6 +65,26 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 .card .sub{font-size:11px;color:var(--muted);margin-top:2px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+
+/* ===== Mobile phone view (<=760px only — desktop/browser view untouched) ===== */
+@media(max-width:760px){
+  header{padding:10px 14px;gap:8px}
+  .logo-text{font-size:13px}
+  .logo-mark{width:28px;height:28px;font-size:11px}
+  main{padding:12px 14px}
+  .tabs{padding:0 14px;top:53px}
+  .tab{padding:9px 12px;font-size:12px}
+  body{font-size:13px}
+  table{font-size:11px}
+  .panel{padding:14px 14px}
+  .spy-bar{padding:10px 14px;gap:12px}
+  #settings-panel{min-width:0!important;width:calc(100vw - 32px)!important;left:16px!important;right:16px!important}
+  .heatmap-row{grid-template-columns:80px 40px 40px 1fr!important;gap:8px!important;padding:6px 4px}
+  /* Collapse multi-column stat/summary grids to a single column for readability */
+  [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
+  [style*="grid-template-columns:repeat(3,1fr);gap:14px"]{grid-template-columns:1fr!important}
+  [style*="grid-template-columns:140px 58px 58px 1fr"]{grid-template-columns:80px 40px 40px 1fr!important;gap:8px!important}
+}
 .panel{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
 .panel h3{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .panel h3 .sub{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
@@ -2660,8 +2693,38 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   loadData();
+
+  // Auto-refresh figures every hour. Reuses loadData() so cache-busting,
+  // error handling, and rendering all stay identical to a manual refresh.
+  var AUTO_REFRESH_MS  = 60 * 60 * 1000; // 1 hour
+  var lastAutoRefresh  = Date.now();
+  var autoRefreshTimer = setInterval(function() {
+    if (document.visibilityState === 'visible') {
+      lastAutoRefresh = Date.now();
+      loadData();
+    }
+  }, AUTO_REFRESH_MS);
+
+  // If the tab/app was backgrounded past a refresh cycle, catch up
+  // immediately when it becomes visible again instead of waiting for
+  // the next hourly tick.
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible' && Date.now() - lastAutoRefresh >= AUTO_REFRESH_MS) {
+      lastAutoRefresh = Date.now();
+      loadData();
+    }
+  });
 });
 </script>
 <div id="tip-popup"></div>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').catch(function(err) {
+      console.log('Service worker registration failed:', err);
+    });
+  });
+}
+</script>
 </body>
 </html>
