@@ -85,7 +85,7 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 .card .val{font-size:16px;font-weight:700;font-family:var(--mono)}
 .card .sub{font-size:11px;color:var(--muted);margin-top:2px}
 .idx-group-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
-.idx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .idx-card{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
 .idx-card .idx-name{font-size:13px;font-weight:700;color:var(--text)}
 .idx-card .idx-region{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
@@ -101,7 +101,7 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
   header{padding:10px 14px;padding-top:max(10px, env(safe-area-inset-top));gap:8px}
   .logo-text{font-size:13px}
   .logo-mark{width:28px;height:28px;font-size:11px}
-  main{padding:12px 14px;padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+  main{padding:12px 14px}
   .tabs{padding:0 14px;scroll-snap-type:x proximity}
   .tab{padding:12px 14px;font-size:12px;min-height:44px;display:flex;align-items:center}
   .tabs-fade{width:20px}
@@ -115,11 +115,6 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
   [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
   [style*="grid-template-columns:repeat(3,1fr);gap:14px"]{grid-template-columns:1fr!important}
   [style*="grid-template-columns:140px 58px 58px 1fr"]{grid-template-columns:80px 40px 40px 1fr!important;gap:8px!important}
-
-  /* Bottom tab bar — thumb-reachable navigation, standard for mobile apps */
-  .tabs-wrap{position:fixed;top:auto!important;bottom:0;left:0;right:0;
-    box-shadow:0 -2px 16px rgba(0,0,0,.3);border-top:1px solid var(--border);
-    padding-bottom:env(safe-area-inset-bottom,0px)}
 
   /* Card view for data tables — thead hidden, each row becomes a card with
      column labels generated from data-label attributes on each cell. */
@@ -150,17 +145,17 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 .tt-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px}
 .tt-row{font-size:11px;font-family:var(--mono);color:var(--muted);line-height:1.7}
 .tt-p{color:var(--cyan);font-weight:700}.tt-g{color:var(--green);font-weight:700}.tt-r{color:var(--red);font-weight:700}.tt-a{color:var(--amber);font-weight:700}
-.sig{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:800;font-family:var(--mono);letter-spacing:.5px;white-space:nowrap}
+.sig{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.3px;white-space:nowrap}
 .sig-s{background:rgba(16,185,129,.18);color:var(--green);border:1px solid rgba(16,185,129,.3)}
 .sig-n{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
 .sig-w{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
-.rsi-badge{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px}
+.rsi-badge{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
 .rsi-ob{background:rgba(239,68,68,.15);color:var(--red)}
 .rsi-os{background:rgba(16,185,129,.15);color:var(--green)}
 .rsi-mid{background:rgba(100,116,139,.15);color:var(--muted)}
-.ma-above{background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
-.ma-below{background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
-.earn-warn{background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap}
+.ma-above{display:inline-block;background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap}
+.ma-below{display:inline-block;background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap}
+.earn-warn{display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap}
 .score-wrap{display:flex;align-items:center;gap:6px}
 .score-bar{width:48px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
 .score-fill{height:100%;border-radius:2px}
@@ -214,10 +209,10 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .spark-up{stroke:#10b981}.spark-down{stroke:#ef4444}
 
 /* Buy zone badge */
-.bz-entry { background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.4);font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
-.bz-wait   { background:rgba(239,68,68,.15); color:var(--red);  border:1px solid rgba(239,68,68,.4); font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
-.bz-watch  { background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.4);font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
-.bz-coil   { background:rgba(139,92,246,.12); color:#a78bfa;     border:1px solid rgba(139,92,246,.4); font-family:var(--mono);font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;white-space:nowrap;cursor:help }
+.bz-entry { display:inline-block;background:rgba(16,185,129,.15);color:var(--green);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help }
+.bz-wait   { display:inline-block;background:rgba(239,68,68,.15); color:var(--red);  font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help }
+.bz-watch  { display:inline-block;background:rgba(245,158,11,.12);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help }
+.bz-coil   { display:inline-block;background:rgba(139,92,246,.12); color:#a78bfa;     font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help }
 /* vs avg20 */
 .vs-avg-pos{ color:var(--red);  font-family:var(--mono);font-size:11px;font-weight:700 }
 .vs-avg-neg{ color:var(--green);font-family:var(--mono);font-size:11px;font-weight:700 }
@@ -1627,7 +1622,7 @@ function renderETFs(etfs) {
               '<span class="tip '+maCls+'" data-tip="'+(e.above_ma50===null?'50MA not available':e.above_ma50?'Above 50MA: uptrend in place':'Below 50MA: downtrend in place')+'">'+maLbl+'</span>'+
               (function(){
                 var bze=buyZone(e);
-                return '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'" style="font-size:9px;padding:2px 6px;margin-left:4px">'+bze.label+'</span>'+
+                return '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'" style="margin-left:4px">'+bze.label+'</span>'+
                   '<div style="width:100%;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px">'+
                     chartHoverWrap(makeChart20(e.chart20||[],80,28), e.chart20||[], e.ticker)+
                     '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
@@ -1686,8 +1681,8 @@ function renderETFTable(etfs) {
 function volTrendBadge(s) {
   var vt = s.vol_trend;
   if (!vt || vt === 'normal') return '';
-  if (vt === 'building') return '<span class="tip" data-tip="Volume building: recent 5-day average is 30%+ higher than prior 2 weeks. Sustained buying pressure — institutional interest likely." style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help;white-space:nowrap">VOL &#9650;</span>';
-  return '<span class="tip" data-tip="Volume fading: recent 5-day average is 30%+ lower than prior 2 weeks. Buying interest declining — momentum may be weakening." style="background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help;white-space:nowrap">VOL &#9660;</span>';
+  if (vt === 'building') return '<span class="tip" data-tip="Volume building: recent 5-day average is 30%+ higher than prior 2 weeks. Sustained buying pressure — institutional interest likely." style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;cursor:help;white-space:nowrap">VOL &#9650;</span>';
+  return '<span class="tip" data-tip="Volume fading: recent 5-day average is 30%+ lower than prior 2 weeks. Buying interest declining — momentum may be weakening." style="background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;cursor:help;white-space:nowrap">VOL &#9660;</span>';
 }
 
 // ── Momentum acceleration badge ────────────────────────────────
@@ -1696,8 +1691,8 @@ function momentumBadge(s) {
   if (w1 === null || w1 === undefined || w2 === null || w2 === undefined) return '';
   var diff = Math.round((w1 - w2) * 10) / 10;
   if (Math.abs(diff) < 1) return '';
-  if (diff > 0) return '<span class="tip" data-tip="Momentum accelerating: +'+w1+'% this week vs '+w2+'% prior week. Trend strengthening — positive signal." style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help;white-space:nowrap">MOM &#9650;</span>';
-  return '<span class="tip" data-tip="Momentum decelerating: '+w1+'% this week vs '+w2+'% prior week. Trend weakening — watch for further decline." style="background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help;white-space:nowrap">MOM &#9660;</span>';
+  if (diff > 0) return '<span class="tip" data-tip="Momentum accelerating: +'+w1+'% this week vs '+w2+'% prior week. Trend strengthening — positive signal." style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;cursor:help;white-space:nowrap">MOM &#9650;</span>';
+  return '<span class="tip" data-tip="Momentum decelerating: '+w1+'% this week vs '+w2+'% prior week. Trend weakening — watch for further decline." style="background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;cursor:help;white-space:nowrap">MOM &#9660;</span>';
 }
 
 // ── Support & Resistance ───────────────────────────────────────
@@ -1738,7 +1733,7 @@ function makeTop3Strip(stocks, currency) {
       '</div>' +
       '<div class="top3-badges">' +
         (sigLbl ? '<span class="sig '+sigCls+'">'+sigLbl+'</span>' : '') +
-        '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="font-size:9px;padding:2px 6px">'+bz.label+'</span>' +
+        '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>' +
         (s.rsi14!==null&&s.rsi14!==undefined ? '<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">RSI '+s.rsi14+'</span>' : '') +
       '</div>' +
     '</div>';
@@ -2052,7 +2047,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycby5F3TZn1jQy_8JkzLHEwfybGsLb-e5nDQ8gcOS71NQ2tfq1pWOg_sl5fOoXmm8wsq44A/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycby5PdLw-3BTaAjOwW6-za7TwEbxR2NRkaZ6H7fPYK7Fbh9PSBGA5Mpi-t8Bc9Vj_Evzqg/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2250,28 +2245,26 @@ function renderSpyBar(spy) {
 // ── Global Indices tab ─────────────────────────────────────────
 var US_INDEX_TICKERS = ['^DJI','^IXIC','^RUT'];
 
-function renderIndicesTab(indices) {
+function renderIndicesTab(indices, spy) {
   var el = document.getElementById('indices-content');
   if (!el) return;
   el.style.display = 'block';
 
   var usEl   = document.getElementById('idx-us');
   var intlEl = document.getElementById('idx-intl');
-  if (!indices || !indices.length) {
-    if (usEl)   usEl.innerHTML   = '<div style="padding:24px;color:var(--muted);font-size:13px">No index data yet. Run a refresh to populate.</div>';
-    if (intlEl) intlEl.innerHTML = '';
-    return;
-  }
 
   function card(idx) {
-    var dpCls = (idx.dp||0)>=0 ? 'vs-avg-neg' : 'vs-avg-pos'; // reuse green/red helper classes
-    dpCls = (idx.dp||0)>=0 ? 'tg' : 'tr';
+    var dpCls = (idx.dp||0)>=0 ? 'tg' : 'tr';
+    var chart = (idx.chart20 && idx.chart20.length)
+      ? '<div style="margin-top:2px">'+chartHoverWrap(makeChart20(idx.chart20, 220, 44), idx.chart20, idx.name, idx.currency||'')+'</div>'
+      : '';
     return '<div class="idx-card">' +
       '<div><div class="idx-name">'+esc(idx.name)+'</div><div class="idx-region">'+esc(idx.region||'')+'</div></div>' +
       '<div style="display:flex;align-items:baseline;gap:8px">' +
         '<div class="idx-price">'+fmt(idx.price)+'</div>' +
         '<div class="idx-day '+dpCls+'">'+p(idx.dp)+'</div>' +
       '</div>' +
+      chart +
       '<div class="idx-detail">' +
         '<div>1W<br><span class="'+pcls(idx.pct_1w)+'">'+pn(idx.pct_1w)+'</span></div>' +
         '<div>1M<br><span class="'+pcls(idx.pct_1m)+'">'+pn(idx.pct_1m)+'</span></div>' +
@@ -2280,8 +2273,24 @@ function renderIndicesTab(indices) {
     '</div>';
   }
 
-  var us   = indices.filter(function(i){ return US_INDEX_TICKERS.indexOf(i.ticker) !== -1; });
-  var intl = indices.filter(function(i){ return US_INDEX_TICKERS.indexOf(i.ticker) === -1; });
+  var us   = (indices||[]).filter(function(i){ return US_INDEX_TICKERS.indexOf(i.ticker) !== -1; });
+  var intl = (indices||[]).filter(function(i){ return US_INDEX_TICKERS.indexOf(i.ticker) === -1; });
+
+  // S&P 500 stays visible on US Stocks too, but showing it here as well
+  // keeps this tab a complete "all indices in one place" view.
+  if (spy) {
+    us.unshift({
+      ticker: 'SPY', name: 'S&P 500', region: 'US',
+      price: spy.price, dp: spy.dp, pct_1w: spy.pct_1w, pct_1m: spy.pct_1m, pct_ytd: spy.pct_ytd,
+      chart20: spy.chart20 || []
+    });
+  }
+
+  if (!us.length && !intl.length) {
+    if (usEl)   usEl.innerHTML   = '<div style="padding:24px;color:var(--muted);font-size:13px">No index data yet. Run a refresh to populate.</div>';
+    if (intlEl) intlEl.innerHTML = '';
+    return;
+  }
 
   if (usEl)   usEl.innerHTML   = us.length   ? us.map(card).join('')   : '<div style="color:var(--muted);font-size:12px">No data.</div>';
   if (intlEl) intlEl.innerHTML = intl.length ? intl.map(card).join('') : '<div style="color:var(--muted);font-size:12px">No data.</div>';
@@ -2428,9 +2437,9 @@ function renderActionTable(stocks) {
     var maCls=st.above_ma50===null?'':st.above_ma50?'ma-above':'ma-below';
     var sw=st.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
     var flags='';
-    if(st.alert) flags+='<span title="Moved more than 5% this week" style="background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;margin-right:3px;cursor:help">+5%</span>';
-    if(st.vol_spike) flags+='<span title="Volume spike: traded 50%+ above 20-day average this week — confirms price move is significant" style="background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;margin-right:3px;cursor:help">VOL</span>';
-    if(st.earnings_days!==null&&st.earnings_days!==undefined) flags+='<span title="Earnings report in '+st.earnings_days+' days — price can move sharply" class="earn-warn" style="font-size:9px">EARN '+st.earnings_days+'d</span>';
+    if(st.alert) flags+='<span title="Moved more than 5% this week" style="display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">+5%</span>';
+    if(st.vol_spike) flags+='<span title="Volume spike: traded 50%+ above 20-day average this week — confirms price move is significant" style="display:inline-block;background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">VOL</span>';
+    if(st.earnings_days!==null&&st.earnings_days!==undefined) flags+='<span title="Earnings report in '+st.earnings_days+' days — price can move sharply" class="earn-warn">EARN '+st.earnings_days+'d</span>';
     if(!flags) flags='<span style="color:var(--muted);font-size:11px">-</span>';
     var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'<span>-</span>';
     // Rich contextual tooltip
@@ -2833,7 +2842,7 @@ function renderAll(data) {
 
   var fns = [
     ['renderSpyBar',     function(){ renderSpyBar(data.spy); }],
-    ['renderIndicesTab', function(){ renderIndicesTab(data.indices); }],
+    ['renderIndicesTab', function(){ renderIndicesTab(data.indices, data.spy); }],
     ['renderSummary',    function(){ renderSummary(data.stocks, data.spy); }],
     ['renderWatchlist',  function(){ renderWatchlist(data.stocks); }],
     ['renderHeatmap',    function(){ renderHeatmap(data.sector_heatmap); }],
