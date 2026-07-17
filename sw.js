@@ -4,7 +4,7 @@
 // Cross-origin requests (e.g. data.json from raw.githubusercontent.com)
 // are NOT intercepted — those always hit the network fresh, same as before.
 
-var CACHE_NAME = 'market-dashboard-v1';
+var CACHE_NAME = 'market-dashboard-v2';
 var SHELL_FILES = [
   './',
   './index.html',
