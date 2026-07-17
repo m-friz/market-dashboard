@@ -34,7 +34,8 @@ body.midnight{--bg:#09090b;--surf:#18181b;--surf2:#27272a;--border:#3f3f46;--tex
 body.ocean   {--bg:#0c1926;--surf:#0f2a3d;--surf2:#143550;--border:#1e4d70;--text:#e0f2fe;--muted:#5b8ba8;--accent:#06b6d4;--cyan:#22d3ee;--green:#34d399;--red:#f87171;--amber:#fbbf24}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
-header{background:var(--surf);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
+.app-topbar{position:sticky;top:0;z-index:100;background:var(--surf)}
+header{background:var(--surf);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--cyan));border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff}
 .logo-text{font-size:15px;font-weight:700}
@@ -44,7 +45,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:12px
 .btn:hover{opacity:.85}
 .btn-spin{animation:spin 1s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
-.tabs-wrap{position:sticky;top:var(--header-h,57px);z-index:99;background:var(--surf)}
+.tabs-wrap{background:var(--surf);position:relative}
 .tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;background:var(--surf);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:11px 18px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;margin-bottom:-1px;white-space:nowrap;scroll-snap-align:start}
@@ -241,6 +242,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 </style>
 </head>
 <body>
+<div class="app-topbar">
 <header>
   <div class="logo">
     <div class="logo-mark">MF</div>
@@ -306,6 +308,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 </div>
 <div class="tabs-fade tabs-fade-l"></div>
 <div class="tabs-fade tabs-fade-r"></div>
+</div>
 </div>
 <main>
 
@@ -2064,14 +2067,6 @@ function switchTab(name) {
   activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
 }
 
-// Keep the sticky tab bar's top offset in sync with the header's actual
-// rendered height (varies by screen size/font settings) instead of a
-// guessed pixel value that could drift and cause overlap.
-function syncHeaderHeight() {
-  var header = document.querySelector('header');
-  if (header) document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
-}
-
 // Show left/right fade hints on the tab bar when there are more tabs
 // scrolled out of view, so it's obvious the bar is swipeable on mobile.
 function syncTabFades() {
@@ -2082,11 +2077,10 @@ function syncTabFades() {
   wrap.classList.toggle('show-fade-r', tabs.scrollLeft + tabs.clientWidth < tabs.scrollWidth - 4);
 }
 
-window.addEventListener('load', function() { syncHeaderHeight(); syncTabFades(); });
-window.addEventListener('resize', function() { syncHeaderHeight(); syncTabFades(); });
+window.addEventListener('load', syncTabFades);
+window.addEventListener('resize', syncTabFades);
 var tabsEl = document.querySelector('.tabs');
 if (tabsEl) tabsEl.addEventListener('scroll', syncTabFades, { passive: true });
-syncHeaderHeight();
 syncTabFades();
 
 // Trigger a LIVE refresh on the GAS backend (re-fetches Finnhub/Yahoo data
