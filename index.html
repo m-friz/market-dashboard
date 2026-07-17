@@ -468,6 +468,11 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
         <input id="hist-search" type="text" placeholder="Filter by ticker or company..."
           style="width:100%;background:var(--surf2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:8px 10px 8px 32px;font-size:12px;outline:none">
       </div>
+      <div style="display:flex;gap:6px">
+        <button class="hist-market-filter active-filter" data-market="all" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-weight:500">All</button>
+        <button class="hist-market-filter" data-market="US" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-weight:500">&#127482;&#127480; US</button>
+        <button class="hist-market-filter" data-market="GR" style="padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-weight:500">&#127987; Greek</button>
+      </div>
       <div id="hist-count" style="font-size:11px;color:var(--muted)"></div>
     </div>
     <div class="tbl-wrap">
@@ -1087,9 +1092,9 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
         <tbody>
           <tr style="border-bottom:1px solid var(--border)">
             <td style="padding:9px 12px;font-weight:600">Momentum Signal</td>
-            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(16,185,129,.15);color:var(--green);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Strong</span></td>
-            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(245,158,11,.15);color:var(--amber);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Neutral</span></td>
-            <td style="padding:9px 12px;text-align:center"><span style="background:rgba(239,68,68,.15);color:var(--red);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Weak</span></td>
+            <td style="padding:9px 12px;text-align:center"><span style="display:inline-block;background:rgba(16,185,129,.15);color:var(--green);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)">Strong</span></td>
+            <td style="padding:9px 12px;text-align:center"><span style="display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)">Neutral</span></td>
+            <td style="padding:9px 12px;text-align:center"><span style="display:inline-block;background:rgba(239,68,68,.15);color:var(--red);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)">Weak</span></td>
           </tr>
           <tr style="border-bottom:1px solid var(--border)">
             <td style="padding:9px 12px;font-weight:600">RSI-14</td>
@@ -1275,7 +1280,7 @@ function renderDivTable(dividends, stocks) {
       '<td data-label="Payout %" style="font-family:var(--mono)">'+(d.payout!==null ?
         '<span style="color:'+(d.payout<60?'var(--green)':d.payout<80?'var(--amber)':'var(--red)')+'">'+d.payout+'%</span>' : '-')+'</td>' +
       '<td data-label="5Y Growth" style="font-family:var(--mono);color:'+gClr+'">'+(d.grow5y!==null?(d.grow5y>=0?'+':'')+d.grow5y+'%':'-')+'</td>' +
-      '<td data-label="Sustainability"><span class="tip" data-tip="'+esc(sustTip)+'" style="background:'+sustBg+';color:'+sustClr+';font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;cursor:help">'+sustLbl+'</span></td>' +
+      '<td data-label="Sustainability"><span class="tip" data-tip="'+esc(sustTip)+'" style="display:inline-block;background:'+sustBg+';color:'+sustClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;cursor:help;white-space:nowrap">'+sustLbl+'</span></td>' +
       '<td data-label="Signal">'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>' +
       '<td data-label="Price" style="font-family:var(--mono);color:var(--muted)">'+(st.price?'$'+fmt(st.price):'-')+'</td>' +
     '</tr>';
@@ -2047,7 +2052,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycby5PdLw-3BTaAjOwW6-za7TwEbxR2NRkaZ6H7fPYK7Fbh9PSBGA5Mpi-t8Bc9Vj_Evzqg/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbx3CIAt6oLAG5VJAvH-KOCG6zSUeZdvpeRiYeYxN4N8HHUCCYLqzMWlG3Q2WafNw0wSWg/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2568,13 +2573,27 @@ function makeBar(s, rank, pct, maxAbs, cls) {
   '</div>';
 }
 
+var histMerged = [];
+var histMarketFilter = 'all';
+
 function renderHistTable(usStocks, greekStocks) {
   // Merge both markets into one comparable list. Greek entries don't have
   // market_cap on the free tier, so that column just shows '-' for them.
-  var merged = (usStocks||[]).map(function(s){ return Object.assign({}, s, { market:'US', currency:'$' }); })
+  histMerged = (usStocks||[]).map(function(s){ return Object.assign({}, s, { market:'US', currency:'$' }); })
     .concat((greekStocks||[]).map(function(s){ return Object.assign({}, s, { market:'GR', currency:'&#8364;' }); }));
+  renderHistRows();
+}
 
-  var s=sorts.hist, sorted=sortArr(merged,s.f,s.d);
+function filterHistByMarket(market, btn) {
+  histMarketFilter = market;
+  document.querySelectorAll('.hist-market-filter').forEach(function(b){ b.classList.remove('active-filter'); });
+  btn.classList.add('active-filter');
+  renderHistRows();
+}
+
+function renderHistRows() {
+  var pool = histMarketFilter === 'all' ? histMerged : histMerged.filter(function(s){ return s.market === histMarketFilter; });
+  var s=sorts.hist, sorted=sortArr(pool,s.f,s.d);
   document.getElementById('hist-body').innerHTML = sorted.map(function(st,i){
     var sigCls=st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
     var sigLbl=st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':'Neutral';
@@ -2609,7 +2628,7 @@ function renderHistTable(usStocks, greekStocks) {
   }).join('');
 
   var cnt = document.getElementById('hist-count');
-  if (cnt) cnt.textContent = merged.length + ' stocks (' + (usStocks||[]).length + ' US + ' + (greekStocks||[]).length + ' Greek)';
+  if (cnt) cnt.textContent = pool.length + ' stocks shown';
 }
 
 function filterHistorical(query) {
@@ -2884,6 +2903,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if(si) si.addEventListener('input', function(){ filterSignals(this.value); });
   var hsi=document.getElementById('hist-search');
   if(hsi) hsi.addEventListener('input', function(){ filterHistorical(this.value); });
+  document.querySelectorAll('.hist-market-filter').forEach(function(btn) {
+    btn.addEventListener('click', function() { filterHistByMarket(this.dataset.market, this); });
+  });
   var rb=document.getElementById('refresh-btn');
   if(rb) rb.addEventListener('click', function(){ liveRefresh(); });
 
