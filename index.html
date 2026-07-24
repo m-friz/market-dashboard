@@ -1819,6 +1819,7 @@ function chartHoverWrap(svg, data, ticker, currency) {
   return '<span class="chart-hover" data-chart=\'' + JSON.stringify(data||[]) + '\' data-ticker="' + esc(ticker||'') + '" data-currency="' + esc(currency||'$') + '">' + svg + '</span>';
 }
 
+var chart20IdCounter = 0;
 function makeChart20(data, w, h) {
   if (!data || data.length < 5) return makeSpark(data, w, h);
   var min = Math.min.apply(null, data);
@@ -1832,18 +1833,32 @@ function makeChart20(data, w, h) {
   }).join(' ');
   // Colour based on trend direction
   var isUp  = data[data.length-1] >= data[0];
-  // Find avg for reference line
   var avg   = data.reduce(function(a,b){ return a+b; },0)/data.length;
   var avgY  = Math.round(h - 4 - ((avg - min) / range) * (h - 8));
-  // Current price vs first price for fill colour
+  var minY  = h - 4;
+  var maxY  = 4;
   var clr   = isUp ? 'var(--green)' : 'var(--red)';
+  var gid   = 'chartFill' + (chart20IdCounter++);
+  var lastX = Math.round((data.length-1)*step);
+  var lastY = Math.round(h-4-((data[data.length-1]-min)/range)*(h-8));
+  // Area fill under the line, fading to transparent — reads more like a
+  // real chart (TradingView-style) than a bare line, especially at small sizes
+  var areaPts = '0,'+minY+' '+pts+' '+w+','+minY;
   return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block">'+
-    // Average line
-    '<line x1="0" y1="'+avgY+'" x2="'+w+'" y2="'+avgY+'" stroke="var(--muted)" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.5"/>'+
+    '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="'+clr+'" stop-opacity="0.25"/>'+
+      '<stop offset="100%" stop-color="'+clr+'" stop-opacity="0"/>'+
+    '</linearGradient></defs>'+
+    // Gridlines: high / average / low, so the eye has real reference points
+    '<line x1="0" y1="'+maxY+'" x2="'+w+'" y2="'+maxY+'" stroke="var(--border)" stroke-width="0.5" opacity="0.6"/>'+
+    '<line x1="0" y1="'+avgY+'" x2="'+w+'" y2="'+avgY+'" stroke="var(--muted)" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6"/>'+
+    '<line x1="0" y1="'+minY+'" x2="'+w+'" y2="'+minY+'" stroke="var(--border)" stroke-width="0.5" opacity="0.6"/>'+
+    // Area fill
+    '<polygon points="'+areaPts+'" fill="url(#'+gid+')" stroke="none"/>'+
     // Price line
-    '<polyline points="'+pts+'" fill="none" stroke="'+clr+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<polyline points="'+pts+'" fill="none" stroke="'+clr+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
     // Last point dot
-    '<circle cx="'+Math.round((data.length-1)*step)+'" cy="'+Math.round(h-4-((data[data.length-1]-min)/range)*(h-8))+'" r="2.5" fill="'+clr+'"/>'+
+    '<circle cx="'+lastX+'" cy="'+lastY+'" r="2.8" fill="'+clr+'"/>'+
   '</svg>';
 }
 
@@ -2055,7 +2070,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbx3CIAt6oLAG5VJAvH-KOCG6zSUeZdvpeRiYeYxN4N8HHUCCYLqzMWlG3Q2WafNw0wSWg/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwqnZ8yA4qLE3tyuxRD__TDnKcJKtFF20hmw-JE2lBxqaCO38vM7u2tTldi4mGGtCAZjA/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -3113,7 +3128,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Auto-refresh figures every hour. Reuses loadData() so cache-busting,
   // error handling, and rendering all stay identical to a manual refresh.
-  var AUTO_REFRESH_MS  = 60 * 60 * 1000; // 1 hour
+  var AUTO_REFRESH_MS  = 30 * 60 * 1000; // 30 minutes (was 1 hour)
   var lastAutoRefresh  = Date.now();
   var autoRefreshTimer = setInterval(function() {
     if (document.visibilityState === 'visible') {
