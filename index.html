@@ -214,6 +214,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .bz-wait   { display:inline-block;background:rgba(239,68,68,.15); color:var(--red);  font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help }
 .bz-watch  { display:inline-block;background:rgba(245,158,11,.12);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help }
 .bz-coil   { display:inline-block;background:rgba(139,92,246,.12); color:#a78bfa;     font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help }
+.bz-hold   { display:inline-block;background:rgba(100,116,139,.12); color:var(--muted); font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help }
 /* vs avg20 */
 .vs-avg-pos{ color:var(--red);  font-family:var(--mono);font-size:11px;font-weight:700 }
 .vs-avg-neg{ color:var(--green);font-family:var(--mono);font-size:11px;font-weight:700 }
@@ -425,6 +426,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th><span class="tip" data-tip="4-week price range bar. Shows where current price sits within the last 4 weeks. Near left = 4-week low. Near right = 4-week high.">4W Pos</span></th>
             <th><span class="tip" data-tip="20-day price chart with average line. Dashed line = 20-day average. Green/red line = price trend. Hover or tap to enlarge.">20D Chart</span></th>
             <th><span class="tip" data-tip="Entry timing signal based on RSI, 4-week position, and 20-day average. Possible Entry = conditions look reasonable. Extended = wait for pullback. Monitor = no clear signal.">Timing</span></th>
+            <th><span class="tip" data-tip="Exit signal for stocks you already hold: flags when momentum has broken down, RSI is very overbought, price is near its 52-week high, or a big gain is at risk right before earnings. Hold = no exit signal right now.">Exit</span></th>
             <th>Flags</th>
           </tr>
         </thead>
@@ -834,6 +836,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
               <th class="tip" data-tip="How this position has performed vs SPY since you bought it. Positive = outperforming the market.">vs SPY</th>
               <th>Signal</th>
               <th>Timing</th>
+              <th>Exit</th>
               <th>Date</th>
               <th>Notes</th>
               <th></th>
@@ -1413,7 +1416,8 @@ function renderGreekWatchlist(greek) {
                   range4wBar(s)+
                   supportResistance(s)+
                 '</div>'+
-                '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto;font-size:10px;padding:3px 8px">'+bz.label+'</span>'+
+                '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto">'+bz.label+'</span>'+
+                (function(){ var ex=exitSignal(s); return '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'; })()+
               '</div>';
             })()+
           '</div>';
@@ -1630,7 +1634,9 @@ function renderETFs(etfs) {
               '<span class="tip '+maCls+'" data-tip="'+(e.above_ma50===null?'50MA not available':e.above_ma50?'Above 50MA: uptrend in place':'Below 50MA: downtrend in place')+'">'+maLbl+'</span>'+
               (function(){
                 var bze=buyZone(e);
+                var exe=exitSignal(e);
                 return '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'" style="margin-left:4px">'+bze.label+'</span>'+
+                  '<span class="tip '+exe.cls+'" data-tip="'+esc(exe.tip)+'">'+exe.label+'</span>'+
                   '<div style="width:100%;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px">'+
                     chartHoverWrap(makeChart20(e.chart20||[],80,28), e.chart20||[], e.ticker)+
                     '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
@@ -1728,6 +1734,7 @@ function makeTop3Strip(stocks, currency) {
 
   function card(s, dir) {
     var bz     = buyZone(s);
+    var ex     = exitSignal(s);
     var sigCls = s.signal==='STRONG'?'sig-s':s.signal==='WEAK'?'sig-w':'sig-n';
     var sigLbl = s.signal==='STRONG'?'Strong':s.signal==='WEAK'?'Weak':s.signal?'Neutral':'';
     var name   = s.name || s.company || s.ticker;
@@ -1742,6 +1749,7 @@ function makeTop3Strip(stocks, currency) {
       '<div class="top3-badges">' +
         (sigLbl ? '<span class="sig '+sigCls+'">'+sigLbl+'</span>' : '') +
         '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>' +
+        '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>' +
         (s.rsi14!==null&&s.rsi14!==undefined ? '<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">RSI '+s.rsi14+'</span>' : '') +
       '</div>' +
     '</div>';
@@ -1809,6 +1817,37 @@ function buyZone(s) {
   // Neutral / monitor
   return { label:'Monitor', cls:'bz-watch',
     tip:'No clear entry signal right now. '+(rsi?'RSI '+rsi+'. ':'')+(pos4w?'4W position '+pos4w+'%. ':'')+'Check back after next data refresh.' };
+}
+
+// ── Exit / Sell signal (mirrors buyZone's entry logic) ────────
+// Based on the same criteria already documented in the Guide's
+// "When to consider selling" section — this just computes it live per stock.
+function exitSignal(s) {
+  var rsi    = s.rsi14;
+  var above  = s.above_ma50;
+  var pos52  = s.pos_52w;
+  var sig    = s.signal;
+  var ytd    = s.pct_ytd;
+  var earnD  = s.earnings_days;
+
+  if (sig === 'WEAK' && above === false) {
+    return { label:'Exit Signal', cls:'bz-wait',
+      tip:'Momentum has turned Weak vs peers AND price is below its 50-day average. Both the short and medium-term trend have broken down.' };
+  }
+  if (rsi !== null && rsi > 75) {
+    return { label:'Take Profit', cls:'bz-wait',
+      tip:'RSI '+rsi+' is very overbought (>75). Historically a strong candidate for a pullback — consider trimming some of the position.' };
+  }
+  if (pos52 !== null && pos52 >= 95) {
+    return { label:'Near 52W High', cls:'bz-watch',
+      tip:'Price is at '+pos52+'% of its 52-week range — at or near the yearly high. Upside from here is more limited; consider taking partial profits.' };
+  }
+  if (earnD !== null && earnD !== undefined && earnD <= 7 && ytd !== null && ytd > 30) {
+    return { label:'Trim Risk', cls:'bz-watch',
+      tip:'Earnings in '+earnD+' days with a large YTD gain (+'+ytd+'%) already banked. Consider reducing size before the report if you want to protect gains.' };
+  }
+  return { label:'Hold', cls:'bz-hold',
+    tip:'No exit signal right now — trend and valuation look reasonable to continue holding.' };
 }
 
 // ── 20-day SVG chart ───────────────────────────────────────────
@@ -2026,6 +2065,7 @@ function renderPortfolio() {
     var sigCls  = st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
     var sigLbl  = st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':st.signal?'Neutral':'-';
     var bz      = st.price ? buyZone(st) : { label:'-', cls:'', tip:'' };
+    var ex      = st.price ? exitSignal(st) : { label:'-', cls:'', tip:'' };
 
     // vs SPY since entry (simplified: use current vs entry as proxy)
     var vsSPY = '-';
@@ -2046,6 +2086,7 @@ function renderPortfolio() {
       '<td>'+vsSPY+'</td>'+
       '<td>'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>'+
       '<td>'+(bz.label !== '-' ? '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>' : '-')+'</td>'+
+      '<td>'+(ex.label !== '-' ? '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>' : '-')+'</td>'+
       '<td style="font-size:11px;color:var(--muted)">'+(p.date||'-')+'</td>'+
       '<td style="font-size:11px;color:var(--muted);max-width:120px;white-space:normal">'+esc(p.notes||'')+'</td>'+
       '<td><button onclick="pfRemove('+p.id+')" style="background:none;border:1px solid var(--border);color:var(--red);font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer">&#10005;</button></td>'+
@@ -2416,7 +2457,8 @@ function renderWatchlist(stocks) {
                   range4wBar(s)+
                   supportResistance(s)+
                 '</div>'+
-                '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto;font-size:10px;padding:3px 8px">'+bz.label+'</span>'+
+                '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto">'+bz.label+'</span>'+
+                (function(){ var ex=exitSignal(s); return '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'; })()+
               '</div>';
             })()+
           '</div>';
@@ -2505,9 +2547,10 @@ function renderActionTable(stocks) {
       '<td data-label="4W Pos">'+range4wBar(st)+'</td>'+
       '<td data-label="20D Chart">'+chartHoverWrap(makeChart20(st.chart20||[], 80, 32), st.chart20||[], st.ticker)+'</td>'+
       (function(){ var bz=buyZone(st); return '<td data-label="Timing"><span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span></td>'; })()+
+      (function(){ var ex=exitSignal(st); return '<td data-label="Exit"><span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span></td>'; })()+
       '<td data-label="Flags" style="white-space:nowrap">'+flags+'</td>'+
     '</tr>'+
-    (st.news && st.news.length ? '<tr style="background:rgba(245,158,11,.05)"><td colspan="16" style="padding:4px 12px 8px 36px">'+
+    (st.news && st.news.length ? '<tr style="background:rgba(245,158,11,.05)"><td colspan="17" style="padding:4px 12px 8px 36px">'+
       '<div style="font-size:10px;color:var(--amber);font-weight:700;margin-bottom:3px">&#128240; Recent news:</div>'+
       st.news.map(function(n){
         return '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">&#8250; <a href="'+n.url+'" target="_blank" style="color:var(--text);text-decoration:none">'+esc(n.headline)+'</a> <span style="color:var(--muted);font-size:10px">('+n.source+')</span></div>';
