@@ -157,9 +157,6 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 .ma-above{display:inline-block;background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap}
 .ma-below{display:inline-block;background:rgba(239,68,68,.12);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap}
 .earn-warn{display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap}
-.score-wrap{display:flex;align-items:center;gap:6px}
-.score-bar{width:48px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
-.score-fill{height:100%;border-radius:2px}
 .range-wrap{display:flex;align-items:center;gap:5px;min-width:100px}
 .range-track{flex:1;height:6px;background:var(--border);border-radius:3px;position:relative}
 .range-grad{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
@@ -392,7 +389,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <span class="tip" data-tip="Where current price sits between yearly low and high. 100% = at 52-week high. 0% = at 52-week low.">52W Pos</span> - position in 52-week range &nbsp;&middot;&nbsp;
           <span class="tip" data-tip="How much this stock gained or lost vs S&P 500 this week. Positive = beat the market.">vs SPY</span> - vs S&amp;P 500 &nbsp;&middot;&nbsp;
           * moved &gt;5% this week &nbsp;&middot;&nbsp;
-          <span class="tip" data-tip="Volume spike: this week trading volume was 50%+ above the 20-day average. High volume confirms a move is significant.">vol spike</span> &nbsp;&middot;&nbsp;
+          <span class="tip" data-tip="One-time volume burst: this week trading volume was 50%+ above the 20-day average. High volume confirms a move is significant. Not the same as the sustained VOL trend badge on watchlist cards.">BURST</span> &nbsp;&middot;&nbsp;
           ! earnings within 14 days
         </div>
         <div>
@@ -426,8 +423,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th>#</th>
             <th class="sort" data-f="company" data-tbl="action">Company</th>
             <th class="sort" data-f="ticker" data-tbl="action">Ticker</th>
-            <th class="sort" data-f="score" data-tbl="action">Score</th>
-            <th><span class="tip" data-tip="Letter-grade breakdown (A+ to F), ranked against the other tracked stocks: M=Momentum (1W rank), T=Trend (1M rank), V=Value (cheaper vs its own 52-week range = higher grade). Price-based proxy, not a fundamentals-based valuation.">Grades</span></th>
+            <th><span class="tip" data-tip="Letter-grade breakdown (A+ to F), ranked against the other tracked stocks: M=Momentum (1W rank), T=Trend (1M rank), V=Value (cheaper vs its own 52-week range = higher grade). Price-based proxy, not a fundamentals-based valuation. This replaces the old plain 0-100 Score number — same underlying ranking, shown in a more readable form.">Grades</span></th>
             <th class="sort" data-f="signal" data-tbl="action">Momentum</th>
             <th class="sort sd" data-f="pct_1w" data-tbl="action"><span class="tip" data-tip="One-week % price change (last 5 trading days).">1W</span></th>
             <th class="sort" data-f="pct_1m" data-tbl="action"><span class="tip" data-tip="One-month % price change (last ~22 trading days).">1M</span></th>
@@ -506,11 +502,6 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th class="sort" data-f="pct_1m" data-tbl="hist">&#916; 1M</th>
             <th class="sort" data-f="pct_3m" data-tbl="hist">&#916; 3M</th>
             <th class="sort sd" data-f="pct_ytd" data-tbl="hist">&#916; YTD</th>
-            <th class="sort" data-f="signal" data-tbl="hist">Signal</th>
-            <th class="sort" data-f="rsi14" data-tbl="hist"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
-            <th class="sort" data-f="above_ma50" data-tbl="hist"><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
-            <th class="sort" data-f="pos_52w" data-tbl="hist"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
-            <th><span class="tip" data-tip="Letter-grade breakdown (A+ to F), ranked against the other tracked stocks: M=Momentum (1W rank), T=Trend (1M rank), V=Value (cheaper vs its own 52-week range = higher grade). Price-based proxy, not a fundamentals-based valuation.">Grades</span></th>
             <th class="sort" data-f="market_cap" data-tbl="hist"><span class="tip" data-tip="Market Capitalisation: total market value of the company. T = trillion, B = billion. Not available for Greek stocks on free tier.">Mkt Cap</span></th>
           </tr>
         </thead>
@@ -849,7 +840,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
               <th class="sort" data-f="val" data-tbl="pf">Value</th>
               <th class="sort tip" data-f="pnlAbs" data-tbl="pf" data-tip="Profit or Loss in dollars: (Current Price - Entry Price) x Shares">P&amp;L $</th>
               <th class="sort tip" data-f="pnlPct" data-tbl="pf" data-tip="Percentage return since entry: (Current Price - Entry Price) / Entry Price">P&amp;L %</th>
-              <th class="tip" data-tip="How this position has performed vs SPY since you bought it. Positive = outperforming the market.">vs SPY</th>
+              <th class="tip" data-tip="How this position has performed vs SPY since your actual entry date. Positive = outperforming the market over that period. Limited to the last 1 year of SPY history.">vs SPY</th>
               <th class="sort" data-f="signal" data-tbl="pf">Signal</th>
               <th>Timing</th>
               <th>Exit</th>
@@ -2061,6 +2052,20 @@ function pfRemove(id) {
 
 var pfSortField = null, pfSortDir = 'asc';
 
+// Finds the closest recorded SPY closing price on or before a given date,
+// using the ~1-year daily history now included in data.spy.history. This
+// is what makes a genuine vs-SPY-since-entry calculation possible instead
+// of the placeholder that used to just re-show P&L% under a different label.
+function findSPYPriceOnDate(history, dateStr) {
+  if (!history || !history.length || !dateStr) return null;
+  var targetSec = Math.floor(new Date(dateStr).getTime() / 1000);
+  var best = history[0];
+  for (var i = 0; i < history.length; i++) {
+    if (history[i].t <= targetSec) best = history[i]; else break;
+  }
+  return best.c;
+}
+
 function renderPortfolio() {
   var positions = pfLoad();
   var wrap   = document.getElementById('pf-table-wrap');
@@ -2123,11 +2128,22 @@ function renderPortfolio() {
     var bz      = st.price ? buyZone(st) : { label:'-', cls:'', tip:'' };
     var ex      = st.price ? exitSignal(st) : { label:'-', cls:'', tip:'' };
 
-    // vs SPY since entry (simplified: use current vs entry as proxy)
-    var vsSPY = '-';
-    if (pnlPct !== null && D && D.spy && D.spy.pct_ytd !== null) {
-      // Rough estimate only — would need SPY price at entry for exact calc
-      vsSPY = (pnlPct >= 0 ? '+' : '') + pnlPct + '%';
+    // vs SPY since entry — a genuine calculation now: looks up SPY's actual
+    // price on the position's entry date (from data.spy.history) and
+    // compares SPY's % change since then to this position's own % change.
+    var vsSPY = '-', vsSPYTip = 'SPY history not available yet — refresh once after deploying the updated Code.gs.';
+    if (pnlPct !== null && D && D.spy && D.spy.history && D.spy.history.length && p.date) {
+      var spyEntryPrice = findSPYPriceOnDate(D.spy.history, p.date);
+      if (spyEntryPrice) {
+        var spyPctSinceEntry = Math.round(((D.spy.price - spyEntryPrice) / spyEntryPrice) * 10000) / 100;
+        var relVsSPY = Math.round((pnlPct - spyPctSinceEntry) * 100) / 100;
+        vsSPY = (relVsSPY >= 0 ? '+' : '') + relVsSPY + '%';
+        vsSPYTip = 'This position: '+(pnlPct>=0?'+':'')+pnlPct+'% since '+p.date+' vs SPY: '+(spyPctSinceEntry>=0?'+':'')+spyPctSinceEntry+'% over the same period'+(relVsSPY>=0?' — outperforming the market.':' — underperforming the market.');
+      } else {
+        vsSPYTip = 'Entry date is older than the 1 year of SPY history available — no comparison possible.';
+      }
+    } else if (!p.date) {
+      vsSPYTip = 'No entry date recorded for this position.';
     }
 
     return '<tr>'+
@@ -2139,7 +2155,7 @@ function renderPortfolio() {
       '<td style="font-family:var(--mono)">'+(val !== null ? '$'+fmt(val) : '-')+'</td>'+
       '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlAbs !== null ? (pnlAbs>=0?'+':'')+'$'+fmt(Math.abs(pnlAbs)) : '-')+'</td>'+
       '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlPct !== null ? (pnlPct>=0?'+':'')+pnlPct+'%' : '-')+'</td>'+
-      '<td>'+vsSPY+'</td>'+
+      '<td>'+(vsSPY!=='-' ? '<span class="tip" data-tip="'+esc(vsSPYTip)+'" style="cursor:help">'+vsSPY+'</span>' : '<span class="tip" data-tip="'+esc(vsSPYTip)+'" style="cursor:help;color:var(--muted)">-</span>')+'</td>'+
       '<td>'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>'+
       '<td>'+(bz.label !== '-' ? '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>' : '-')+'</td>'+
       '<td>'+(ex.label !== '-' ? '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>' : '-')+'</td>'+
@@ -2167,7 +2183,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxgUu3jtGnfaPiQdJLspTQJv6lYmFrcLbN2IP4vBbUIM7ljwWQnzMH25XFc-fIw36FP/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwCUTC3F4yIVwJcci89dGAVZsPldwsI3Q-SKpkrYOeo0mUo1JU1cGA6g_CaM9LDw5EH-Q/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2547,10 +2563,10 @@ function renderActionTable(stocks) {
     var rsiCls=st.rsi14===null?'':st.rsi14<30?'rsi-os':st.rsi14>70?'rsi-ob':'rsi-mid';
     var maLbl=st.above_ma50===null?'-':st.above_ma50?'&#9650; 50MA':'&#9660; 50MA';
     var maCls=st.above_ma50===null?'':st.above_ma50?'ma-above':'ma-below';
-    var sw=st.score||0, sfClr=sw>=72?'var(--green)':sw>=45?'var(--amber)':'var(--red)';
+    var sw=st.score||0;
     var flags='';
     if(st.alert) flags+='<span title="Moved more than 5% this week" style="display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">+5%</span>';
-    if(st.vol_spike) flags+='<span title="Volume spike: traded 50%+ above 20-day average this week — confirms price move is significant" style="display:inline-block;background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">VOL</span>';
+    if(st.vol_spike) flags+='<span title="Volume burst: traded 50%+ above 20-day average this week — a one-time spike, confirms this specific move is significant. Different from the VOL trend badge, which tracks a sustained multi-week direction." style="display:inline-block;background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">BURST</span>';
     if(st.earnings_days!==null&&st.earnings_days!==undefined) flags+='<span title="Earnings report in '+st.earnings_days+' days — price can move sharply" class="earn-warn">EARN '+st.earnings_days+'d</span>';
     if(!flags) flags='<span style="color:var(--muted);font-size:11px">-</span>';
     var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'<span>-</span>';
@@ -2591,7 +2607,6 @@ function renderActionTable(stocks) {
       '<td data-label="#">'+(i+1)+'</td>'+
       '<td data-label="Company">'+esc(st.company)+'</td>'+
       '<td data-label="Ticker">'+esc(st.ticker)+'</td>'+
-      '<td data-label="Score"><div class="score-wrap" style="justify-content:flex-end"><span class="tm">'+sw+'</span><div class="score-bar"><div class="score-fill" style="width:'+sw+'%;background:'+sfClr+'"></div></div></div></td>'+
       '<td data-label="Grades" style="white-space:nowrap"><div style="display:flex;gap:3px;flex-wrap:wrap">'+
         gradeBadge('M', st.grade_momentum, 'Momentum grade '+st.grade_momentum+': ranked on 1-week price performance vs all tracked stocks.')+
         gradeBadge('T', st.grade_trend, 'Trend grade '+st.grade_trend+': ranked on 1-month price performance vs all tracked stocks.')+
@@ -2611,7 +2626,7 @@ function renderActionTable(stocks) {
       (function(){ var ex=exitSignal(st); return '<td data-label="Exit"><span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span></td>'; })()+
       '<td data-label="Flags" style="white-space:nowrap">'+flags+'</td>'+
     '</tr>'+
-    (st.news && st.news.length ? '<tr style="background:rgba(245,158,11,.05)"><td colspan="18" style="padding:4px 12px 8px 36px">'+
+    (st.news && st.news.length ? '<tr style="background:rgba(245,158,11,.05)"><td colspan="17" style="padding:4px 12px 8px 36px">'+
       '<div style="font-size:10px;color:var(--amber);font-weight:700;margin-bottom:3px">&#128240; Recent news:</div>'+
       st.news.map(function(n){
         return '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">&#8250; <a href="'+n.url+'" target="_blank" style="color:var(--text);text-decoration:none">'+esc(n.headline)+'</a> <span style="color:var(--muted);font-size:10px">('+n.source+')</span></div>';
@@ -2667,7 +2682,7 @@ function makeBar(s, rank, pct, maxAbs, cls) {
   var sparkSvg = makeSpark(s.spark || [], 60, 20);
   var tooltip='<div class="bar-tooltip">'+
     '<div class="tt-name" style="display:flex;align-items:center;justify-content:space-between">'+
-      '<span>'+esc(s.company)+(s.alert?' *':'')+(s.vol_spike?' V':'')+'</span>'+
+      '<span>'+esc(s.company)+(s.alert?' *':'')+(s.vol_spike?' BURST':'')+'</span>'+
       sparkSvg+
     '</div>'+
     '<div class="tt-row">Price: <span class="tt-p">$'+fmt(s.price)+'</span> | Score: <span class="tt-a">'+s.score+'/100</span> | <span class="sig '+sigC+'">'+sigL+'</span></div>'+
@@ -2708,20 +2723,12 @@ function renderHistRows() {
   var pool = histMarketFilter === 'all' ? histMerged : histMerged.filter(function(s){ return s.market === histMarketFilter; });
   var s=sorts.hist, sorted=sortArr(pool,s.f,s.d);
   document.getElementById('hist-body').innerHTML = sorted.map(function(st,i){
-    var sigCls=st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
-    var sigLbl=st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':'Neutral';
-    var rsiCls=st.rsi14===null?'':st.rsi14<30?'rsi-os':st.rsi14>70?'rsi-ob':'rsi-mid';
-    var maLbl=st.above_ma50===null?'-':st.above_ma50?'&#9650; 50MA':'&#9660; 50MA';
-    var maCls=st.above_ma50===null?'':st.above_ma50?'ma-above':'ma-below';
-    var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'-';
     var mktLbl = st.market==='GR' ? '&#127987; Greek' : '&#127482;&#127480; US';
     var htip = st.company+' ('+st.ticker+')'+
       ' | Market: '+(st.market==='GR'?'Greek':'US')+
       ' | Price: '+st.currency+fmt(st.price)+
-      ' | RSI: '+(st.rsi14!==null?st.rsi14+(st.rsi14<30?' oversold':st.rsi14>70?' overbought':' neutral'):'N/A')+
-      ' | 50MA: '+(st.above_ma50!==null?(st.above_ma50?'Above (uptrend)':'Below (downtrend)'):'N/A')+
-      ' | 52W: '+(st.pos_52w!==null?st.pos_52w+'%':'N/A')+
-      ' | 1W: '+pn(st.pct_1w)+' | 1M: '+pn(st.pct_1m)+' | YTD: '+pn(st.pct_ytd);
+      ' | 1W: '+pn(st.pct_1w)+' | 1M: '+pn(st.pct_1m)+' | 3M: '+pn(st.pct_3m)+' | YTD: '+pn(st.pct_ytd)+
+      ' | Full technicals (RSI, 50MA, Grades, etc.) are on the Signals tab.';
     return '<tr title="'+esc(htip)+'">'+
       '<td data-label="#">'+(i+1)+'</td>'+
       '<td data-label="Company">'+esc(st.company)+'</td>'+
@@ -2732,15 +2739,6 @@ function renderHistRows() {
       '<td data-label="&#916; 1M" class="'+pcls(st.pct_1m)+'">'+pn(st.pct_1m)+'</td>'+
       '<td data-label="&#916; 3M" class="'+pcls(st.pct_3m)+'">'+pn(st.pct_3m)+'</td>'+
       '<td data-label="&#916; YTD" class="'+pcls(st.pct_ytd)+'">'+pn(st.pct_ytd)+'</td>'+
-      '<td data-label="Signal"><span class="sig '+sigCls+'">'+sigLbl+'</span></td>'+
-      '<td data-label="RSI-14">'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
-      '<td data-label="50MA"><span class="'+maCls+'">'+maLbl+'</span></td>'+
-      '<td data-label="52W Pos">'+range52+'</td>'+
-      '<td data-label="Grades" style="white-space:nowrap"><div style="display:flex;gap:3px;flex-wrap:wrap">'+
-        gradeBadge('M', st.grade_momentum, 'Momentum grade '+st.grade_momentum+': ranked on 1-week price performance vs all tracked stocks.')+
-        gradeBadge('T', st.grade_trend, 'Trend grade '+st.grade_trend+': ranked on 1-month price performance vs all tracked stocks.')+
-        gradeBadge('V', st.grade_value, 'Value grade '+st.grade_value+': ranked on distance below its 52-week high vs all tracked stocks — higher grade means cheaper relative to its own range, not a fundamentals-based valuation.')+
-      '</div></td>'+
       '<td data-label="Mkt Cap" class="tm">'+esc(st.market_cap||'N/A')+'</td>'+
     '</tr>';
   }).join('');
