@@ -228,6 +228,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .etf-filter:hover,.wl-filter:hover,.gk-filter:hover{color:var(--text);border-color:var(--accent)}
 .etf-filter[data-filter="entry"],.wl-filter[data-filter="entry"],.gk-filter[data-filter="entry"]{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--green)}
 .etf-filter[data-filter="extended"],.wl-filter[data-filter="extended"],.gk-filter[data-filter="extended"]{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)}
+.etf-filter[data-filter="exit"],.wl-filter[data-filter="exit"],.gk-filter[data-filter="exit"]{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--red)}
 .etf-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
 .wl-filter[data-filter="oversold"],.gk-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
 
@@ -336,6 +337,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <button class="wl-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend.">All</button>
   <button class="wl-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window.">&#10003; Possible Entry</button>
   <button class="wl-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+  <button class="wl-filter tip" data-filter="exit" data-tip="Possible Exit: stocks with an active exit signal — momentum broken down, very overbought, near 52-week high, or a big gain at risk right before earnings.">&#9660; Possible Exit</button>
   <button class="wl-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering.">RSI &lt;35</button>
   <button class="wl-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#9650; Above 50MA</button>
   <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#9660; Below 50MA</button>
@@ -669,6 +671,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <button class="gk-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend.">All</button>
   <button class="gk-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window.">&#10003; Possible Entry</button>
   <button class="gk-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+  <button class="gk-filter tip" data-filter="exit" data-tip="Possible Exit: stocks with an active exit signal — momentum broken down, very overbought, near 52-week high, or a big gain at risk right before earnings.">&#9660; Possible Exit</button>
   <button class="gk-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering.">RSI &lt;35</button>
   <button class="gk-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#9650; Above 50MA</button>
   <button class="gk-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#9660; Below 50MA</button>
@@ -741,6 +744,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
       <button class="etf-filter active-filter tip" data-filter="all" data-tip="Show all ETFs regardless of signal, RSI or trend.">All</button>
       <button class="etf-filter tip" data-filter="entry" data-tip="Possible Entry: ETF where RSI is not overbought, price is in lower half of 4-week range, and uptrend is intact.">&#10003; Possible Entry</button>
       <button class="etf-filter tip" data-filter="extended" data-tip="Extended: ETF that has run up too fast. RSI over 72, near 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+      <button class="etf-filter tip" data-filter="exit" data-tip="Possible Exit: ETF with an active exit signal — momentum broken down, very overbought, or near its 52-week high.">&#9660; Possible Exit</button>
       <button class="etf-filter tip" data-filter="oversold" data-tip="RSI under 35: ETF has been sold too aggressively. Price may bounce. Watch for confirmation.">RSI &lt;35</button>
       <button class="etf-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend structurally intact. Best ETFs to buy on dips.">&#9650; Above 50MA</button>
       <button class="etf-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying.">&#9660; Below 50MA</button>
@@ -1004,7 +1008,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
       </div>
       <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
         <div style="display:flex;flex-direction:column;gap:10px">
-          <div><strong style="color:var(--text)">Exit signal</strong> — every place you see a Timing (entry) badge, there's now an Exit badge next to it: <span class="tip bz-wait" data-tip="Example only">Exit Signal</span>/<span class="tip bz-wait" data-tip="Example only">Take Profit</span> mean the case for holding has weakened; <span class="tip bz-watch" data-tip="Example only">Near 52W High</span>/<span class="tip bz-watch" data-tip="Example only">Trim Risk</span> are softer caution flags; <span class="tip bz-hold" data-tip="Example only">Hold</span> means nothing's changed. It uses the same logic as the "When to sell" section below — just computed live per stock instead of sitting as static text. It shows up on watchlist cards, the Signals table, and — most usefully — your Portfolio tab, since that's your actual holdings.</div>
+          <div><strong style="color:var(--text)">Exit signal</strong> — every place you see a Timing (entry) badge, there's now an Exit badge next to it: <span class="tip bz-wait" data-tip="Example only">Exit Signal</span>/<span class="tip bz-wait" data-tip="Example only">Take Profit</span> mean the case for holding has weakened; <span class="tip bz-watch" data-tip="Example only">Near 52W High</span>/<span class="tip bz-watch" data-tip="Example only">Trim Risk</span> are softer caution flags; <span class="tip bz-hold" data-tip="Example only">Hold</span> means nothing's changed. It uses the same logic as the "When to sell" section below — just computed live per stock instead of sitting as static text. It shows up on watchlist cards, the Signals table, and — most usefully — your Portfolio tab, since that's your actual holdings. Use the <strong style="color:var(--text)">&#9660; Possible Exit</strong> filter button (US Stocks, Greek, and ETFs tabs) to see only stocks with an active exit signal, the same way the existing Possible Entry filter works.</div>
           <div><strong style="color:var(--text)">Grades column</strong> (Signals and Historical tabs) — three letter grades (A+ to F) per stock: Momentum (1-week rank), Trend (1-month rank), and Value (how far below its 52-week high, relative to peers). This is a price-based proxy inspired by Seeking Alpha's Factor Grades — <strong style="color:var(--amber)">it is not a fundamentals-based valuation</strong>. A high Value grade means "cheap relative to its own 52-week range right now," not "objectively undervalued" — this dashboard has no access to P/E, cash flow, or other fundamental data.</div>
           <div><strong style="color:var(--text)">Every table is sortable</strong> — click any column header (Signals, Historical, Dividends, ETFs, Portfolio) to sort by it; click again to reverse direction. Columns that are purely visual (the 20-day chart, the trend sparkline) aren't sortable since there's no single number to rank them by.</div>
         </div>
@@ -1958,6 +1962,7 @@ function applyETFFilter(etfs) {
     var bz = buyZone(e);
     if (f === 'entry')    return bz.label === 'Possible Entry' || bz.label === 'Oversold Watch';
     if (f === 'extended') return bz.label === 'Extended' || bz.label === 'Near 4W High';
+    if (f === 'exit')     return exitSignal(e).label !== 'Hold';
     if (f === 'oversold') return e.rsi14 !== null && e.rsi14 < 35;
     if (f === 'above50')  return e.above_ma50 === true;
     if (f === 'below50')  return e.above_ma50 === false;
@@ -1980,6 +1985,7 @@ function matchesFilter(s, filter) {
   if (filter === 'all')      return true;
   if (filter === 'entry')    return bz.label === 'Possible Entry' || bz.label === 'Oversold Watch';
   if (filter === 'extended') return bz.label === 'Extended' || bz.label === 'Near 4W High';
+  if (filter === 'exit')     return exitSignal(s).label !== 'Hold';
   if (filter === 'oversold') return s.rsi14 !== null && s.rsi14 < 35;
   if (filter === 'above50')  return s.above_ma50 === true;
   if (filter === 'below50')  return s.above_ma50 === false;
@@ -3086,10 +3092,12 @@ document.addEventListener('DOMContentLoaded', function() {
   var tipEl = document.getElementById('tip-popup');
 
   function positionTip(mouseX, mouseY) {
-    var tw = 240, mg = 16;
-    var th = tipEl.offsetHeight || 60;
+    var mg = 16;
     var vw = window.innerWidth;
     var vh = window.innerHeight;
+    var tw = Math.min(240, vw - mg * 2); // shrink to fit if the screen itself is narrower than 240px
+    tipEl.style.width = tw + 'px';
+    var th = tipEl.offsetHeight || 60;
     // X: right of cursor unless too close to right edge
     var x = (mouseX + 20 + tw + mg < vw) ? mouseX + 20 : mouseX - tw - 20;
     // Y: above cursor unless too close to top
