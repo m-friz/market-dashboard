@@ -202,7 +202,7 @@ tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;col
 .tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
 #tip-popup{display:none;position:fixed;background:#1e3a5f;color:#e8f0fe;border:1px solid #4a90d9;border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.8;white-space:normal;word-break:break-word;width:240px;max-width:240px;z-index:2147483647;box-shadow:0 6px 32px rgba(0,0,0,.85);pointer-events:none;font-family:sans-serif;font-weight:400}
 .chart-hover{display:inline-block;cursor:zoom-in;line-height:0}
-#chart-popup{display:none;position:fixed;background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.5);pointer-events:none}
+#chart-popup{display:none;position:fixed;width:260px;box-sizing:border-box;background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.5);pointer-events:none}
 #chart-popup .cp-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;font-family:var(--mono);letter-spacing:.3px}
 footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:4px}
 
@@ -393,6 +393,16 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <span class="tip" data-tip="Volume spike: this week trading volume was 50%+ above the 20-day average. High volume confirms a move is significant.">vol spike</span> &nbsp;&middot;&nbsp;
           ! earnings within 14 days
         </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Factor Grades (A+ to F)</div>
+          Three letter grades per stock, ranked against the other tracked stocks — same idea as Seeking Alpha's Factor Grades, but built only from price/technical data (no fundamentals like P/E or cash flow on the free tier):
+          <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">
+            <div><strong style="color:var(--text)">Momentum</strong> — 1-week price performance rank</div>
+            <div><strong style="color:var(--text)">Trend</strong> — 1-month price performance rank</div>
+            <div><strong style="color:var(--text)">Value</strong> — how far below its 52-week high it sits (cheaper relative to its own range = higher grade)</div>
+          </div>
+          <div style="margin-top:6px;color:var(--amber)">These are a price-based proxy, not a fundamentals-based valuation — a high Value grade means "cheap relative to its own 52-week range," not "objectively undervalued."</div>
+        </div>
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
         Momentum signals only. Not financial advice. Always check fundamentals before acting.
@@ -413,17 +423,18 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <tr>
             <th>#</th>
             <th class="sort" data-f="company" data-tbl="action">Company</th>
-            <th>Ticker</th>
+            <th class="sort" data-f="ticker" data-tbl="action">Ticker</th>
             <th class="sort" data-f="score" data-tbl="action">Score</th>
+            <th><span class="tip" data-tip="Letter-grade breakdown (A+ to F), ranked against the other tracked stocks: M=Momentum (1W rank), T=Trend (1M rank), V=Value (cheaper vs its own 52-week range = higher grade). Price-based proxy, not a fundamentals-based valuation.">Grades</span></th>
             <th class="sort" data-f="signal" data-tbl="action">Momentum</th>
             <th class="sort sd" data-f="pct_1w" data-tbl="action"><span class="tip" data-tip="One-week % price change (last 5 trading days).">1W</span></th>
             <th class="sort" data-f="pct_1m" data-tbl="action"><span class="tip" data-tip="One-month % price change (last ~22 trading days).">1M</span></th>
             <th class="sort" data-f="pct_ytd" data-tbl="action"><span class="tip" data-tip="Year-to-Date: % change since January 1st of this year.">YTD</span></th>
             <th class="sort" data-f="rel_1w" data-tbl="action"><span class="tip" data-tip="Performance vs S&P 500 this week. Positive = beat the market. Negative = underperformed.">vs SPY</span></th>
             <th class="sort" data-f="rsi14" data-tbl="action"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
-            <th><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
+            <th class="sort" data-f="above_ma50" data-tbl="action"><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
             <th class="sort" data-f="pos_52w" data-tbl="action"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
-            <th><span class="tip" data-tip="4-week price range bar. Shows where current price sits within the last 4 weeks. Near left = 4-week low. Near right = 4-week high.">4W Pos</span></th>
+            <th class="sort" data-f="pos_4w" data-tbl="action"><span class="tip" data-tip="4-week price range bar. Shows where current price sits within the last 4 weeks. Near left = 4-week low. Near right = 4-week high.">4W Pos</span></th>
             <th><span class="tip" data-tip="20-day price chart with average line. Dashed line = 20-day average. Green/red line = price trend. Hover or tap to enlarge.">20D Chart</span></th>
             <th><span class="tip" data-tip="Entry timing signal based on RSI, 4-week position, and 20-day average. Possible Entry = conditions look reasonable. Extended = wait for pullback. Monitor = no clear signal.">Timing</span></th>
             <th><span class="tip" data-tip="Exit signal for stocks you already hold: flags when momentum has broken down, RSI is very overbought, price is near its 52-week high, or a big gain is at risk right before earnings. Hold = no exit signal right now.">Exit</span></th>
@@ -486,8 +497,8 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <tr>
             <th>#</th>
             <th class="sort" data-f="company" data-tbl="hist">Company</th>
-            <th>Ticker</th>
-            <th>Market</th>
+            <th class="sort" data-f="ticker" data-tbl="hist">Ticker</th>
+            <th class="sort" data-f="market" data-tbl="hist">Market</th>
             <th class="sort" data-f="price" data-tbl="hist">Price</th>
             <th class="sort" data-f="pct_1w" data-tbl="hist">&#916; 1W</th>
             <th class="sort" data-f="pct_1m" data-tbl="hist">&#916; 1M</th>
@@ -497,7 +508,8 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th class="sort" data-f="rsi14" data-tbl="hist"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
             <th class="sort" data-f="above_ma50" data-tbl="hist"><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
             <th class="sort" data-f="pos_52w" data-tbl="hist"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
-            <th><span class="tip" data-tip="Market Capitalisation: total market value of the company. T = trillion, B = billion. Not available for Greek stocks on free tier.">Mkt Cap</span></th>
+            <th><span class="tip" data-tip="Letter-grade breakdown (A+ to F), ranked against the other tracked stocks: M=Momentum (1W rank), T=Trend (1M rank), V=Value (cheaper vs its own 52-week range = higher grade). Price-based proxy, not a fundamentals-based valuation.">Grades</span></th>
+            <th class="sort" data-f="market_cap" data-tbl="hist"><span class="tip" data-tip="Market Capitalisation: total market value of the company. T = trillion, B = billion. Not available for Greek stocks on free tier.">Mkt Cap</span></th>
           </tr>
         </thead>
         <tbody id="hist-body"></tbody>
@@ -578,8 +590,8 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <tr>
             <th>#</th>
             <th class="sort" data-f="company" data-tbl="div">Company</th>
-            <th>Ticker</th>
-            <th>Sector</th>
+            <th class="sort" data-f="ticker" data-tbl="div">Ticker</th>
+            <th class="sort" data-f="sector" data-tbl="div">Sector</th>
             <th class="sort sd" data-f="yield" data-tbl="div">
               <span class="tip" data-tip="Annual dividend yield. Higher = more income per dollar invested. But check payout ratio — very high yields can be unsustainable.">Yield %</span>
             </th>
@@ -592,7 +604,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th class="sort" data-f="grow5y" data-tbl="div">
               <span class="tip" data-tip="5-Year Dividend Growth Rate: average annual % increase in dividend. Positive means the company has been raising its dividend.">5Y Growth</span>
             </th>
-            <th>Sustainability</th>
+            <th class="sort" data-f="sustainable" data-tbl="div">Sustainability</th>
             <th>Signal</th>
             <th>Price</th>
           </tr>
@@ -750,8 +762,8 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <tr>
             <th>#</th>
             <th class="sort" data-f="name" data-tbl="etf">Name</th>
-            <th>Ticker</th>
-            <th>Category</th>
+            <th class="sort" data-f="ticker" data-tbl="etf">Ticker</th>
+            <th class="sort" data-f="category" data-tbl="etf">Category</th>
             <th class="sort" data-f="expense" data-tbl="etf">
               <span class="tip" data-tip="Expense Ratio: annual fee. Lower = better. 0.03% = $3/yr per $10,000.">Expense</span>
             </th>
@@ -762,7 +774,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th class="sort" data-f="rsi14" data-tbl="etf">
               <span class="tip" data-tip="RSI-14: momentum indicator. Under 30 = oversold (possible entry). Over 70 = overbought (caution).">RSI-14</span>
             </th>
-            <th>
+            <th class="sort" data-f="above_ma50" data-tbl="etf">
               <span class="tip" data-tip="50-Day Moving Average. Above = uptrend. Below = downtrend.">50MA</span>
             </th>
             <th class="sort" data-f="pos_52w" data-tbl="etf">
@@ -825,19 +837,19 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
         <table>
           <thead>
             <tr>
-              <th>Ticker</th>
-              <th>Shares</th>
-              <th>Entry $</th>
-              <th>Current $</th>
-              <th>Cost</th>
-              <th>Value</th>
-              <th class="tip" data-tip="Profit or Loss in dollars: (Current Price - Entry Price) x Shares">P&amp;L $</th>
-              <th class="tip" data-tip="Percentage return since entry: (Current Price - Entry Price) / Entry Price">P&amp;L %</th>
+              <th class="sort" data-f="ticker" data-tbl="pf">Ticker</th>
+              <th class="sort" data-f="shares" data-tbl="pf">Shares</th>
+              <th class="sort" data-f="entry" data-tbl="pf">Entry $</th>
+              <th class="sort" data-f="curPrice" data-tbl="pf">Current $</th>
+              <th class="sort" data-f="cost" data-tbl="pf">Cost</th>
+              <th class="sort" data-f="val" data-tbl="pf">Value</th>
+              <th class="sort tip" data-f="pnlAbs" data-tbl="pf" data-tip="Profit or Loss in dollars: (Current Price - Entry Price) x Shares">P&amp;L $</th>
+              <th class="sort tip" data-f="pnlPct" data-tbl="pf" data-tip="Percentage return since entry: (Current Price - Entry Price) / Entry Price">P&amp;L %</th>
               <th class="tip" data-tip="How this position has performed vs SPY since you bought it. Positive = outperforming the market.">vs SPY</th>
-              <th>Signal</th>
+              <th class="sort" data-f="signal" data-tbl="pf">Signal</th>
               <th>Timing</th>
               <th>Exit</th>
-              <th>Date</th>
+              <th class="sort" data-f="date" data-tbl="pf">Date</th>
               <th>Notes</th>
               <th></th>
             </tr>
@@ -979,6 +991,22 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <div><strong style="color:var(--text)">Indices tab</strong> — use this for macro context before entering a position. If Dow, Nasdaq, and international indices are all falling together, that's broad market weakness — even a great individual stock setup carries more risk in that backdrop.</div>
           <div><strong style="color:var(--text)">Hover/tap any small chart</strong> (in cards or tables) to see an enlarged version with the actual high, low, starting, and current prices — not just the shape of the line.</div>
           <div><strong style="color:var(--text)">Refresh button</strong> pulls genuinely new prices from the data source (can take a minute or two); the dashboard also refreshes itself automatically every hour in the background.</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Step 7 -->
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">7</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Exit signals, letter grades, and sorting</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><strong style="color:var(--text)">Exit signal</strong> — every place you see a Timing (entry) badge, there's now an Exit badge next to it: <span class="tip bz-wait" data-tip="Example only">Exit Signal</span>/<span class="tip bz-wait" data-tip="Example only">Take Profit</span> mean the case for holding has weakened; <span class="tip bz-watch" data-tip="Example only">Near 52W High</span>/<span class="tip bz-watch" data-tip="Example only">Trim Risk</span> are softer caution flags; <span class="tip bz-hold" data-tip="Example only">Hold</span> means nothing's changed. It uses the same logic as the "When to sell" section below — just computed live per stock instead of sitting as static text. It shows up on watchlist cards, the Signals table, and — most usefully — your Portfolio tab, since that's your actual holdings.</div>
+          <div><strong style="color:var(--text)">Grades column</strong> (Signals and Historical tabs) — three letter grades (A+ to F) per stock: Momentum (1-week rank), Trend (1-month rank), and Value (how far below its 52-week high, relative to peers). This is a price-based proxy inspired by Seeking Alpha's Factor Grades — <strong style="color:var(--amber)">it is not a fundamentals-based valuation</strong>. A high Value grade means "cheap relative to its own 52-week range right now," not "objectively undervalued" — this dashboard has no access to P/E, cash flow, or other fundamental data.</div>
+          <div><strong style="color:var(--text)">Every table is sortable</strong> — click any column header (Signals, Historical, Dividends, ETFs, Portfolio) to sort by it; click again to reverse direction. Columns that are purely visual (the 20-day chart, the trend sparkline) aren't sortable since there's no single number to rank them by.</div>
         </div>
       </div>
     </div>
@@ -2025,6 +2053,8 @@ function pfRemove(id) {
   renderPortfolio();
 }
 
+var pfSortField = null, pfSortDir = 'asc';
+
 function renderPortfolio() {
   var positions = pfLoad();
   var wrap   = document.getElementById('pf-table-wrap');
@@ -2050,7 +2080,10 @@ function renderPortfolio() {
 
   var totalCost = 0, totalVal = 0, totalPnl = 0, winners = 0;
 
-  var rows = positions.map(function(p) {
+  // Enrich each position with computed fields first, so they can be sorted
+  // on (cost/value/P&L aren't stored on the raw position — they're derived
+  // from current prices, which only exist once market data has loaded).
+  var enriched = positions.map(function(p) {
     var st      = stockMap[p.ticker] || {};
     var curPrice= st.price || null;
     var cost    = p.shares * p.entry;
@@ -2061,6 +2094,23 @@ function renderPortfolio() {
     if (val !== null) { totalCost += cost; totalVal += val; totalPnl += pnlAbs; }
     if (pnlAbs > 0) winners++;
 
+    return {
+      p: p, st: st, ticker: p.ticker, shares: p.shares, entry: p.entry,
+      curPrice: curPrice, cost: cost, val: val, pnlAbs: pnlAbs, pnlPct: pnlPct,
+      signal: st.signal || '', date: p.date || ''
+    };
+  });
+
+  var sorted = pfSortField ? enriched.slice().sort(function(a, b) {
+    var av = a[pfSortField], bv = b[pfSortField];
+    if (av === null || av === undefined) av = pfSortDir === 'desc' ? -Infinity : Infinity;
+    if (bv === null || bv === undefined) bv = pfSortDir === 'desc' ? -Infinity : Infinity;
+    if (typeof av === 'string') return pfSortDir === 'desc' ? bv.localeCompare(av) : av.localeCompare(bv);
+    return pfSortDir === 'desc' ? bv - av : av - bv;
+  }) : enriched;
+
+  var rows = sorted.map(function(row) {
+    var p = row.p, st = row.st, curPrice = row.curPrice, cost = row.cost, val = row.val, pnlAbs = row.pnlAbs, pnlPct = row.pnlPct;
     var pnlClr  = pnlAbs === null ? 'var(--muted)' : pnlAbs >= 0 ? 'var(--green)' : 'var(--red)';
     var sigCls  = st.signal==='STRONG'?'sig-s':st.signal==='WEAK'?'sig-w':'sig-n';
     var sigLbl  = st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':st.signal?'Neutral':'-';
@@ -2111,7 +2161,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwqnZ8yA4qLE3tyuxRD__TDnKcJKtFF20hmw-JE2lBxqaCO38vM7u2tTldi4mGGtCAZjA/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxgUu3jtGnfaPiQdJLspTQJv6lYmFrcLbN2IP4vBbUIM7ljwWQnzMH25XFc-fIw36FP/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2536,6 +2586,11 @@ function renderActionTable(stocks) {
       '<td data-label="Company">'+esc(st.company)+'</td>'+
       '<td data-label="Ticker">'+esc(st.ticker)+'</td>'+
       '<td data-label="Score"><div class="score-wrap" style="justify-content:flex-end"><span class="tm">'+sw+'</span><div class="score-bar"><div class="score-fill" style="width:'+sw+'%;background:'+sfClr+'"></div></div></div></td>'+
+      '<td data-label="Grades" style="white-space:nowrap"><div style="display:flex;gap:3px;flex-wrap:wrap">'+
+        gradeBadge('M', st.grade_momentum, 'Momentum grade '+st.grade_momentum+': ranked on 1-week price performance vs all tracked stocks.')+
+        gradeBadge('T', st.grade_trend, 'Trend grade '+st.grade_trend+': ranked on 1-month price performance vs all tracked stocks.')+
+        gradeBadge('V', st.grade_value, 'Value grade '+st.grade_value+': ranked on distance below its 52-week high vs all tracked stocks — higher grade means cheaper relative to its own range, not a fundamentals-based valuation.')+
+      '</div></td>'+
       '<td data-label="Momentum"><span class="sig '+sigCls+'">'+sigLbl+'</span></td>'+
       '<td data-label="1W" class="'+(st.pct_1w>=0?'tg':'tr')+'">'+p(st.pct_1w)+'</td>'+
       '<td data-label="1M" class="'+pcls(st.pct_1m)+'">'+pn(st.pct_1m)+'</td>'+
@@ -2550,7 +2605,7 @@ function renderActionTable(stocks) {
       (function(){ var ex=exitSignal(st); return '<td data-label="Exit"><span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span></td>'; })()+
       '<td data-label="Flags" style="white-space:nowrap">'+flags+'</td>'+
     '</tr>'+
-    (st.news && st.news.length ? '<tr style="background:rgba(245,158,11,.05)"><td colspan="17" style="padding:4px 12px 8px 36px">'+
+    (st.news && st.news.length ? '<tr style="background:rgba(245,158,11,.05)"><td colspan="18" style="padding:4px 12px 8px 36px">'+
       '<div style="font-size:10px;color:var(--amber);font-weight:700;margin-bottom:3px">&#128240; Recent news:</div>'+
       st.news.map(function(n){
         return '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">&#8250; <a href="'+n.url+'" target="_blank" style="color:var(--text);text-decoration:none">'+esc(n.headline)+'</a> <span style="color:var(--muted);font-size:10px">('+n.source+')</span></div>';
@@ -2675,6 +2730,11 @@ function renderHistRows() {
       '<td data-label="RSI-14">'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
       '<td data-label="50MA"><span class="'+maCls+'">'+maLbl+'</span></td>'+
       '<td data-label="52W Pos">'+range52+'</td>'+
+      '<td data-label="Grades" style="white-space:nowrap"><div style="display:flex;gap:3px;flex-wrap:wrap">'+
+        gradeBadge('M', st.grade_momentum, 'Momentum grade '+st.grade_momentum+': ranked on 1-week price performance vs all tracked stocks.')+
+        gradeBadge('T', st.grade_trend, 'Trend grade '+st.grade_trend+': ranked on 1-month price performance vs all tracked stocks.')+
+        gradeBadge('V', st.grade_value, 'Value grade '+st.grade_value+': ranked on distance below its 52-week high vs all tracked stocks — higher grade means cheaper relative to its own range, not a fundamentals-based valuation.')+
+      '</div></td>'+
       '<td data-label="Mkt Cap" class="tm">'+esc(st.market_cap||'N/A')+'</td>'+
     '</tr>';
   }).join('');
@@ -2722,6 +2782,11 @@ function sortTbl(tbl, el) {
     else{ divSortField=field; divSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
     if(D && D.dividends) renderDivTable(D.dividends, D.stocks);
     document.querySelectorAll('#panel-dividends th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===divSortField) th.classList.add(divSortDir==='desc'?'sd':'sa'); });
+  } else if (tbl === 'pf') {
+    if(pfSortField===field) pfSortDir=pfSortDir==='desc'?'asc':'desc';
+    else{ pfSortField=field; pfSortDir=(field==='ticker'||field==='signal'||field==='date')?'asc':'desc'; }
+    renderPortfolio();
+    document.querySelectorAll('#panel-portfolio th.sort').forEach(function(th){ th.classList.remove('sa','sd'); if(th.dataset.f===pfSortField) th.classList.add(pfSortDir==='desc'?'sd':'sa'); });
   } else {
     if(histSortField===field) histSortDir=histSortDir==='desc'?'asc':'desc';
     else{ histSortField=field; histSortDir=(field==='company'||field==='ticker')?'asc':'desc'; }
@@ -2855,6 +2920,18 @@ function renderAlerts(alerts) {
 }
 
 function fmt(n){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// Renders one letter-grade badge (A+ to F), colour-coded consistently
+// with the rest of the app's green/cyan/amber/red scale.
+function gradeBadge(label, grade, tip) {
+  if (!grade || grade === 'N/A') return '';
+  var bg, clr;
+  if (grade === 'A+' || grade === 'A') { bg = 'rgba(16,185,129,.15)'; clr = 'var(--green)'; }
+  else if (grade === 'B')              { bg = 'rgba(6,182,212,.15)';  clr = 'var(--cyan)'; }
+  else if (grade === 'C')              { bg = 'rgba(245,158,11,.15)'; clr = 'var(--amber)'; }
+  else                                  { bg = 'rgba(239,68,68,.15)'; clr = 'var(--red)'; }
+  return '<span class="tip" data-tip="'+esc(tip)+'" style="display:inline-block;background:'+bg+';color:'+clr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;cursor:help">'+label+' '+grade+'</span>';
+}
 function p(n){ return n!==null&&n!==undefined?(n>=0?'+':'')+Number(n).toFixed(2)+'%':'N/A'; }
 function pn(n){ return n!==null&&n!==undefined?(n>=0?'+':'')+Number(n).toFixed(2)+'%':'-'; }
 function pct2(n){ return (n>=0?'+':'')+Number(n).toFixed(2)+'%'; }
@@ -3049,9 +3126,11 @@ document.addEventListener('DOMContentLoaded', function() {
   var chartPinnedEl = null;
 
   function positionChartPop(mouseX, mouseY) {
-    var pw = 260, mg = 16;
-    var ph = chartPopEl.offsetHeight || 130;
+    var mg = 16;
     var vw = window.innerWidth, vh = window.innerHeight;
+    var pw = Math.min(260, vw - mg * 2); // shrink to fit if the screen itself is narrower than 260px
+    chartPopEl.style.width = pw + 'px';
+    var ph = chartPopEl.offsetHeight || 130;
     var x = (mouseX + 20 + pw + mg < vw) ? mouseX + 20 : mouseX - pw - 20;
     var y = (mouseY - ph - 20 > mg) ? mouseY - ph - 20 : mouseY + 20;
     x = Math.max(mg, Math.min(x, vw - pw - mg));
@@ -3074,13 +3153,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     chartPopEl.innerHTML =
       (ticker ? '<div class="cp-title">'+esc(ticker)+' &middot; 20-day</div>' : '') +
-      '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px">'+
+      '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px;gap:8px">'+
         '<span>High: '+currency+fmt(high)+'</span><span>Low: '+currency+fmt(low)+'</span>'+
       '</div>'+
-      makeChart20(data, 232, 84) +
-      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--mono)">'+
-        '<span style="font-size:10px;color:var(--muted)">20d ago: '+currency+fmt(first)+'</span>'+
-        '<span style="font-size:14px;font-weight:800;color:'+chClr+'">'+currency+fmt(last)+' ('+(pctChange>=0?'+':'')+pctChange+'%)</span>'+
+      makeChart20(data, 224, 80) +
+      '<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--mono);gap:4px 8px">'+
+        '<span style="font-size:10px;color:var(--muted);white-space:nowrap">20d ago: '+currency+fmt(first)+'</span>'+
+        '<span style="font-size:13px;font-weight:800;color:'+chClr+';white-space:nowrap">'+currency+fmt(last)+' ('+(pctChange>=0?'+':'')+pctChange+'%)</span>'+
       '</div>';
     chartPopEl.style.display = 'block';
     positionChartPop(mouseX, mouseY);
