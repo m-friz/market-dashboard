@@ -2311,8 +2311,8 @@ function pollForFreshData(expectedTimestamp, attemptsLeft, lu, btn, icon) {
           setTimeout(function(){ lu.style.color = ''; }, 3000);
         }
       } else {
-        if (lu) lu.textContent = 'Live fetch done — waiting for GitHub to catch up... (' + (11 - attemptsLeft) + '/10)';
-        setTimeout(function() { pollForFreshData(expectedTimestamp, attemptsLeft - 1, lu, btn, icon); }, 3000);
+        if (lu) lu.textContent = 'Live fetch done — waiting for GitHub to catch up... (' + (6 - attemptsLeft) + '/5)';
+        setTimeout(function() { pollForFreshData(expectedTimestamp, attemptsLeft - 1, lu, btn, icon); }, 5000);
       }
     })
     .catch(function(e) {
@@ -2342,7 +2342,7 @@ function liveRefresh() {
       // a heads-up, not a reason to skip loading what did get pushed.
       if (resp && resp.error) console.log('[liveRefresh] GAS reported a partial warning:', resp.error);
       if (lu) lu.textContent = 'Live fetch complete — confirming GitHub has it...';
-      pollForFreshData(resp.lastUpdated, 10, lu, btn, icon);
+      pollForFreshData(resp.lastUpdated, 5, lu, btn, icon);
     })
     .catch(function(e) {
       if (btn)  btn.disabled = false;
@@ -2951,9 +2951,14 @@ function loadData(forceGASRefresh) {
   if (icon) { icon.className = 'btn-spin'; icon.innerHTML = '&#10227;'; }
   if (lu)   lu.textContent = 'Loading...';
 
-  // Always just read from GitHub — fast and reliable
-  // GAS pushes fresh data daily at 11:00 Athens automatically
-  fetch(DATA_URL + '?t=' + Date.now())
+  // Read from GitHub's CDN without cache-busting. Appending a unique
+  // timestamp on every request defeats the CDN's own caching and makes
+  // every single load count as a fresh origin hit — with the 30-minute
+  // auto-refresh running continuously, that's exactly what triggers
+  // GitHub's rate limiting (HTTP 429) on raw.githubusercontent.com. The
+  // data itself never changes faster than the refresh cadence, so a
+  // normal (uncached-busted) request is strictly better here.
+  fetch(DATA_URL)
     .then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
