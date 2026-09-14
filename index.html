@@ -2535,14 +2535,22 @@ function renderIndicesTab(indices, spy) {
     });
   }
 
+  // "No data." told you nothing about whether this was a config problem,
+  // a dead symbol or throttling. Show what actually failed.
+  var idxErrs = (D && D.index_errors) || [];
+  var emptyMsg = idxErrs.length
+    ? '<div style="color:var(--amber);font-size:12px;line-height:1.6">Could not load: ' + esc(idxErrs.join('; ')) +
+      '<br><span style="color:var(--muted)">Indices are fetched last, so this is usually Yahoo throttling the run rather than a bad symbol. It normally clears on the next refresh.</span></div>'
+    : '<div style="color:var(--muted);font-size:12px">No data.</div>';
+
   if (!us.length && !intl.length) {
     if (usEl)   usEl.innerHTML   = '<div style="padding:24px;color:var(--muted);font-size:13px">No index data yet. Run a refresh to populate.</div>';
     if (intlEl) intlEl.innerHTML = '';
     return;
   }
 
-  if (usEl)   usEl.innerHTML   = us.length   ? us.map(card).join('')   : '<div style="color:var(--muted);font-size:12px">No data.</div>';
-  if (intlEl) intlEl.innerHTML = intl.length ? intl.map(card).join('') : '<div style="color:var(--muted);font-size:12px">No data.</div>';
+  if (usEl)   usEl.innerHTML   = us.length   ? us.map(card).join('')   : emptyMsg;
+  if (intlEl) intlEl.innerHTML = intl.length ? intl.map(card).join('') : emptyMsg;
 }
 
 function renderSummary(stocks, spy) {
