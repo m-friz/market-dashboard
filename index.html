@@ -653,6 +653,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
       <div>
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Athens Exchange (ATHEX) &#8212; Top 10 Greek Stocks</div>
         <div style="font-size:11px;color:var(--muted)">Prices in EUR &#183; Data via Yahoo Finance &#183; Scores ranked within Greek universe only</div>
+        <div id="gk-errors" style="display:none;font-size:11px;color:var(--amber);margin-top:5px"></div>
       </div>
       <div id="greek-summary-inline" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
     </div>
@@ -1337,11 +1338,22 @@ function renderGreek(greek) {
   }
 
   // Summary cards
-  var gainers = greek.filter(function(s){ return (s.pct_1w||0)>0; }).length;
-  var best    = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
-  var worst   = greek.length ? greek.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
+  // Tickers that returned nothing at all this run — otherwise the only
+  // symptom is a smaller "Tracked" number that looks like a config change.
+  var gkErrEl = document.getElementById('gk-errors');
+  if (gkErrEl) {
+    var gkErrs = (D && D.greek_errors) || [];
+    if (gkErrs.length) {
+      gkErrEl.style.display = 'block';
+      gkErrEl.textContent = gkErrs.length + ' ticker' + (gkErrs.length>1?'s':'') +
+        ' returned no data this run: ' + gkErrs.join(', ') +
+        ' - excluded from every count and ranking below.';
+    } else { gkErrEl.style.display = 'none'; }
+  }
+
+  var gkSt   = weekStats(greek);
+  var gainers = gkSt.gainers, best = gkSt.best, worst = gkSt.worst, avgW = gkSt.avg;
   var strong  = greek.filter(function(s){ return s.signal==='STRONG'; }).length;
-  var avgW    = greek.length ? (greek.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/greek.length).toFixed(2) : '0.00';
 
   // Top3/Bottom3 strip
   var gkTop3El = document.getElementById('gk-top3');
@@ -1349,7 +1361,7 @@ function renderGreek(greek) {
 
   document.getElementById('greek-summary').innerHTML = [
     { lbl:'Tracked',         val:greek.length,              sub:'ATHEX stocks' },
-    { lbl:'Weekly Gainers',  val:gainers+'/'+greek.length,  sub:'this week' },
+    { lbl:'Weekly Gainers',  val:gainers+'/'+gkSt.valid,    sub:coverageNote(gkSt) },
     { lbl:'Strong Momentum', val:strong,                    sub:'vs Greek peers' },
     { lbl:'Best 1W',         val:best.ticker,               sub:p(best.pct_1w) },
     { lbl:'Worst 1W',        val:worst.ticker,              sub:p(worst.pct_1w) },
@@ -1588,9 +1600,10 @@ function renderETFs(etfs) {
   // Summary cards
   var validPct = etfs.filter(function(e){ return e.pct_1w!==null; });
   var best    = validPct.length ? validPct.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : etfs[0];
-  var gainers = etfs.filter(function(e){ return (e.pct_1w||0)>0; }).length;
+  var gainers = validPct.filter(function(e){ return e.pct_1w>0; }).length;
   var above50 = etfs.filter(function(e){ return e.above_ma50===true; }).length;
-  var avgYTD  = etfs.length ? (etfs.reduce(function(s,e){ return s+(e.pct_ytd||0); },0)/etfs.length).toFixed(1) : '0.0';
+  var validYTD = etfs.filter(function(e){ return e.pct_ytd!==null && e.pct_ytd!==undefined; });
+  var avgYTD  = validYTD.length ? (validYTD.reduce(function(s,e){ return s+e.pct_ytd; },0)/validYTD.length).toFixed(1) : '0.0';
 
   // Populate inline strip in header (matches Greek style)
   var strip = document.getElementById('etf-inline-strip');
@@ -1616,7 +1629,7 @@ function renderETFs(etfs) {
 
   document.getElementById('etf-summary').innerHTML = [
     { lbl:'Tracked ETFs',   val:etfs.length,             sub:'across 5 categories' },
-    { lbl:'Weekly Gainers', val:gainers+'/'+etfs.length, sub:'up this week' },
+    { lbl:'Weekly Gainers', val:gainers+'/'+validPct.length, sub:'up this week' },
     { lbl:'Best 1W',        val:best.ticker,             sub:p(best.pct_1w) },
     { lbl:'Above 50MA',     val:above50+'/'+etfs.length, sub:'in uptrend' },
     { lbl:'Avg YTD',        val:(avgYTD>0?'+':'')+avgYTD+'%', sub:'ETF universe' }
@@ -1757,14 +1770,48 @@ function supportResistance(s) {
 
 
 // ── Top 3 / Bottom 3 strip ────────────────────────────────────
+// Summary stats must be computed over names that actually HAVE a 1W
+// figure. Treating a missing value as 0% dragged the Greek average to
+// +0.10% when only two names had data, and let a null-return stock be
+// reported as "best" whenever every real return was negative.
+function weekStats(list) {
+  var valid = list.filter(function(s){ return s.pct_1w !== null && s.pct_1w !== undefined; });
+  if (!valid.length) {
+    return { valid:0, total:list.length, gainers:0, avg:'0.00',
+             best:{ticker:'-',pct_1w:null}, worst:{ticker:'-',pct_1w:null} };
+  }
+  return {
+    valid:   valid.length,
+    total:   list.length,
+    gainers: valid.filter(function(s){ return s.pct_1w > 0; }).length,
+    avg:     (valid.reduce(function(a,x){ return a + x.pct_1w; }, 0) / valid.length).toFixed(2),
+    best:    valid.reduce(function(a,b){ return b.pct_1w > a.pct_1w ? b : a; }),
+    worst:   valid.reduce(function(a,b){ return b.pct_1w < a.pct_1w ? b : a; })
+  };
+}
+
+// Flags names whose 1W data is missing, so a shrunken universe is visible
+// rather than silently reducing every count.
+function coverageNote(st) {
+  return st.valid === st.total ? 'this week'
+    : (st.total - st.valid) + ' of ' + st.total + ' missing 1W data';
+}
+
 function makeTop3Strip(stocks, currency) {
   var sym = currency === 'EUR' ? '&#8364;' : '$';
   var valid = stocks.filter(function(s){ return s.pct_1w !== null && s.pct_1w !== undefined; });
   if (valid.length < 2) return '';
 
   var sorted = valid.slice().sort(function(a,b){ return (b.pct_1w||0) - (a.pct_1w||0); });
-  var top3    = sorted.slice(0, 3);
-  var bot3    = sorted.slice(-3).reverse();
+
+  // Split so the two halves can never share a stock. With 5 valid names
+  // that means 2 and 2 with the median left out; with 2 it means 1 and 1.
+  // The old code took slice(0,3) and slice(-3), which overlapped whenever
+  // fewer than 6 names had data — the best performer was rendering as
+  // both the top gainer AND the worst loser at the same time.
+  var half  = Math.min(3, Math.floor(sorted.length / 2));
+  var top3  = sorted.slice(0, half);
+  var bot3  = sorted.slice(sorted.length - half).reverse();
 
   function card(s, dir) {
     var bz     = buyZone(s);
@@ -1789,12 +1836,20 @@ function makeTop3Strip(stocks, currency) {
     '</div>';
   }
 
+  // Grid columns are built from the real card count. The old template was
+  // hardcoded to 1fr x3 / 4px / 1fr x3, so with fewer than 3 cards a side
+  // the divider slid into a card column (rendering as a wide empty box)
+  // and a card landed in the 4px column (a 4px-wide sliver).
+  var cols = new Array(half + 1).join('1fr ') + '4px ' + new Array(half + 1).join('1fr ');
+
   return '<div style="margin-bottom:14px">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-      '<span style="font-size:11px;font-weight:700;color:var(--green)">&#9650; Top 3 this week</span>' +
-      '<span style="font-size:11px;font-weight:700;color:var(--red)">&#9660; Worst 3 this week</span>' +
+      '<span style="font-size:11px;font-weight:700;color:var(--green)">&#9650; ' +
+        (half === 1 ? 'Best this week' : 'Top ' + half + ' this week') + '</span>' +
+      '<span style="font-size:11px;font-weight:700;color:var(--red)">&#9660; ' +
+        (half === 1 ? 'Worst this week' : 'Worst ' + half + ' this week') + '</span>' +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 4px 1fr 1fr 1fr;gap:8px;align-items:stretch">' +
+    '<div style="display:grid;grid-template-columns:' + cols.trim() + ';gap:8px;align-items:stretch">' +
       top3.map(function(s){ return card(s,'up'); }).join('') +
       '<div style="background:var(--border);border-radius:2px"></div>' +
       bot3.map(function(s){ return card(s,'down'); }).join('') +
@@ -2491,17 +2546,15 @@ function renderIndicesTab(indices, spy) {
 }
 
 function renderSummary(stocks, spy) {
-  var gainers = stocks.filter(function(s){ return (s.pct_1w||0)>0; }).length;
-  var best    = stocks.length ? stocks.reduce(function(a,b){ return (b.pct_1w||0)>(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
-  var worst   = stocks.length ? stocks.reduce(function(a,b){ return (b.pct_1w||0)<(a.pct_1w||0)?b:a; }) : {ticker:'-',pct_1w:0};
-  var avgW    = (stocks.reduce(function(s,x){ return s+(x.pct_1w||0); },0)/stocks.length).toFixed(2);
+  var usSt    = weekStats(stocks);
+  var gainers = usSt.gainers, best = usSt.best, worst = usSt.worst, avgW = usSt.avg;
   var strong  = stocks.filter(function(s){ return s.signal==='STRONG'; }).length;
   var alerts  = stocks.filter(function(s){ return s.alert; }).length;
   var earnSoon= stocks.filter(function(s){ return s.earnings_days!==null&&s.earnings_days!==undefined; }).length;
   document.getElementById('summary-cards').innerHTML = [
     { lbl:'Tracked',         val:stocks.length, sub:'US large-caps' },
-    { lbl:'Weekly Gainers',  val:gainers+'/20',  sub:'this week' },
-    { lbl:'Strong Momentum', val:strong,         sub:'of 20 stocks' },
+    { lbl:'Weekly Gainers',  val:gainers+'/'+usSt.valid, sub:coverageNote(usSt) },
+    { lbl:'Strong Momentum', val:strong,         sub:'of '+stocks.length+' stocks' },
     { lbl:'Best 1W',         val:best.ticker,    sub:p(best.pct_1w) },
     { lbl:'Worst 1W',        val:worst.ticker,   sub:p(worst.pct_1w) },
     { lbl:'Avg 1W',          val:(avgW>0?'+':'')+avgW+'%', sub:'universe avg' },
