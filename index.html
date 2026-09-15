@@ -290,9 +290,11 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <button id="settings-close" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;margin-top:4px">Close</button>
 </div>
     <div id="last-updated">Loading...</div>
+    <div id="app-version" title="Build currently running in your browser. If this does not match what you just deployed, you are on a cached copy." style="font-size:10px;color:var(--muted);font-family:var(--mono);opacity:.75"></div>
     <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
   </div>
 </header>
+<div id="sw-update-bar" style="display:none;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:var(--cyan);font-size:12px;padding:9px 14px;margin:8px 12px 0;border-radius:8px;cursor:pointer">A newer version of the dashboard is ready. Tap here to load it.</div>
 <div id="stale-warning" style="display:none;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:var(--amber);font-size:12px;line-height:1.45;padding:9px 14px;margin:8px 12px 0;border-radius:8px"></div>
 <div class="tabs-wrap">
 <div class="tabs">
@@ -2305,7 +2307,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbw_5uiQ9PvmonCIyfyy24pODN1Zgy7Q2KAs-xjOLmSFa3pVYfqqUSucJ1X0YJBsRKbWGg/exec';
+var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbz6Lns7ysj7N9bmbjmCo-CNAon2p4fM3NHcHenhWXUzfZFrC1-jzluJ2LbVfrbx-23t_w/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -3544,9 +3546,59 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="chart-popup"></div>
 <div id="ptr-indicator"><span class="ptr-icon">&#8595;</span><span class="ptr-label">Pull to refresh</span></div>
 <script>
+// Bump this on every deploy. It is shown in the header, so "am I looking
+// at the build I just pushed?" is a glance instead of a DevTools session.
+// IMPORTANT: sw.js must use the SAME string in its cache name, or the
+// service worker will keep serving the previous index.html regardless of
+// what is on GitHub Pages.
+var APP_VERSION = '2026.09.14-a';
+
+(function showVersion() {
+  var el = document.getElementById('app-version');
+  if (el) el.textContent = 'build ' + APP_VERSION;
+  console.log('[dashboard] build ' + APP_VERSION);
+})();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js').catch(function(err) {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+
+      // Ask the browser to re-check sw.js immediately rather than waiting
+      // for its own schedule. This only detects a change if sw.js itself
+      // differs byte-for-byte from the cached copy - which is exactly why
+      // the cache name has to carry APP_VERSION.
+      reg.update();
+
+      function offerReload(worker) {
+        var bar = document.getElementById('sw-update-bar');
+        if (!bar) { return; }
+        bar.style.display = 'block';
+        bar.onclick = function() {
+          if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
+          location.reload();
+        };
+      }
+
+      if (reg.waiting) offerReload(reg.waiting);
+
+      reg.addEventListener('updatefound', function() {
+        var installing = reg.installing;
+        if (!installing) return;
+        installing.addEventListener('statechange', function() {
+          // controller present means this is an update, not a first install
+          if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+            offerReload(installing);
+          }
+        });
+      });
+
+      // Re-check whenever the tab regains focus, so a PWA left open on a
+      // phone for days still notices a deploy.
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) reg.update();
+      });
+
+    }).catch(function(err) {
       console.log('Service worker registration failed:', err);
     });
   });
