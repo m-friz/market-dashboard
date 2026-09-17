@@ -8,7 +8,7 @@
    cache no matter what is on GitHub Pages.
    ============================================================ */
 
-const APP_VERSION = '2026.09.17-a';
+const APP_VERSION = '2026.09.17-b';
 const CACHE_NAME  = 'market-dashboard-' + APP_VERSION;
 
 // The app shell. Everything here is fetched fresh on install.
