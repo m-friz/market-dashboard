@@ -2603,9 +2603,9 @@ function renderWatchlist(stocks) {
   stocks.forEach(function(s){ if(matchesFilter(s,wlFilter)) (groups[s.signal]||groups.NEUTRAL).push(s); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
   var configs = [
-    { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Trending up - consider entry if RSI not overbought', color:'var(--green)', border:'rgba(16,185,129,.25)' },
-    { key:'NEUTRAL', label:'Neutral',         icon:'&#9679;', sub:'No strong signal - wait for confirmation',           color:'var(--amber)', border:'rgba(245,158,11,.25)' },
-    { key:'WEAK',   label:'Weak Momentum',   icon:'&#9679;', sub:'Lagging peers - avoid or wait for reversal',         color:'var(--red)',   border:'rgba(239,68,68,.25)' }
+    { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Ranked highest vs peers on the composite score. This is NOT an entry signal \u2014 strong names are often already extended. Check each stock\u0027s Timing badge below.', color:'var(--green)', border:'rgba(16,185,129,.25)' },
+    { key:'NEUTRAL', label:'Neutral',         icon:'&#9679;', sub:'Mid-ranked on the composite score. Many of the best entry setups sit here, because they have not run up yet \u2014 check the Timing badges.',           color:'var(--amber)', border:'rgba(245,158,11,.25)' },
+    { key:'WEAK',   label:'Weak Momentum',   icon:'&#9679;', sub:'Lowest-ranked vs peers. Avoid new entries; check the Exit badge on anything you hold.',         color:'var(--red)',   border:'rgba(239,68,68,.25)' }
   ];
   // Check if all groups empty (filter returned nothing)
   var totalItems = Object.keys(groups).reduce(function(t,k){ return t + groups[k].length; }, 0);
@@ -3574,7 +3574,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.09.17-a';
+var APP_VERSION = '2026.09.17-b';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
