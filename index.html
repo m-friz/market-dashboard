@@ -1911,53 +1911,86 @@ function volumeConfirmation(s, label) {
         tip:'Volume does not confirm: this move is happening on thin, fading volume, which more often drifts than follows through. Less urgent than the label alone suggests.' };
 }
 
+// Presentation only. The DECISION now lives in Code.gs
+// (computeTimingLabel / computeExitLabel) and arrives as s.timing and
+// s.exit_label, so the dashboard and the daily email can no longer
+// disagree — they had already diverged on four thresholds.
+//
+// The local computation below is kept solely as a fallback for a
+// data.json written before the backend started stamping these fields.
+// Once a fresh payload has been pushed it never runs.
+function labelStyle(label, s) {
+  var rsi = s.rsi14, pos4w = s.pos_4w, pctAvg = s.pct_vs_avg20,
+      pos52 = s.pos_52w, ytd = s.pct_ytd, earnD = s.earnings_days;
+  switch (label) {
+    case 'Extended':
+      return { cls:'bz-wait', tip: (rsi !== null && rsi > 72)
+        ? 'RSI '+rsi+' is overbought (>72). Stock has risen too fast. Wait for RSI to cool below 60 before entering.'
+        : 'Price is '+pctAvg+'% above its 20-day average. Stretched. Typically mean-reverts. Wait for pullback toward average.' };
+    case 'Near 4W High':
+      return { cls:'bz-wait', tip:'Price is at '+pos4w+'% of its 4-week range — near recent high. Risk/reward is poor here. Wait for a pullback.' };
+    case 'Possible Entry':
+      return { cls:'bz-entry', tip:'Uptrend intact (above 50MA) + RSI '+rsi+' not overbought + price in lower half of 4-week range. Reasonable entry window.' };
+    case 'Oversold Watch':
+      return { cls:'bz-entry', tip:'RSI '+rsi+' is oversold but still above 50MA (uptrend). Potential bounce entry — high reward but watch for further dip.' };
+    case 'Coiling':
+      return { cls:'bz-coil', tip:'RSI '+rsi+' neutral, price within 3% of 20-day average, above 50MA. Stock is consolidating — often precedes a breakout. Watch closely for RSI moving above 58 as entry signal.' };
+    case 'Exit Signal':
+      return { cls:'bz-wait', tip:'Momentum has turned Weak vs peers AND price is below its 50-day average. Both the short and medium-term trend have broken down.' };
+    case 'Take Profit':
+      return { cls:'bz-wait', tip:'RSI '+rsi+' is very overbought (>75). Historically a strong candidate for a pullback — consider trimming some of the position.' };
+    case 'Near 52W High':
+      return { cls:'bz-watch', tip:'Price is at '+pos52+'% of its 52-week range — at or near the yearly high. Upside from here is more limited; consider taking partial profits.' };
+    case 'Trim Risk':
+      return { cls:'bz-watch', tip:'Earnings in '+earnD+' days with a large YTD gain (+'+ytd+'%) already banked. Consider reducing size before the report if you want to protect gains.' };
+    case 'Hold':
+      return { cls:'bz-hold', tip:'No exit signal right now — trend and valuation look reasonable to continue holding.' };
+    default:
+      return { cls:'bz-watch', tip:'No clear entry signal right now. '+(rsi?'RSI '+rsi+'. ':'')+(pos4w?'4W position '+pos4w+'%. ':'')+'Check back after next data refresh.' };
+  }
+}
+
+// Conviction now arrives from the backend alongside the label, so the
+// dashboard and the email rank identically. High = the composite rating,
+// the 1-month trend and volume all agree; Low = the signal fired but
+// little else backs it.
+function convictionMarker(s) {
+  var c = s && s.conviction;
+  if (!c || !c.tier) return '';
+  if (c.tier === 'Medium') return '';   // only the extremes earn screen space
+  var high = c.tier === 'High';
+  return '<span class="tip" data-tip="' + esc(c.tier + ' conviction' +
+      (c.why && c.why.length ? ': ' + c.why.join(', ') : '')) +
+    '" style="background:' + (high ? 'var(--text)' : 'transparent') +
+    ';color:' + (high ? 'var(--bg)' : 'var(--muted)') +
+    ';border:1px solid ' + (high ? 'var(--text)' : 'var(--border)') +
+    ';font-family:var(--mono);font-size:9px;font-weight:700;padding:1px 5px;' +
+    'border-radius:4px;margin-left:3px;cursor:help;white-space:nowrap">' +
+    (high ? 'HIGH' : 'LOW') + '</span>';
+}
+
 function buyZoneLabel(s) {
-  var rsi    = s.rsi14;
-  var above  = s.above_ma50;
-  var pos4w  = s.pos_4w;
-  var pctAvg = s.pct_vs_avg20;
-  var sig    = s.signal;
+  var label = s.timing || legacyTimingLabel(s);
+  var st = labelStyle(label, s);
+  return { label: label, cls: st.cls, tip: st.tip };
+}
 
-  // Extended / avoid
-  if (rsi !== null && rsi > 72) {
-    return { label:'Extended', cls:'bz-wait',
-      tip:'RSI '+rsi+' is overbought (>72). Stock has risen too fast. Wait for RSI to cool below 60 before entering.' };
-  }
-  if (pos4w !== null && pos4w >= 88) {
-    return { label:'Near 4W High', cls:'bz-wait',
-      tip:'Price is at '+pos4w+'% of its 4-week range — near recent high. Risk/reward is poor here. Wait for a pullback.' };
-  }
-  if (pctAvg !== null && pctAvg > 8) {
-    return { label:'Extended', cls:'bz-wait',
-      tip:'Price is '+pctAvg+'% above its 20-day average. Stretched. Typically mean-reverts. Wait for pullback toward average.' };
-  }
-
-  // Good entry zone
-  if (above === true &&
-      rsi !== null && rsi < 58 &&
-      pos4w !== null && pos4w < 65 &&
-      (sig === 'STRONG' || sig === 'NEUTRAL')) {
-    return { label:'Possible Entry', cls:'bz-entry',
-      tip:'Uptrend intact (above 50MA) + RSI '+rsi+' not overbought + price in lower half of 4-week range. Reasonable entry window.' };
-  }
-
-  // Oversold bounce watch
-  if (rsi !== null && rsi < 35 && above === true) {
-    return { label:'Oversold Watch', cls:'bz-entry',
-      tip:'RSI '+rsi+' is oversold but still above 50MA (uptrend). Potential bounce entry — high reward but watch for further dip.' };
-  }
-
-  // Consolidation / coiling
-  if (rsi !== null && rsi >= 44 && rsi <= 56 &&
-      pctAvg !== null && Math.abs(pctAvg) <= 3 &&
-      above === true) {
-    return { label:'Coiling', cls:'bz-coil',
-      tip:'RSI '+rsi+' neutral, price within 3% of 20-day average, above 50MA. Stock is consolidating — often precedes a breakout. Watch closely for RSI moving above 58 as entry signal.' };
-  }
-
-  // Neutral / monitor
-  return { label:'Monitor', cls:'bz-watch',
-    tip:'No clear entry signal right now. '+(rsi?'RSI '+rsi+'. ':'')+(pos4w?'4W position '+pos4w+'%. ':'')+'Check back after next data refresh.' };
+// FALLBACK ONLY — mirrors Code.gs computeTimingLabel(). Do not edit here;
+// edit Code.gs and let it flow through.
+function legacyTimingLabel(s) {
+  var rsi = s.rsi14, above = s.above_ma50, pos4w = s.pos_4w,
+      pctAvg = s.pct_vs_avg20, sig = s.signal;
+  if (rsi !== null && rsi !== undefined && rsi > 72) return 'Extended';
+  if (pos4w !== null && pos4w !== undefined && pos4w >= 88) return 'Near 4W High';
+  if (pctAvg !== null && pctAvg !== undefined && pctAvg > 8) return 'Extended';
+  var sigOk = (sig === 'STRONG' || sig === 'NEUTRAL' || sig === undefined || sig === null);
+  if (above === true && rsi !== null && rsi !== undefined && rsi < 58 &&
+      pos4w !== null && pos4w !== undefined && pos4w < 65 && sigOk) return 'Possible Entry';
+  if (rsi !== null && rsi !== undefined && rsi < 35 && above === true) return 'Oversold Watch';
+  if (rsi !== null && rsi !== undefined && rsi >= 44 && rsi <= 56 &&
+      pctAvg !== null && pctAvg !== undefined && Math.abs(pctAvg) <= 3 &&
+      above === true) return 'Coiling';
+  return 'Monitor';
 }
 
 // ── Exit / Sell signal (mirrors buyZone's entry logic) ────────
@@ -1970,31 +2003,21 @@ function exitSignal(s) {
 }
 
 function exitSignalLabel(s) {
-  var rsi    = s.rsi14;
-  var above  = s.above_ma50;
-  var pos52  = s.pos_52w;
-  var sig    = s.signal;
-  var ytd    = s.pct_ytd;
-  var earnD  = s.earnings_days;
+  var label = s.exit_label || legacyExitLabel(s);
+  var st = labelStyle(label, s);
+  return { label: label, cls: st.cls, tip: st.tip };
+}
 
-  if (sig === 'WEAK' && above === false) {
-    return { label:'Exit Signal', cls:'bz-wait',
-      tip:'Momentum has turned Weak vs peers AND price is below its 50-day average. Both the short and medium-term trend have broken down.' };
-  }
-  if (rsi !== null && rsi > 75) {
-    return { label:'Take Profit', cls:'bz-wait',
-      tip:'RSI '+rsi+' is very overbought (>75). Historically a strong candidate for a pullback — consider trimming some of the position.' };
-  }
-  if (pos52 !== null && pos52 >= 95) {
-    return { label:'Near 52W High', cls:'bz-watch',
-      tip:'Price is at '+pos52+'% of its 52-week range — at or near the yearly high. Upside from here is more limited; consider taking partial profits.' };
-  }
-  if (earnD !== null && earnD !== undefined && earnD <= 7 && ytd !== null && ytd > 30) {
-    return { label:'Trim Risk', cls:'bz-watch',
-      tip:'Earnings in '+earnD+' days with a large YTD gain (+'+ytd+'%) already banked. Consider reducing size before the report if you want to protect gains.' };
-  }
-  return { label:'Hold', cls:'bz-hold',
-    tip:'No exit signal right now — trend and valuation look reasonable to continue holding.' };
+// FALLBACK ONLY — mirrors Code.gs computeExitLabel(). Do not edit here.
+function legacyExitLabel(s) {
+  var rsi = s.rsi14, above = s.above_ma50, pos52 = s.pos_52w,
+      sig = s.signal, ytd = s.pct_ytd, earnD = s.earnings_days;
+  if (sig === 'WEAK' && above === false) return 'Exit Signal';
+  if (rsi !== null && rsi !== undefined && rsi > 75) return 'Take Profit';
+  if (pos52 !== null && pos52 !== undefined && pos52 >= 95) return 'Near 52W High';
+  if (earnD !== null && earnD !== undefined && earnD <= 7 &&
+      ytd !== null && ytd !== undefined && ytd > 30) return 'Trim Risk';
+  return 'Hold';
 }
 
 // ── 20-day SVG chart ───────────────────────────────────────────
@@ -2307,7 +2330,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbyHuzofJBa6S3NEhEnWv4dQNBKMU1BXSYfmGAzm4y-_4QgubtVOCZ3Z84hm-QcZC5rjOQ/exec';
+var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbzLALYgy8sUXq9btIWWwEg6OaHZGgtc8Y5X4q5_WqhJWlDbyPV5Q8NFSjUnv5xcDEk8OQ/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2755,7 +2778,7 @@ function renderActionTable(stocks) {
       '<td data-label="52W Pos">'+range52+'</td>'+
       '<td data-label="4W Pos">'+range4wBar(st)+'</td>'+
       '<td data-label="20D Chart">'+chartHoverWrap(makeChart20(st.chart20||[], 80, 32), st.chart20||[], st.ticker)+'</td>'+
-      (function(){ var bz=buyZone(st); return '<td data-label="Timing"><span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>'+confirmMarker(bz)+'</td>'; })()+
+      (function(){ var bz=buyZone(st); return '<td data-label="Timing"><span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>'+confirmMarker(bz)+convictionMarker(st)+'</td>'; })()+
       (function(){ var ex=exitSignal(st); return '<td data-label="Exit"><span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'+confirmMarker(ex)+'</td>'; })()+
       '<td data-label="Flags" style="white-space:nowrap">'+flags+'</td>'+
     '</tr>'+
