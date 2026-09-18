@@ -336,9 +336,9 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
   <button class="wl-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend.">All</button>
   <button class="wl-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window.">&#10003; Possible Entry</button>
-  <button class="wl-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+  <button class="wl-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 88%+ of its 4-week range, or 8%+ above its 20-day average. Avoid entering now.">&#9888; Extended</button>
   <button class="wl-filter tip" data-filter="exit" data-tip="Possible Exit: stocks with an active exit signal — momentum broken down, very overbought, near 52-week high, or a big gain at risk right before earnings.">&#9660; Possible Exit</button>
-  <button class="wl-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering.">RSI &lt;35</button>
+  <button class="wl-filter tip" data-filter="oversold" data-tip="RSI under 35 while still above the 50-day average: sold off hard but the uptrend is intact, so a bounce entry is possible. Below the 50-day average this does not trigger.">RSI &lt;35</button>
   <button class="wl-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#9650; Above 50MA</button>
   <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#9660; Below 50MA</button>
 </div>
@@ -374,8 +374,8 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <span class="tip" data-tip="Relative Strength Index - measures if a stock was bought or sold too aggressively. Scale 0-100. Does NOT compare stocks to each other.">RSI</span>
             - Relative Strength Index
           </div>
-          <span style="color:var(--green)">Under 30 = oversold</span> - price fell a lot, may bounce. Potential buy zone.<br>
-          <span style="color:var(--red)">Over 70 = overbought</span> - price rose a lot, may pull back. Caution.<br>
+          <span style="color:var(--green)">Under 35 = oversold</span> - price fell a lot, may bounce. Only a setup while the stock is still above its 50-day average.<br>
+          <span style="color:var(--red)">Over 72 = extended</span> - price rose a lot; the Timing badge stops calling it an entry here.<br>
           <span style="color:var(--muted)">30-70 = neutral.</span>
         </div>
         <div>
@@ -385,14 +385,14 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           </div>
           <span style="color:var(--green)">Above 50MA</span> - uptrend in place.<br>
           <span style="color:var(--red)">Below 50MA</span> - downtrend in place.<br>
-          <span style="color:var(--muted)">Best entries: above 50MA + RSI under 50 (uptrend, not overbought).</span>
+          <span style="color:var(--muted)">Above 50MA is necessary but not sufficient for an entry &mdash; the Timing badge also requires RSI under 58, price in the lower 65% of the 4-week range, and a Strong or Neutral rating.</span>
         </div>
         <div>
           <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Other indicators</div>
           <span class="tip" data-tip="Where current price sits between yearly low and high. 100% = at 52-week high. 0% = at 52-week low.">52W Pos</span> - position in 52-week range &nbsp;&middot;&nbsp;
           <span class="tip" data-tip="How much this stock gained or lost vs S&P 500 this week. Positive = beat the market.">vs SPY</span> - vs S&amp;P 500 &nbsp;&middot;&nbsp;
           * moved &gt;5% this week &nbsp;&middot;&nbsp;
-          <span class="tip" data-tip="One-time volume burst: this week trading volume was 50%+ above the 20-day average. High volume confirms a move is significant. Not the same as the sustained VOL trend badge on watchlist cards.">BURST</span> &nbsp;&middot;&nbsp;
+          <span class="tip" data-tip="One-time volume burst: the most recent session&#39;s volume was 50%+ above the 20-day average. High volume confirms a move is significant. Not the same as the sustained VOL trend badge on watchlist cards.">BURST</span> &nbsp;&middot;&nbsp;
           ! earnings within 14 days
         </div>
         <div>
@@ -401,9 +401,9 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">
             <div><strong style="color:var(--text)">Momentum</strong> — 1-week price performance rank</div>
             <div><strong style="color:var(--text)">Trend</strong> — 1-month price performance rank</div>
-            <div><strong style="color:var(--text)">Value</strong> — how far below its 52-week high it sits (cheaper relative to its own range = higher grade)</div>
+            <div><strong style="color:var(--text)">Value</strong> — trailing P/E rank vs the other tracked stocks (lower P/E = higher grade; N/A for loss-making companies)</div>
           </div>
-          <div style="margin-top:6px;color:var(--amber)">These are a price-based proxy, not a fundamentals-based valuation — a high Value grade means "cheap relative to its own 52-week range," not "objectively undervalued."</div>
+          <div style="margin-top:6px;color:var(--amber)">Momentum and Trend are price-based ranks and say nothing about business quality. Value uses real trailing P/E, but one multiple ignores growth, debt and cyclicality &mdash; read an A+ as &quot;screens cheap on P/E versus these peers&quot;, not &quot;objectively undervalued.&quot;</div>
         </div>
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
@@ -435,12 +435,12 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th class="sort" data-f="pe_ttm" data-tbl="action"><span class="tip" data-tip="Trailing twelve-month price/earnings ratio, from Finnhub. Blank for loss-making companies (no meaningful P/E) or where data is unavailable. Compare within a sector, not across them - a 15 P/E bank and a 15 P/E semiconductor mean very different things.">P/E</span></th>
             <th class="sort" data-f="beta" data-tbl="action"><span class="tip" data-tip="Beta: how much this moves relative to the market. 1.0 = moves with the index, 1.5 = amplifies it by half again, below 1.0 = steadier. Use it for position sizing - two positions of equal dollar value carry very different risk if their betas differ.">Beta</span></th>
             <th class="sort" data-f="target_upside" data-tbl="action"><span class="tip" data-tip="Mean analyst price target vs the current price, as a percentage. Positive = analysts see it higher. Treat as sentiment, not forecast: targets are famously slow to update and cluster above spot. Blank where no analyst covers the name.">Target</span></th>
-            <th class="sort" data-f="rsi14" data-tbl="action"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. Under 30 = oversold (may bounce). Over 70 = overbought (may pull back).">RSI-14</span></th>
+            <th class="sort" data-f="rsi14" data-tbl="action"><span class="tip" data-tip="Relative Strength Index (14-day): measures buying/selling pressure. This dashboard treats under 35 as oversold and over 72 as extended — the thresholds its own Timing signals actually use.">RSI-14</span></th>
             <th class="sort" data-f="above_ma50" data-tbl="action"><span class="tip" data-tip="50-Day Moving Average: average price over last 50 days. Above = uptrend. Below = downtrend.">50MA</span></th>
             <th class="sort" data-f="pos_52w" data-tbl="action"><span class="tip" data-tip="52-Week Position: where price sits between its yearly low and high. 100% = at yearly high. 0% = at yearly low.">52W Pos</span></th>
             <th class="sort" data-f="pos_4w" data-tbl="action"><span class="tip" data-tip="4-week price range bar. Shows where current price sits within the last 4 weeks. Near left = 4-week low. Near right = 4-week high.">4W Pos</span></th>
             <th><span class="tip" data-tip="20-day price chart with average line. Dashed line = 20-day average. Green/red line = price trend. Hover or tap to enlarge.">20D Chart</span></th>
-            <th><span class="tip" data-tip="Entry timing signal based on RSI, 4-week position, and 20-day average. Possible Entry = conditions look reasonable. Extended = wait for pullback. Monitor = no clear signal.">Timing</span></th>
+            <th><span class="tip" data-tip="Entry timing signal. Possible Entry requires ALL of: price above its 50-day average, RSI under 58, price in the lower 65% of its 4-week range, and a Strong or Neutral rating. Extended / Near 4W High mean it has already run — wait for a pullback.">Timing</span></th>
             <th><span class="tip" data-tip="Exit signal for stocks you already hold: flags when momentum has broken down, RSI is very overbought, price is near its 52-week high, or a big gain is at risk right before earnings. Hold = no exit signal right now.">Exit</span></th>
             <th>Flags</th>
           </tr>
@@ -669,9 +669,9 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
   <button class="gk-filter active-filter tip" data-filter="all" data-tip="Show all stocks regardless of signal, RSI or trend.">All</button>
   <button class="gk-filter tip" data-filter="entry" data-tip="Possible Entry: stocks where RSI is not overbought, price is in the lower half of 4-week range, and uptrend is intact. Best timing window.">&#10003; Possible Entry</button>
-  <button class="gk-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+  <button class="gk-filter tip" data-filter="extended" data-tip="Extended / Near 4W High: stocks that have run up too fast. RSI over 72, or at 88%+ of its 4-week range, or 8%+ above its 20-day average. Avoid entering now.">&#9888; Extended</button>
   <button class="gk-filter tip" data-filter="exit" data-tip="Possible Exit: stocks with an active exit signal — momentum broken down, very overbought, near 52-week high, or a big gain at risk right before earnings.">&#9660; Possible Exit</button>
-  <button class="gk-filter tip" data-filter="oversold" data-tip="RSI under 35: stock has been sold too aggressively recently. Price may bounce. Watch for confirmation before entering.">RSI &lt;35</button>
+  <button class="gk-filter tip" data-filter="oversold" data-tip="RSI under 35 while still above the 50-day average: sold off hard but the uptrend is intact, so a bounce entry is possible. Below the 50-day average this does not trigger.">RSI &lt;35</button>
   <button class="gk-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#9650; Above 50MA</button>
   <button class="gk-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#9660; Below 50MA</button>
 </div>
@@ -742,7 +742,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
       <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
       <button class="etf-filter active-filter tip" data-filter="all" data-tip="Show all ETFs regardless of signal, RSI or trend.">All</button>
       <button class="etf-filter tip" data-filter="entry" data-tip="Possible Entry: ETF where RSI is not overbought, price is in lower half of 4-week range, and uptrend is intact.">&#10003; Possible Entry</button>
-      <button class="etf-filter tip" data-filter="extended" data-tip="Extended: ETF that has run up too fast. RSI over 72, near 4-week high, or 8%+ above 20-day average. Avoid entering now.">&#9888; Extended</button>
+      <button class="etf-filter tip" data-filter="extended" data-tip="Extended: ETF that has run up too fast. RSI over 72, at 88%+ of its 4-week range, or 8%+ above its 20-day average. Avoid entering now.">&#9888; Extended</button>
       <button class="etf-filter tip" data-filter="exit" data-tip="Possible Exit: ETF with an active exit signal — momentum broken down, very overbought, or near its 52-week high.">&#9660; Possible Exit</button>
       <button class="etf-filter tip" data-filter="oversold" data-tip="RSI under 35: ETF has been sold too aggressively. Price may bounce. Watch for confirmation.">RSI &lt;35</button>
       <button class="etf-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend structurally intact. Best ETFs to buy on dips.">&#9650; Above 50MA</button>
@@ -775,7 +775,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th class="sort" data-f="pct_1m" data-tbl="etf">&#916; 1M</th>
             <th class="sort" data-f="pct_ytd" data-tbl="etf">&#916; YTD</th>
             <th class="sort" data-f="rsi14" data-tbl="etf">
-              <span class="tip" data-tip="RSI-14: momentum indicator. Under 30 = oversold (possible entry). Over 70 = overbought (caution).">RSI-14</span>
+              <span class="tip" data-tip="RSI-14: momentum indicator. Under 35 = oversold, over 72 = extended — the thresholds the Timing signals use.">RSI-14</span>
             </th>
             <th class="sort" data-f="above_ma50" data-tbl="etf">
               <span class="tip" data-tip="50-Day Moving Average. Above = uptrend. Below = downtrend.">50MA</span>
@@ -919,7 +919,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
           <span style="color:var(--red);font-family:var(--mono);font-weight:700">RSI &gt; 70</span>
           <span>Overbought — the move likely already happened, do not chase</span>
         </div>
-        <div style="margin-top:10px;color:var(--text);font-weight:600">Best entry: Strong Momentum + RSI under 60</div>
+        <div style="margin-top:10px;color:var(--text);font-weight:600">Strong Momentum is a quality ranking, not an entry cue</div><div style="margin-top:4px;font-weight:400;color:var(--muted)">Top-ranked names have usually already run, which is what disqualifies them from an entry. Read the Timing badge, not the momentum group.</div>
       </div>
     </div>
 
@@ -972,10 +972,10 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
       </div>
       <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
         Sort by YTD. A stock up +80% YTD already has a lot of gain priced in — much higher risk entry.
-        A stock up +15% YTD with Strong momentum and RSI under 50 is a cleaner, lower-risk setup.
+        A stock up +15% YTD with RSI still under 58 and price in the lower part of its 4-week range is a cleaner setup than one that has just spiked &mdash; which is exactly what the Timing badge tests for.
         <div style="margin-top:10px;background:var(--surf2);border-radius:8px;padding:12px 14px">
           <div style="color:var(--text);font-weight:600;margin-bottom:6px">Sweet spot to look for:</div>
-          YTD gain 10-40% &nbsp;&#183;&nbsp; Strong Momentum &nbsp;&#183;&nbsp; Above 50MA &nbsp;&#183;&nbsp; RSI under 60 &nbsp;&#183;&nbsp; 52W position 40-80% &nbsp;&#183;&nbsp; vs SPY positive &nbsp;&#183;&nbsp; No EARN flag
+          Timing badge reads <strong>Possible Entry</strong> &nbsp;&#183;&nbsp; conviction <strong>High</strong> &nbsp;&#183;&nbsp; volume not fading &nbsp;&#183;&nbsp; vs SPY positive &nbsp;&#183;&nbsp; no earnings within 7 days
         </div>
       </div>
     </div>
@@ -1009,7 +1009,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
         <div style="display:flex;flex-direction:column;gap:10px">
           <div><strong style="color:var(--text)">Exit signal</strong> — every place you see a Timing (entry) badge, there's now an Exit badge next to it: <span class="tip bz-wait" data-tip="Example only">Exit Signal</span>/<span class="tip bz-wait" data-tip="Example only">Take Profit</span> mean the case for holding has weakened; <span class="tip bz-watch" data-tip="Example only">Near 52W High</span>/<span class="tip bz-watch" data-tip="Example only">Trim Risk</span> are softer caution flags; <span class="tip bz-hold" data-tip="Example only">Hold</span> means nothing's changed. It uses the same logic as the "When to sell" section below — just computed live per stock instead of sitting as static text. It shows up on watchlist cards, the Signals table, and — most usefully — your Portfolio tab, since that's your actual holdings. Use the <strong style="color:var(--text)">&#9660; Possible Exit</strong> filter button (US Stocks, Greek, and ETFs tabs) to see only stocks with an active exit signal, the same way the existing Possible Entry filter works.</div>
           <div><strong style="color:var(--text)">Grades column</strong> (Signals tab) — three letter grades (A+ to F) per stock: Momentum (1-week rank), Trend (1-month rank), and Value (trailing P/E rank vs the other tracked stocks, lower P/E = higher grade). Momentum and Trend are <strong style="color:var(--amber)">price-based only</strong> — they say nothing about whether the business is good. Value now uses real trailing P/E, but P/E alone is still a blunt instrument: it ignores growth rate, debt and cyclicality, and it is N/A for loss-making companies. Treat an A+ Value as "screens cheap on one multiple," not "objectively undervalued."</div>
-          <div><strong style="color:var(--text)">Volume confirmation</strong> &mdash; entry and exit badges now carry a small <span class="tip" data-tip="Example only" style="background:rgba(16,185,129,.12);color:var(--green);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px">VOL&#10003;</span> or <span class="tip" data-tip="Example only" style="background:rgba(245,158,11,.12);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px">VOL?</span> marker. The badge itself answers "what is the price doing"; this answers "is anyone actually behind it". <strong style="color:var(--text)">VOL&#10003;</strong> means 5-day average volume is 30%+ above the prior fortnight, so the move has real participation. <strong style="color:var(--amber)">VOL?</strong> means volume is 30%+ <em>below</em> it &mdash; a price signal on fading volume is the classic false move. No marker means volume is unremarkable, so it has no opinion either way. The badge labels themselves are unchanged, and so are the filter buttons: a "Possible Entry" with VOL? is still a Possible Entry, just one to size down or wait on.</div>
+          <div><strong style="color:var(--text)">Volume badges</strong> &mdash; two places, one underlying measure: the 5-day average volume against the prior fortnight. On watchlist cards it shows as <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--green)">VOL &#9650;</span> (30%+ above, real participation) or <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--red)">VOL &#9660;</span> (30%+ below). On the Signals table the same reading appears beside the Timing and Exit badges as <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--green)">VOL&#10003;</span> or <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber)">VOL?</span>, tied to that specific signal. No badge means volume is unremarkable. A price signal on fading volume is the classic false move &mdash; size down or wait. The signal label itself never changes because of volume: a "Possible Entry" with VOL? is still a Possible Entry. <strong style="color:var(--text)">BURST</strong> is different again &mdash; a single session 50%+ above the 20-day average, not a trend.</div>
           <div><strong style="color:var(--text)">Beta and analyst Target</strong> (Signals tab) &mdash; <strong style="color:var(--text)">Beta</strong> is how hard the stock swings relative to the market: 1.0 moves with the index, 1.5 amplifies it by half again, under 1.0 is steadier. Two positions of the same dollar size are not the same risk if their betas differ &mdash; this is the number to size against. <strong style="color:var(--text)">Target</strong> is the mean analyst price target as a % above or below the current price, with the full range and the buy/hold/sell consensus in the tooltip. <strong style="color:var(--amber)">Treat targets as sentiment, not forecast</strong> &mdash; they are slow to update, cluster above spot almost by convention, and a big positive number often just means the stock has fallen faster than analysts have revised. Blank where no analyst covers the name.</div>
           <div><strong style="color:var(--text)">Every table is sortable</strong> — click any column header (Signals, Historical, Dividends, ETFs, Portfolio) to sort by it; click again to reverse direction. Columns that are purely visual (the 20-day chart, the trend sparkline) aren't sortable since there's no single number to rank them by.</div>
         </div>
@@ -1461,7 +1461,7 @@ function renderGreekWatchlist(greek) {
                   supportResistance(s)+
                 '</div>'+
                 '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto">'+bz.label+'</span>'+
-                (function(){ var ex=exitSignal(s); return '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'+confirmMarker(ex); })()+
+                (function(){ var ex=exitSignal(s); return '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'; })()+
               '</div>';
             })()+
           '</div>';
@@ -1763,7 +1763,7 @@ function supportResistance(s) {
   var sup = s.low20, res = s.high20, cur = s.price;
   if (!sup || !res || !cur) return '';
   var sym = s.currency === 'EUR' ? '&#8364;' : '$';
-  return '<div class="tip" data-tip="20-day Support: '+sym+sup+' (if price drops here with RSI under 40, consider entering). 20-day Resistance: '+sym+res+' (price may stall or reverse here)." style="font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap">'+
+  return '<div class="tip" data-tip="20-day Support: '+sym+sup+' (a pullback to here with RSI back under 58 would satisfy the entry test). 20-day Resistance: '+sym+res+' (price may stall or reverse here)." style="font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap">'+
     '<span style="color:var(--green)">S:'+sym+sup+'</span>'+
     ' <span style="color:var(--border)">|</span> '+
     '<span style="color:var(--red)">R:'+sym+res+'</span>'+
@@ -2330,7 +2330,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbxtk3VtGjm2pjqYUQ_AR8Te4pqnK3znIfStHodZpLADXxzguNViSxXgxYIvViOIZec88Q/exec';
+var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbyeR6Pt-u5nHyqTX22FW9mD-RLv9xUyUBrqaZwfavmQFrTNXYLoQTk1OfMGcesCdFss1w/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2683,7 +2683,7 @@ function renderWatchlist(stocks) {
                   supportResistance(s)+
                 '</div>'+
                 '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto">'+bz.label+'</span>'+
-                (function(){ var ex=exitSignal(s); return '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'+confirmMarker(ex); })()+
+                (function(){ var ex=exitSignal(s); return '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'; })()+
               '</div>';
             })()+
           '</div>';
@@ -2719,7 +2719,7 @@ function renderActionTable(stocks) {
     var sw=st.score||0;
     var flags='';
     if(st.alert) flags+='<span title="Moved more than 5% this week" style="display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">+5%</span>';
-    if(st.vol_spike) flags+='<span title="Volume burst: traded 50%+ above 20-day average this week — a one-time spike, confirms this specific move is significant. Different from the VOL trend badge, which tracks a sustained multi-week direction." style="display:inline-block;background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">BURST</span>';
+    if(st.vol_spike) flags+='<span title="Volume burst: the latest session traded 50%+ above the 20-day average — a one-time spike, confirms this specific move is significant. Different from the VOL trend badge, which tracks a sustained multi-week direction." style="display:inline-block;background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">BURST</span>';
     if(st.earnings_days!==null&&st.earnings_days!==undefined) flags+='<span title="Earnings report in '+st.earnings_days+' days — price can move sharply" class="earn-warn">EARN '+st.earnings_days+'d</span>';
     if(!flags) flags='<span style="color:var(--muted);font-size:11px">-</span>';
     var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'<span>-</span>';
@@ -3574,7 +3574,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.09.17-b';
+var APP_VERSION = '2026.09.17-c';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
