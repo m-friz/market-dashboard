@@ -301,6 +301,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div class="tab active" data-tab="overview">&#127760; US Stocks</div>
   <div class="tab" data-tab="greek">&#127987; Greek</div>
   <div class="tab" data-tab="indices">&#127757; Indices</div>
+  <div class="tab" data-tab="metals">&#129689; Metals</div>
   <div class="tab" data-tab="signals">&#127919; Signals</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
   <div class="tab" data-tab="dividends">&#128176; Dividends</div>
@@ -505,8 +506,6 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
             <th class="sort" data-f="ticker" data-tbl="hist">Ticker</th>
             <th class="sort" data-f="market" data-tbl="hist">Market</th>
             <th class="sort" data-f="price" data-tbl="hist">Price</th>
-            <th class="sort" data-f="pct_1w" data-tbl="hist">&#916; 1W</th>
-            <th class="sort" data-f="pct_1m" data-tbl="hist">&#916; 1M</th>
             <th class="sort" data-f="pct_3m" data-tbl="hist">&#916; 3M</th>
             <th class="sort sd" data-f="pct_ytd" data-tbl="hist">&#916; YTD</th>
             <th class="sort" data-f="market_cap" data-tbl="hist"><span class="tip" data-tip="Market Capitalisation: total market value of the company. T = trillion, B = billion. Not available for Greek stocks on free tier.">Mkt Cap</span></th>
@@ -641,6 +640,24 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
     <div id="idx-us" class="idx-grid" style="margin-bottom:20px"></div>
     <div class="idx-group-lbl">&#127757; International</div>
     <div id="idx-intl" class="idx-grid"></div>
+  </div>
+</div>
+
+<!-- METALS & COMMODITIES -->
+<div id="panel-metals" class="tab-panel">
+  <div id="metals-content" style="display:none">
+    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Precious Metals &amp; Commodities</div>
+      <div style="font-size:11px;color:var(--muted)">Front-month futures via Yahoo Finance, not spot. Futures carry financing and storage cost, so gold here sits slightly above a bullion dealer&#39;s spot quote &#183; USD</div>
+      <div id="metals-errors" style="display:none;font-size:11px;color:var(--amber);margin-top:5px"></div>
+    </div>
+    <div id="metals-ratio" style="margin-bottom:16px"></div>
+    <div class="idx-group-lbl">&#129689; Precious</div>
+    <div id="metals-precious" class="idx-grid" style="margin-bottom:20px"></div>
+    <div class="idx-group-lbl">&#128296; Industrial</div>
+    <div id="metals-industrial" class="idx-grid" style="margin-bottom:20px"></div>
+    <div class="idx-group-lbl">&#9981; Energy</div>
+    <div id="metals-energy" class="idx-grid"></div>
   </div>
 </div>
 
@@ -1354,7 +1371,7 @@ function renderGreek(greek) {
   }
 
   var gkSt   = weekStats(greek);
-  var gainers = gkSt.gainers, best = gkSt.best, worst = gkSt.worst, avgW = gkSt.avg;
+  var gainers = gkSt.gainers;
   var strong  = greek.filter(function(s){ return s.signal==='STRONG'; }).length;
 
   // Top3/Bottom3 strip
@@ -1362,12 +1379,8 @@ function renderGreek(greek) {
   if (gkTop3El) gkTop3El.innerHTML = makeTop3Strip(greek, 'EUR');
 
   document.getElementById('greek-summary').innerHTML = [
-    { lbl:'Tracked',         val:greek.length,              sub:'ATHEX stocks' },
     { lbl:'Weekly Gainers',  val:gainers+'/'+gkSt.valid,    sub:coverageNote(gkSt) },
     { lbl:'Strong Momentum', val:strong,                    sub:'vs Greek peers' },
-    { lbl:'Best 1W',         val:best.ticker,               sub:p(best.pct_1w) },
-    { lbl:'Worst 1W',        val:worst.ticker,              sub:p(worst.pct_1w) },
-    { lbl:'Avg 1W',          val:(avgW>0?'+':'')+avgW+'%',  sub:'Greek universe' }
   ].map(function(c){
     return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
   }).join('');
@@ -2330,7 +2343,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbyeR6Pt-u5nHyqTX22FW9mD-RLv9xUyUBrqaZwfavmQFrTNXYLoQTk1OfMGcesCdFss1w/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwEpdcxgIfWedCtr_d6lx7-HZ8sNzDtOMmIRf4AYUm6goFmg4dPX_cdylgfx-2tgiyQVA/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2519,6 +2532,87 @@ function renderSpyBar(spy) {
 // ── Global Indices tab ─────────────────────────────────────────
 var US_INDEX_TICKERS = ['^DJI','^IXIC','^RUT'];
 
+function renderMetalsTab(metals, ratio) {
+  var content = document.getElementById('metals-content');
+  if (content) content.style.display = 'block';
+  metals = metals || [];
+
+  var errEl = document.getElementById('metals-errors');
+  if (errEl) {
+    var errs = (D && D.metal_errors) || [];
+    if (errs.length) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Could not load: ' + errs.join('; ');
+    } else { errEl.style.display = 'none'; }
+  }
+
+  // Gold/silver ratio — a relative-value read, not a price. High means
+  // silver is cheap against gold by historical standards.
+  var rEl = document.getElementById('metals-ratio');
+  if (rEl) {
+    if (ratio) {
+      var read = ratio >= 90 ? 'silver historically cheap vs gold'
+               : ratio <= 65 ? 'silver historically expensive vs gold'
+               : 'within the normal historical band';
+      rEl.innerHTML = '<div style="background:var(--surf2);border:1px solid var(--border);border-radius:10px;' +
+        'padding:12px 16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">' +
+        '<span class="tip" data-tip="How many ounces of silver one ounce of gold buys. Roughly 65-90 has been the common range over recent decades; above that silver is cheap relative to gold, below it the reverse. A relative-value gauge, not a timing signal." ' +
+        'style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;cursor:help">Gold / Silver ratio</span>' +
+        '<span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)">' + ratio + '</span>' +
+        '<span style="font-size:11px;color:var(--muted)">' + read + '</span></div>';
+    } else { rEl.innerHTML = ''; }
+  }
+
+  function card(m) {
+    var dpCls  = (m.dp || 0) >= 0 ? 'var(--green)' : 'var(--red)';
+    var rsiCls = m.rsi14 === null ? '' : m.rsi14 >= 70 ? 'rsi-high' : m.rsi14 <= 35 ? 'rsi-low' : 'rsi-mid';
+    function pctVal(v) {
+      if (v === null || v === undefined) return '<div style="font-family:var(--mono);font-size:12px;color:var(--muted)">&mdash;</div>';
+      return '<div style="font-family:var(--mono);font-size:12px;font-weight:700;color:' +
+        (v >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (v >= 0 ? '+' : '') + v + '%</div>';
+    }
+    function pct(v, lbl) {
+      return '<div style="text-align:center">' +
+        '<div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">' + lbl + '</div>' +
+        pctVal(v) + '</div>';
+    }
+    return '<div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 18px">' +
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px">' +
+        '<span style="font-size:14px;font-weight:700;color:var(--text)">' + esc(m.name) + '</span>' +
+        '<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">' + esc(m.ticker) + '</span>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-bottom:10px">' + esc(m.unit) + '</div>' +
+      '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">' +
+        '<span style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text)">$' + m.price + '</span>' +
+        '<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:' + dpCls + '">' +
+          ((m.dp || 0) >= 0 ? '+' : '') + (m.dp === null ? '&mdash;' : m.dp + '%') + '</span>' +
+      '</div>' +
+      (m.chart20 && m.chart20.length ? chartHoverWrap(makeChart20(m.chart20, 220, 44), m.chart20, m.name, '') : '') +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 8px">' +
+        pct(m.pct_1w, '1W') + pct(m.pct_1m, '1M') + pct(m.pct_3m, '3M') + pct(m.pct_ytd, 'YTD') +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--border)">' +
+        (m.rsi14 !== null ? '<span class="rsi-badge ' + rsiCls + '">RSI ' + m.rsi14 + '</span>' : '') +
+        (m.above_ma50 === null ? '' :
+          '<span class="tip" data-tip="' + (m.above_ma50 ? 'Trading above its 50-day average — medium-term uptrend intact.' : 'Trading below its 50-day average — medium-term downtrend.') + '" style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;cursor:help;background:' +
+          (m.above_ma50 ? 'rgba(16,185,129,.12);color:var(--green)' : 'rgba(239,68,68,.12);color:var(--red)') + '">' +
+          (m.above_ma50 ? '&#9650; 50MA' : '&#9660; 50MA') + '</span>') +
+        (m.pos_52w !== null ? '<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">' + m.pos_52w + '% of 52W range</span>' : '') +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px">' + esc(m.desc) + '</div>' +
+    '</div>';
+  }
+
+  [['Precious','metals-precious'],['Industrial','metals-industrial'],['Energy','metals-energy']]
+    .forEach(function(pair) {
+      var el = document.getElementById(pair[1]);
+      if (!el) return;
+      var items = metals.filter(function(m){ return m.group === pair[0]; });
+      el.innerHTML = items.length ? items.map(card).join('')
+        : '<div style="color:var(--muted);font-size:12px">No data.</div>';
+    });
+}
+
 function renderIndicesTab(indices, spy) {
   var el = document.getElementById('indices-content');
   if (!el) return;
@@ -2580,17 +2674,13 @@ function renderIndicesTab(indices, spy) {
 
 function renderSummary(stocks, spy) {
   var usSt    = weekStats(stocks);
-  var gainers = usSt.gainers, best = usSt.best, worst = usSt.worst, avgW = usSt.avg;
+  var gainers = usSt.gainers;
   var strong  = stocks.filter(function(s){ return s.signal==='STRONG'; }).length;
   var alerts  = stocks.filter(function(s){ return s.alert; }).length;
   var earnSoon= stocks.filter(function(s){ return s.earnings_days!==null&&s.earnings_days!==undefined; }).length;
   document.getElementById('summary-cards').innerHTML = [
-    { lbl:'Tracked',         val:stocks.length, sub:'US large-caps' },
     { lbl:'Weekly Gainers',  val:gainers+'/'+usSt.valid, sub:coverageNote(usSt) },
     { lbl:'Strong Momentum', val:strong,         sub:'of '+stocks.length+' stocks' },
-    { lbl:'Best 1W',         val:best.ticker,    sub:p(best.pct_1w) },
-    { lbl:'Worst 1W',        val:worst.ticker,   sub:p(worst.pct_1w) },
-    { lbl:'Avg 1W',          val:(avgW>0?'+':'')+avgW+'%', sub:'universe avg' },
     { lbl:'Alerts',          val:alerts,         sub:'>5% this week' },
     { lbl:'Earnings Soon',   val:earnSoon,       sub:'within 14 days' }
   ].map(function(c){
@@ -2891,8 +2981,6 @@ function renderHistRows() {
       '<td data-label="Ticker">'+esc(st.ticker)+'</td>'+
       '<td data-label="Market" style="font-size:11px;color:var(--muted);white-space:nowrap">'+mktLbl+'</td>'+
       '<td data-label="Price" class="tp">'+st.currency+fmt(st.price)+'</td>'+
-      '<td data-label="&#916; 1W" class="'+pcls(st.pct_1w)+'">'+pn(st.pct_1w)+'</td>'+
-      '<td data-label="&#916; 1M" class="'+pcls(st.pct_1m)+'">'+pn(st.pct_1m)+'</td>'+
       '<td data-label="&#916; 3M" class="'+pcls(st.pct_3m)+'">'+pn(st.pct_3m)+'</td>'+
       '<td data-label="&#916; YTD" class="'+pcls(st.pct_ytd)+'">'+pn(st.pct_ytd)+'</td>'+
       '<td data-label="Mkt Cap" class="tm">'+esc(st.market_cap||'N/A')+'</td>'+
@@ -3284,6 +3372,7 @@ function renderAll(data) {
   var fns = [
     ['renderSpyBar',     function(){ renderSpyBar(data.spy); }],
     ['renderIndicesTab', function(){ renderIndicesTab(data.indices, data.spy); }],
+    ['renderMetalsTab',  function(){ renderMetalsTab(data.metals, data.metal_ratio); }],
     ['renderSummary',    function(){ renderSummary(data.stocks, data.spy); }],
     ['renderWatchlist',  function(){ renderWatchlist(data.stocks); }],
     ['renderHeatmap',    function(){ renderHeatmap(data.sector_heatmap); }],
@@ -3574,7 +3663,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.09.17-c';
+var APP_VERSION = '2026.09.18-a';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
