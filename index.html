@@ -1,369 +1,3027 @@
-import io
-import json
-import re
-import openpyxl
-import pandas as pd
-import pypdf
-import streamlit as st
+// ============================================================
+// Market Dashboard — Code.gs v7
+// Sources: Finnhub (quotes, earnings) + Yahoo Finance (candles, indices)
+// v7 changes:
+//   - Yahoo Finance calls now batched/parallel via UrlFetchApp.fetchAll()
+//     (Finnhub calls stay sequential — 60/min is a hard documented limit,
+//     Yahoo has no such documented limit so parallelizing it is safe)
+//   - Fixed: index tickers (^DJI etc) weren't URL-encoded, which silently
+//     broke their chart/RSI/history data (this was the "only S&P shows
+//     data on the Indices tab" bug)
+//   - Removed a redundant second Yahoo call per Greek/ETF/Index ticker —
+//     price now comes from the same 1-year candle response instead of a
+//     separate 5-day call
+// ============================================================
+// SCRIPT PROPERTIES: FINNHUB_API_KEY, GITHUB_TOKEN
+// Run setupHourlyTrigger() once to schedule automatic hourly refreshes.
+// ============================================================
 
-# Initialize OpenAI client (Ensure API key is set in Streamlit secrets or environment)
-client = OpenAI()
+var FINNHUB_KEY_PROP  = 'FINNHUB_API_KEY';
+var DATA_PROP         = 'MARKET_DATA';
+var LAST_UPDATED_PROP = 'LAST_UPDATED';
 
+var TICKERS = [
+  'NVDA','AAPL','MSFT','GOOGL','AMZN','META','TSLA','BRK.B','JPM','AVGO',
+  'LLY','WMT','AMD','V','NFLX','XOM','JNJ','GS','COST','GEV',
+  'ORCL','CAT','ABBV','MU','UBER','PFE','BA','KO','DIS','INTC',
+  'PANW','NET','SNOW','ALAB','TEM','IBM'
+];
 
-# ==============================================================================
-# 1. FULL TEXT EXTRACTION
-# ==============================================================================
-def extract_full_pdf_text(pdf_file) -> str:
-    """Scans and extracts text from ALL pages of the provided PDF file."""
-    try:
-        reader = pypdf.PdfReader(pdf_file)
-        full_text = []
-        for i, page in enumerate(reader.pages):
-            text = page.extract_text()
-            if text:
-                full_text.append(f"--- PAGE {i+1} ---\n{text}")
-        return "\n\n".join(full_text)
-    except Exception as e:
-        st.error(f"Error reading PDF {pdf_file.name}: {str(e)}")
-        return ""
+var DISPLAY_TICKER = { 'BRK.B': 'BRK-B' };
 
+var COMPANY_NAMES = {
+  'NVDA':'NVIDIA','AAPL':'Apple','MSFT':'Microsoft','GOOGL':'Alphabet',
+  'AMZN':'Amazon','META':'Meta','TSLA':'Tesla','BRK.B':'Berkshire Hathaway',
+  'JPM':'JPMorgan','AVGO':'Broadcom','LLY':'Eli Lilly','WMT':'Walmart',
+  'AMD':'AMD','V':'Visa','NFLX':'Netflix','XOM':'Exxon Mobil',
+  'JNJ':'Johnson & Johnson','GS':'Goldman Sachs','COST':'Costco','GEV':'GE Vernova',
+  'ORCL':'Oracle','CAT':'Caterpillar','ABBV':'AbbVie','MU':'Micron Technology',
+  'UBER':'Uber','PFE':'Pfizer','BA':'Boeing','KO':'Coca-Cola',
+  'DIS':'Disney','INTC':'Intel',
+  'PANW':'Palo Alto Networks','NET':'Cloudflare','SNOW':'Snowflake',
+  'ALAB':'Astera Labs','TEM':'Tempus AI','IBM':'IBM'
+};
 
-# ==============================================================================
-# 2. CONSERVATIVE SEMANTIC CLASSIFICATION & SAFETY OVERRIDE
-# ==============================================================================
-CLASSIFICATION_PROMPT = """
-You are an expert financial document classifier for wealth management systems (QPLIX).
-Your objective is to classify whether a document contains relevant financial, transactional, or capital accounting information.
+var SECTORS = {
+  'NVDA':'Semiconductors','AAPL':'Technology','MSFT':'Technology','GOOGL':'Technology',
+  'AMZN':'E-Commerce/Cloud','META':'Social Media','TSLA':'Electric Vehicles',
+  'BRK.B':'Financials','JPM':'Banking','AVGO':'Semiconductors',
+  'LLY':'Healthcare','WMT':'Retail','AMD':'Semiconductors','V':'Payments',
+  'NFLX':'Streaming','XOM':'Energy','JNJ':'Healthcare','GS':'Banking',
+  'COST':'Retail','GEV':'Industrials',
+  'ORCL':'Cloud/Software','CAT':'Industrials','ABBV':'Healthcare',
+  'MU':'Semiconductors','UBER':'Transportation','PFE':'Healthcare',
+  'BA':'Aerospace','KO':'Consumer Staples','DIS':'Media/Entertainment','INTC':'Semiconductors',
+  'PANW':'Cybersecurity','NET':'Cloud/Edge Computing','SNOW':'Cloud/Software',
+  'ALAB':'Semiconductors','TEM':'Healthcare/AI','IBM':'Technology'
+};
 
-PRIORITY DIRECTIVE:
-- Zero False Negatives: Never exclude a document if it might contain actionable transactional data, bank transfer details, capital accounting figures, or NAV updates.
-- If in any doubt, classify as 'POTENTIALLY_RELEVANT'.
-
-CLASSIFICATION CATEGORIES:
-1. RELEVANT:
-   - Capital Calls / Drawdown notices
-   - Distribution notices / Dividend payouts
-   - Capital Account Statements / NAV reports / Valuation statements
-   - Fee statements / Tax reporting forms
-   - Wire/Payment instructions for investment transactions
-
-2. POTENTIALLY_RELEVANT:
-   - General investor letters containing embedded financial metrics
-   - Quarterly reports with portfolio financial summaries
-   - Transaction updates where specific amounts or dates are ambiguous
-   - Unstructured correspondence mentioning contributions, commitments, or adjustments
-
-3. IRRELEVANT:
-   - Pure promotional or marketing pitch decks
-   - General ESG policies / Legal term updates without financial metrics
-   - KYC / AML privacy notices or boilerplate regulatory disclaimers
-   - Event invitations or general non-financial correspondence
-
-Return ONLY a valid JSON object matching this schema:
-{
-  "status": "RELEVANT" | "POTENTIALLY_RELEVANT" | "IRRELEVANT",
-  "confidence_score": float (0.0 to 1.0),
-  "detected_indicators": [list of strings describing specific evidence],
-  "reasoning": "Short string explaining classification"
+// ── Shared helpers ───────────────────────────────────────────
+// Single source of truth for the Finnhub->Yahoo symbol difference
+// (BRK.B vs BRK-B). Was previously hardcoded inline in 5 places.
+function yahooTicker(t) { return DISPLAY_TICKER[t] || t; }
+function finnhubTicker(t) {
+  for (var k in DISPLAY_TICKER) { if (DISPLAY_TICKER[k] === t) return k; }
+  return t;
 }
-"""
+
+// Whole-day difference between today and a 'yyyy-MM-dd' string, both
+// normalised to UTC midnight. Using new Date() directly here carried a
+// time-of-day component, so Math.round drifted the countdown by a day
+// depending on what hour the trigger happened to fire.
+function daysUntilDate(dateStr) {
+  if (!dateStr) return null;
+  var parts = String(dateStr).split('-');
+  if (parts.length !== 3) return null;
+  var target = Date.UTC(+parts[0], +parts[1] - 1, +parts[2]);
+  var now    = new Date();
+  var today  = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((target - today) / (24 * 3600 * 1000));
+}
+
+// Percentile rank of each ticker within the supplied universe, 0-1 where
+// 1 = best. Equal values now share a percentile instead of being ordered
+// by their position in the source array.
+function rankNormalize(arr, field, higherIsBetter) {
+  var vals = arr.map(function(s){ return { t: s.ticker, v: s[field] }; })
+                .filter(function(x){ return x.v !== null && x.v !== undefined; });
+  vals.sort(function(a,b){ return higherIsBetter ? a.v - b.v : b.v - a.v; });
+  var map = {};
+  var n = vals.length;
+  for (var i = 0; i < n; i++) {
+    var j = i;
+    while (j + 1 < n && vals[j + 1].v === vals[i].v) j++;
+    var shared = n > 1 ? ((i + j) / 2) / (n - 1) : 0.5;
+    for (var k = i; k <= j; k++) map[vals[k].t] = shared;
+    i = j;
+  }
+  return map;
+}
+
+// 0-1 percentile -> letter grade. Shared by the US and Greek scorers.
+function gradeFromPercentile(p) {
+  if (p === undefined || p === null) return 'N/A';
+  if (p >= 0.90) return 'A+';
+  if (p >= 0.80) return 'A';
+  if (p >= 0.65) return 'B';
+  if (p >= 0.50) return 'C';
+  if (p >= 0.35) return 'D';
+  return 'F';
+}
+
+// ── Web App entry point ──────────────────────────────────────
+function doGet(e) {
+  var action = e && e.parameter && e.parameter.action;
+  var output;
+
+  if (action === 'refresh') {
+    try {
+      var result = fetchAndStore();
+      output = JSON.stringify({
+        ok: true,
+        lastUpdated: result.lastUpdated,
+        error: result.error || null
+      });
+    } catch(err) {
+      output = JSON.stringify({ ok: false, error: err.message });
+    }
+
+  // ── Alert routes ──
+  // These existed as backend functions but were unreachable: the frontend
+  // was keeping alerts in localStorage only, so checkAndFireAlerts() never
+  // saw them and no alert email was ever sent.
+  } else if (action === 'getAlerts') {
+    try {
+      output = JSON.stringify({ ok: true, alerts: getAlerts() });
+    } catch(err) {
+      output = JSON.stringify({ ok: false, error: err.message });
+    }
+
+  } else if (action === 'saveAlert') {
+    try {
+      var p = e.parameter;
+      var target = parseFloat(p.targetPrice);
+      if (!p.ticker)                       throw new Error('ticker required');
+      if (!target || target <= 0)          throw new Error('valid targetPrice required');
+      if (p.condition !== 'above' && p.condition !== 'below') throw new Error('condition must be above or below');
+      if (!p.email || p.email.indexOf('@') < 0) throw new Error('valid email required');
+      var saved = saveAlert({
+        ticker:      p.ticker,
+        company:     p.company || p.ticker,
+        condition:   p.condition,
+        targetPrice: target,
+        email:       p.email
+      });
+      output = JSON.stringify({ ok: true, alerts: saved.alerts });
+    } catch(err) {
+      output = JSON.stringify({ ok: false, error: err.message });
+    }
+
+  } else if (action === 'deleteAlert') {
+    try {
+      var del = deleteAlert(e.parameter.id);
+      output = JSON.stringify({ ok: true, alerts: del.alerts });
+    } catch(err) {
+      output = JSON.stringify({ ok: false, error: err.message });
+    }
+
+  } else {
+    var ts = PropertiesService.getScriptProperties().getProperty(LAST_UPDATED_PROP);
+    output = JSON.stringify({ ok: true, lastUpdated: ts || 'no data' });
+  }
+
+  var cb = e && e.parameter && e.parameter.callback;
+  if (cb) {
+    return ContentService
+      .createTextOutput(cb + '(' + output + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
+  return ContentService
+    .createTextOutput(output)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ── Chunked property storage (two-phase commit) ──────────────
+// Script Properties cap each value at ~9KB, so large payloads are split.
+// The original implementation deleted the old chunks before writing the
+// new ones, so any interruption during a long run — a timeout, a quota
+// error, a failed fetch — destroyed the stored value. That is how the
+// slow-data cache emptied itself, taking dividends, P/E, beta and the
+// analyst fields with it.
+//
+// Simply reordering was not enough: writing new chunk 0 over old chunk 0
+// leaves a mix of old and new, which reads back as corrupt rather than
+// absent. So writes now go to an alternating generation, and the switch
+// is a SINGLE property write — the only genuinely atomic operation
+// available here. A crash before that write leaves the previous
+// generation intact and still current; a crash after it leaves the new
+// one complete. There is no in-between.
+function chunkGenKey(key)          { return key + '_gen'; }
+function chunkCountKey(key, gen)   { return key + '_g' + gen + '_chunks'; }
+function chunkDataKey(key, gen, i) { return key + '_g' + gen + '_' + i; }
+
+function readChunked(key) {
+  var props = PropertiesService.getScriptProperties();
+  var gen   = props.getProperty(chunkGenKey(key));
+
+  if (gen !== null && gen !== undefined && gen !== '') {
+    var count = parseInt(props.getProperty(chunkCountKey(key, gen)) || '0', 10);
+    if (!count) return null;
+    var parts = [];
+    for (var i = 0; i < count; i++) {
+      var chunk = props.getProperty(chunkDataKey(key, gen, i));
+      if (chunk === null || chunk === undefined) {
+        Logger.log('readChunked: generation ' + gen + ' of ' + key + ' is incomplete.');
+        return null;
+      }
+      parts.push(chunk);
+    }
+    return parts.join('');
+  }
+
+  // Legacy single-generation layout, so a store written by the previous
+  // version is still readable after deploying this one.
+  var oldCount = parseInt(props.getProperty(key + '_chunks') || '0', 10);
+  if (!oldCount) return props.getProperty(key);
+  var legacy = [];
+  for (var j = 0; j < oldCount; j++) {
+    var c = props.getProperty(key + '_' + j);
+    if (c === null || c === undefined) return null;
+    legacy.push(c);
+  }
+  return legacy.join('');
+}
+
+function writeChunked(key, value) {
+  var props = PropertiesService.getScriptProperties();
+  var size  = 8000;
+  var chunks = [];
+  for (var i = 0; i < value.length; i += size) {
+    chunks.push(value.substring(i, i + size));
+  }
+
+  var curGen = props.getProperty(chunkGenKey(key));
+  var newGen = (curGen === '0') ? '1' : '0';   // alternate, so key count stays bounded
+
+  // Phase 1 — write the new generation. Nothing here affects what a
+  // reader sees, because the pointer still names the old generation.
+  for (var k = 0; k < chunks.length; k++) {
+    props.setProperty(chunkDataKey(key, newGen, k), chunks[k]);
+  }
+  props.setProperty(chunkCountKey(key, newGen), chunks.length.toString());
+
+  // Phase 2 — the commit. One property write, so it either happened or
+  // it did not.
+  props.setProperty(chunkGenKey(key), newGen);
+
+  // Phase 3 — housekeeping. Safe to fail; it only leaves stale keys.
+  if (curGen !== null && curGen !== undefined && curGen !== '') {
+    var oldCount = parseInt(props.getProperty(chunkCountKey(key, curGen)) || '0', 10);
+    for (var d = 0; d < oldCount; d++) props.deleteProperty(chunkDataKey(key, curGen, d));
+    props.deleteProperty(chunkCountKey(key, curGen));
+  } else {
+    var legacyCount = parseInt(props.getProperty(key + '_chunks') || '0', 10);
+    for (var L = 0; L < legacyCount; L++) props.deleteProperty(key + '_' + L);
+    props.deleteProperty(key + '_chunks');
+  }
+
+  Logger.log('Stored ' + chunks.length + ' chunks (' + value.length + ' bytes, gen ' + newGen + ')');
+}
+
+function manualRefresh() { return fetchAndStore(); }
 
 
-def classify_pdf(pdf_text: str, filename: str) -> dict:
-    """Classifies PDF text using LLM and applies a conservative rule-based safety net."""
-    if not pdf_text.strip():
-        return {
-            "status": "POTENTIALLY_RELEVANT",
-            "confidence_score": 0.0,
-            "detected_indicators": ["Unreadable or empty PDF"],
-            "reasoning": "Flagged for manual review because text extraction produced no characters.",
+// ── Push data to GitHub Pages ─────────────────────────────────
+var GITHUB_TOKEN_PROP = 'GITHUB_TOKEN';
+var GITHUB_OWNER      = 'm-friz';
+var GITHUB_REPO       = 'market-dashboard';
+var GITHUB_FILE       = 'data.json';
+
+function pushToGitHub(jsonData) {
+  var token = PropertiesService.getScriptProperties().getProperty(GITHUB_TOKEN_PROP);
+  if (!token) { Logger.log('GITHUB_TOKEN not set'); return false; }
+
+  var content = Utilities.base64Encode(Utilities.newBlob(jsonData, 'text/plain').getBytes());
+  var apiUrl  = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + GITHUB_FILE;
+
+  var sha = '';
+  var getResp = UrlFetchApp.fetch(apiUrl, {
+    method: 'get',
+    headers: { 'Authorization': 'token ' + token, 'User-Agent': 'GAS-MarketDashboard' },
+    muteHttpExceptions: true
+  });
+  if (getResp.getResponseCode() === 200) {
+    try { sha = JSON.parse(getResp.getContentText()).sha; } catch(e) {}
+  }
+
+  var body = { message: 'Update market data', content: content };
+  if (sha) body.sha = sha;
+
+  var putResp = UrlFetchApp.fetch(apiUrl, {
+    method: 'put',
+    headers: {
+      'Authorization': 'token ' + token,
+      'Content-Type': 'application/json',
+      'User-Agent': 'GAS-MarketDashboard'
+    },
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true
+  });
+
+  var code = putResp.getResponseCode();
+  Logger.log('GitHub push: HTTP ' + code);
+  return code === 200 || code === 201;
+}
+
+
+// ── ETF Data ──────────────────────────────────────────────────
+var ETF_LIST = [
+  { ticker:'VOO',  name:'Vanguard S&P 500',          category:'Broad Market',  expense:0.03,  desc:'Tracks S&P 500. Best core holding for most investors. Near-zero cost.' },
+  { ticker:'VTI',  name:'Vanguard Total US Market',  category:'Broad Market',  expense:0.03,  desc:'Covers entire US market including small & mid caps. 3,700+ stocks.' },
+  { ticker:'QQQ',  name:'Invesco Nasdaq-100',         category:'Broad Market',  expense:0.20,  desc:'Top 100 Nasdaq companies. Heavy tech/AI. Higher growth, higher risk.' },
+  { ticker:'VT',   name:'Vanguard Total World',       category:'Broad Market',  expense:0.06,  desc:'Global diversification. 10,000+ stocks across all countries.' },
+  { ticker:'VGT',  name:'Vanguard Info Technology',   category:'Growth & Tech', expense:0.10,  desc:'Pure technology exposure. Apple, Microsoft, Nvidia. Strong AI play.' },
+  { ticker:'VUG',  name:'Vanguard Growth',            category:'Growth & Tech', expense:0.04,  desc:'Large-cap US growth stocks. Lower cost alternative to QQQ.' },
+  { ticker:'SCHD', name:'Schwab US Dividend Equity',  category:'Dividend',      expense:0.06,  desc:'Quality dividend payers screened for financial strength. Yield ~3-4%.' },
+  { ticker:'VYM',  name:'Vanguard High Dividend Yield',category:'Dividend',     expense:0.06,  desc:'~400 high-yield US stocks. Pairs well with SCHD for income.' },
+  { ticker:'AGG',  name:'iShares Core US Bond',       category:'Defensive',     expense:0.03,  desc:'US investment-grade bonds. Reduces portfolio volatility. Yield ~4-5%.' },
+  { ticker:'GLD',  name:'SPDR Gold Shares',           category:'Defensive',     expense:0.40,  desc:'Physical gold exposure. Hedge against inflation and currency risk.' },
+  { ticker:'IAU',  name:'iShares Gold Trust',         category:'Defensive',     expense:0.25,  desc:'Same as GLD but cheaper. +41% return in past year. Lower cost gold.' },
+  { ticker:'BOTZ', name:'Global X AI & Robotics',     category:'Thematic',      expense:0.68,  desc:'AI, robotics, and automation companies. High growth, high volatility.' },
+  { ticker:'IBIT', name:'iShares Bitcoin Trust',      category:'Thematic',      expense:0.25,  desc:'Direct Bitcoin exposure. $70B+ AUM. High risk, high potential return.' }
+];
+
+var ETF_CATEGORY_ORDER = ['Broad Market','Growth & Tech','Dividend','Defensive','Thematic'];
+
+// ── Greek Stocks (Athens Exchange) ───────────────────────────
+var GREEK_TICKERS = [
+  'EUROB.AT','ETE.AT','TPEIR.AT','ALPHA.AT','EEE.AT',
+  'PPC.AT','HTO.AT','MTLN.AT','ALWN.AT','GEKTERNA.AT',
+  'AEGN.AT','MOH.AT','BELA.AT','QUEST.AT','ADMIE.AT'
+];
+
+var GREEK_NAMES = {
+  'EUROB.AT':'Eurobank','ETE.AT':'Natl Bank of Greece',
+  'TPEIR.AT':'Piraeus Bank','ALPHA.AT':'Alpha Bank',
+  'EEE.AT':'Coca-Cola HBC','PPC.AT':'Public Power Corp',
+  'HTO.AT':'OTE Telecom','MTLN.AT':'Mytilineos',
+  'ALWN.AT':'Allwyn (ex-OPAP)','GEKTERNA.AT':'GEK Terna',
+  'AEGN.AT':'Aegean Airlines','MOH.AT':'Motor Oil Hellas',
+  'BELA.AT':'Jumbo','QUEST.AT':'Quest Holdings','ADMIE.AT':'IPTO/ADMIE'
+};
+
+var GREEK_SECTORS = {
+  'EUROB.AT':'Banking','ETE.AT':'Banking',
+  'TPEIR.AT':'Banking','ALPHA.AT':'Banking',
+  'EEE.AT':'Beverages','PPC.AT':'Energy/Utilities',
+  'HTO.AT':'Telecom','MTLN.AT':'Industrials',
+  'ALWN.AT':'Gaming','GEKTERNA.AT':'Construction',
+  'AEGN.AT':'Airlines','MOH.AT':'Energy/Refining',
+  'BELA.AT':'Retail','QUEST.AT':'Conglomerate','ADMIE.AT':'Energy Grid'
+};
+
+// ── Precious metals & commodities ────────────────────────────
+// Yahoo continuous-futures symbols. These are the contract prices, which
+// track spot closely but are not identical to it — a gold futures quote
+// carries carry cost and will sit slightly above spot. Stated in the tab
+// so the number is not mistaken for a bullion dealer's price.
+var METAL_LIST = [
+  { ticker:'GC=F', name:'Gold',      unit:'per troy ounce', group:'Precious',
+    desc:'The benchmark. Moves inversely to real interest rates and the dollar; the classic crisis hedge.' },
+  { ticker:'SI=F', name:'Silver',    unit:'per troy ounce', group:'Precious',
+    desc:'Half monetary metal, half industrial. Typically two to three times more volatile than gold.' },
+  { ticker:'PL=F', name:'Platinum',  unit:'per troy ounce', group:'Precious',
+    desc:'Mostly industrial — autocatalysts and hydrogen. Supply concentrated in South Africa.' },
+  { ticker:'PA=F', name:'Palladium', unit:'per troy ounce', group:'Precious',
+    desc:'Almost entirely autocatalyst demand. Thin market, prone to violent moves.' },
+  { ticker:'HG=F', name:'Copper',    unit:'per pound',      group:'Industrial',
+    desc:'"Dr Copper" — read as a proxy for global industrial demand rather than a store of value.' },
+  { ticker:'CL=F', name:'Crude Oil (WTI)', unit:'per barrel', group:'Energy',
+    desc:'Included because it drives bunker costs; the main input cost in shipping.' },
+  { ticker:'BZ=F', name:'Brent Crude',     unit:'per barrel', group:'Energy',
+    desc:'The international benchmark, and the one most marine fuel pricing references.' }
+];
+
+// ── Global Indices ────────────────────────────────────────────
+var INDEX_LIST = [
+  { ticker:'^DJI',      name:'Dow Jones',        region:'US' },
+  { ticker:'^IXIC',     name:'Nasdaq Composite', region:'US' },
+  { ticker:'^RUT',      name:'Russell 2000',     region:'US' },
+  { ticker:'^FTSE',     name:'FTSE 100',         region:'UK' },
+  { ticker:'^GDAXI',    name:'DAX 40',           region:'Germany' },
+  { ticker:'^FCHI',     name:'CAC 40',           region:'France' },
+  { ticker:'^STOXX50E', name:'Euro Stoxx 50',    region:'Eurozone' },
+  { ticker:'^N225',     name:'Nikkei 225',       region:'Japan' }
+];
+
+
+// ── Yahoo Finance: shared parser + batch fetcher ──────────────
+// This is the core building block behind the v7 speedup. Every Yahoo
+// Finance call (US stocks, Greek, ETFs, indices) goes through this same
+// parser now, whether fetched individually or in a batch.
+
+// Float comparison that scales with magnitude. A fixed epsilon cannot work
+// across a $34 ETF and a 63,000-point index: 0.005 is a real move on one and
+// rounding noise on the other. Yahoo's regularMarketPrice and its own final
+// bar routinely disagree in the 4th decimal (^RUT: 2870.285 vs 2870.2900390625,
+// a gap of 0.005039 that a hard-coded 0.005 threshold missed by a hair, pinning
+// the daily change at exactly 0.00%).
+function approxEqual(a, b) {
+  if (a === null || b === null || a === undefined || b === undefined) return false;
+  var scale = Math.max(Math.abs(a), Math.abs(b), 1);
+  return Math.abs(a - b) / scale < 0.0001; // within 1 basis point
+}
+
+function emptyYahooResult() {
+  return {
+    price1w:null, price1m:null, price3m:null, priceYTD:null,
+    wkHigh:null,  wkLow:null,   high52:null,  low52:null,
+    pct1w:null,   pct1m:null,   pct3m:null,   pctYTD:null,
+    rsi14:null,   ma50:null,    aboveMa50:null,
+    volSpike:false, avgVolume:null, volTrend:null,
+    spark:[], chart20:[], avg20:null, high20:null, low20:null,
+    pctVsAvg20:null, pos4w:null, pct2w:null, pctPrevWk:null,
+    metaPrice:null, dp:null
+  };
+}
+
+// Parses a Yahoo chart API HTTPResponse. currentPriceHint is the price to
+// use for "vs current price" math (RSI-relative fields don't need it,
+// but MA/20-day/52-week comparisons do). If no hint is given (Greek/ETF/
+// index tickers, which don't have a separate quote source), the price
+// baked into the response's own metadata is used instead — this is what
+// lets those tickers get price + full history from a single Yahoo call.
+function parseYahooChartResponse(resp, currentPriceHint, tickerForLog) {
+  var empty = emptyYahooResult();
+  if (!resp) { empty.failReason = 'no response'; return empty; }
+  try {
+    if (resp.getResponseCode() !== 200) {
+      var code = resp.getResponseCode();
+      Logger.log((tickerForLog||'?') + ' Yahoo HTTP ' + code);
+      // Keeping the reason lets callers report "all 8 got HTTP 429" instead
+      // of an empty section with no explanation.
+      empty.failReason = 'HTTP ' + code;
+      return empty;
+    }
+    var data   = JSON.parse(resp.getContentText());
+    var result = data.chart && data.chart.result && data.chart.result[0];
+    if (!result) { empty.failReason = 'no chart result'; return empty; }
+
+    var meta      = result.meta || {};
+    var metaPrice = meta.regularMarketPrice || null;
+
+    // NOTE: chartPreviousClose is NOT the prior session's close — it is the
+    // close immediately BEFORE THE START OF THE CHART RANGE. With range=1y
+    // that is a year ago, so using it as a fallback turned the "daily"
+    // change into a 1-year return. Yahoo frequently omits previousClose for
+    // index symbols, which is why the indices were the ones showing absurd
+    // daily moves (Dow "+13.53% today"). The real prior close is derived
+    // from the series further down instead; never from chartPreviousClose.
+    var metaPrevClose = meta.previousClose || null;
+    var dp = null; // computed below, once the close series is available
+
+    var currentPrice = currentPriceHint || metaPrice;
+
+    var ts     = result.timestamp || [];
+    var quotes = result.indicators && result.indicators.quote && result.indicators.quote[0];
+    if (!quotes || !ts.length || !currentPrice) {
+      var partial = emptyYahooResult();
+      partial.metaPrice = metaPrice;
+      partial.dp = dp;
+      return partial;
+    }
+
+    var closes  = quotes.close  || [];
+    var highs   = quotes.high   || [];
+    var lows    = quotes.low    || [];
+    var volumes = quotes.volume || [];
+
+    var cleanCloses = closes.filter(function(v){ return v !== null && v !== undefined; });
+
+    var nowSec  = Math.floor(Date.now() / 1000);
+    var jan1    = new Date(); jan1.setMonth(0); jan1.setDate(1); jan1.setHours(0,0,0,0);
+    var jan1Sec = Math.floor(jan1.getTime() / 1000);
+
+    function closest(targetSec) {
+      var best = 0;
+      for (var i = 0; i < ts.length; i++) {
+        if (ts[i] <= targetSec) best = i; else break;
+      }
+      return best;
+    }
+    function safeVal(arr, i) {
+      var v = arr[i];
+      return (v !== null && v !== undefined) ? Math.round(v * 100) / 100 : null;
+    }
+    // Yahoo's raw close array carries nulls on gap days (holidays, halts,
+    // thin trading). Indexing it directly by date meant that if the target
+    // index happened to land on a null, the whole period return came back
+    // null — which is why most ATHEX names had no 1W figure at all while
+    // US names mostly survived. Walk outward to the nearest real close,
+    // preferring older (so the window is never shorter than asked for).
+    function nearestVal(arr, i) {
+      var direct = safeVal(arr, i);
+      if (direct !== null) return direct;
+      for (var d = 1; d <= 10; d++) {
+        var back = safeVal(arr, i - d);
+        if (back !== null) return back;
+        var fwd = safeVal(arr, i + d);
+        if (fwd !== null) return fwd;
+      }
+      return null;
+    }
+
+    var i1w  = closest(nowSec - 7  * 24 * 3600);
+    var i1m  = closest(nowSec - 32 * 24 * 3600);
+    var i3m  = closest(nowSec - 96 * 24 * 3600);
+    var iYTD = closest(jan1Sec);
+
+    var price1w  = nearestVal(closes, i1w);
+    var price1m  = nearestVal(closes, i1m);
+    var price3m  = nearestVal(closes, i3m);
+    var priceYTD = nearestVal(closes, iYTD);
+
+    var validH  = highs.filter(function(v){ return v !== null; });
+    var validL  = lows.filter(function(v){ return v !== null; });
+    var high52  = validH.length ? Math.round(Math.max.apply(null, validH) * 100) / 100 : null;
+    var low52   = validL.length ? Math.round(Math.min.apply(null, validL) * 100) / 100 : null;
+    var last5h  = highs.slice(-5).filter(function(v){ return v !== null; });
+    var last5l  = lows.slice(-5).filter(function(v){ return v !== null; });
+    var wkHigh  = last5h.length ? Math.round(Math.max.apply(null, last5h) * 100) / 100 : null;
+    var wkLow   = last5l.length ? Math.round(Math.min.apply(null, last5l) * 100) / 100 : null;
+
+    var rsi14 = null;
+    if (cleanCloses.length >= 15) {
+      var gains = 0, losses = 0;
+      for (var i = cleanCloses.length - 14; i < cleanCloses.length; i++) {
+        var chg = cleanCloses[i] - cleanCloses[i - 1];
+        if (chg > 0) gains  += chg;
+        else         losses -= chg;
+      }
+      var avgGain = gains  / 14;
+      var avgLoss = losses / 14;
+      if (avgLoss === 0) rsi14 = 100;
+      else { var rs = avgGain / avgLoss; rsi14 = Math.round((100 - (100 / (1 + rs))) * 10) / 10; }
+    }
+
+    var ma50 = null, aboveMa50 = null;
+    if (cleanCloses.length >= 50) {
+      var sum50 = 0;
+      for (var j = cleanCloses.length - 50; j < cleanCloses.length; j++) sum50 += cleanCloses[j];
+      ma50      = Math.round((sum50 / 50) * 100) / 100;
+      aboveMa50 = currentPrice > ma50;
+    }
+
+    var volSpike = false, avgVolume = null;
+    var validVols = volumes.filter(function(v){ return v !== null && v > 0; });
+    if (validVols.length >= 20) {
+      var recentVols20 = validVols.slice(-20);
+      var avgVol = recentVols20.reduce(function(a, b){ return a + b; }, 0) / recentVols20.length;
+      var lastVol = validVols[validVols.length - 1];
+      avgVolume = Math.round(avgVol);
+      volSpike  = lastVol > avgVol * 1.5;
+    }
+
+    function pct(base) {
+      return (base && base > 0) ? Math.round(((currentPrice - base) / base) * 10000) / 100 : null;
+    }
+
+    var validCloses = closes.filter(function(v){ return v !== null && v !== undefined; });
+    var spark = [], chart20 = [];
+    if (validCloses.length >= 5)  spark   = validCloses.slice(-5).map(function(v){ return Math.round(v * 100) / 100; });
+    if (validCloses.length >= 20) chart20 = validCloses.slice(-20).map(function(v){ return Math.round(v * 100) / 100; });
+
+    var avg20 = null, high20 = null, low20 = null, pctVsAvg20 = null;
+    if (chart20.length >= 20) {
+      var sum20 = chart20.reduce(function(a,b){ return a+b; }, 0);
+      avg20 = Math.round((sum20 / chart20.length) * 100) / 100;
+      high20 = Math.round(Math.max.apply(null, chart20) * 100) / 100;
+      low20  = Math.round(Math.min.apply(null, chart20) * 100) / 100;
+      pctVsAvg20 = Math.round(((currentPrice - avg20) / avg20) * 10000) / 100;
+    }
+
+    var pos4w = null;
+    if (high20 && low20 && high20 > low20) {
+      pos4w = Math.round(((currentPrice - low20) / (high20 - low20)) * 100);
+    }
+
+    // Prior-session close, derived from the series when Yahoo does not
+    // supply previousClose. During an open session the final bar is today's
+    // partial candle, so the prior close is the one before it.
+    // Yahoo sometimes returns previousClose IDENTICAL to regularMarketPrice
+    // (seen consistently on ^RUT), which yields a permanent 0.00% daily
+    // move. A prior close exactly equal to the current price is not a real
+    // reading, so treat it as missing and derive from the series instead.
+    var prevClose = metaPrevClose;
+    if (prevClose && metaPrice && approxEqual(metaPrice, prevClose)) {
+      Logger.log((tickerForLog||'?') + ': previousClose equals current price — deriving from series.');
+      prevClose = null;
+    }
+    if (!prevClose && validCloses.length >= 2) {
+      // If the final bar IS the current price, that bar is today (or the
+      // most recent session) and the prior close is the bar before it.
+      var lastClose = validCloses[validCloses.length - 1];
+      prevClose = (currentPrice && approxEqual(currentPrice, lastClose))
+        ? validCloses[validCloses.length - 2]
+        : lastClose;
+    }
+    dp = (metaPrice && prevClose) ? Math.round(((metaPrice - prevClose) / prevClose) * 10000) / 100 : null;
+
+    // Two distinct figures, previously conflated into one wrong one:
+    //   pct2w      = true 2-week return (current price vs 10 sessions ago)
+    //   pctPrevWk  = the PRIOR week's return (t-5 vs t-10), which is what
+    //                the MOM acceleration badge compares this week against.
+    // The old code computed (t-6 vs t-10) and labelled it both ways — a
+    // 4-session window that had already ended a week ago.
+    var price2w = null, pct2w = null, pctPrevWk = null;
+    var n = validCloses.length;
+    if (n >= 11) {
+      price2w = validCloses[n - 11];
+      if (price2w > 0) {
+        pct2w     = Math.round(((currentPrice - price2w) / price2w) * 10000) / 100;
+        pctPrevWk = Math.round(((validCloses[n - 6] - price2w) / price2w) * 10000) / 100;
+      }
+    }
+
+    var volTrend = null;
+    if (volumes && volumes.length >= 20) {
+      var recentVols  = volumes.slice(-5).filter(function(v){ return v > 0; });
+      var earlierVols = volumes.slice(-20,-5).filter(function(v){ return v > 0; });
+      if (recentVols.length >= 3 && earlierVols.length >= 5) {
+        var avgRecent  = recentVols.reduce(function(a,b){ return a+b; },0) / recentVols.length;
+        var avgEarlier = earlierVols.reduce(function(a,b){ return a+b; },0) / earlierVols.length;
+        var volRatio   = avgEarlier > 0 ? Math.round((avgRecent / avgEarlier) * 100) / 100 : null;
+        volTrend = volRatio >= 1.3 ? 'building' : volRatio <= 0.7 ? 'fading' : 'normal';
+      }
+    }
+
+    return {
+      price1w: price1w,  price1m: price1m,  price3m: price3m,  priceYTD: priceYTD,
+      price2w: price2w,  pct2w:   pct2w,    pctPrevWk: pctPrevWk,
+      wkHigh:  wkHigh,   wkLow:   wkLow,    high52:  high52,   low52:    low52,
+      pct1w:   pct(price1w), pct1m: pct(price1m), pct3m: pct(price3m), pctYTD: pct(priceYTD),
+      rsi14:   rsi14,   ma50:    ma50,      aboveMa50: aboveMa50,
+      volSpike: volSpike, avgVolume: avgVolume, volTrend: volTrend,
+      spark:   spark,   chart20: chart20,
+      avg20:   avg20,   high20:  high20,   low20: low20,
+      pctVsAvg20: pctVsAvg20, pos4w: pos4w,
+      metaPrice: metaPrice, dp: dp
+    };
+  } catch(e) {
+    Logger.log((tickerForLog||'?') + ' Yahoo parse error: ' + e.message);
+    return empty;
+  }
+}
+
+// Single-ticker fetch (used for SPY). Kept simple and sequential since
+// it's just one call.
+function fetchYahooCandles(ticker, currentPrice) {
+  try {
+    var url  = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(ticker) + '?interval=1d&range=1y';
+    var resp = UrlFetchApp.fetch(url, { method: 'get', headers: { 'User-Agent': 'Mozilla/5.0' }, muteHttpExceptions: true });
+    return parseYahooChartResponse(resp, currentPrice, ticker);
+  } catch(e) {
+    Logger.log(ticker + ' Yahoo error: ' + e.message);
+    return parseYahooChartResponse(null, currentPrice, ticker);
+  }
+}
+
+// Batched/parallel fetch for many tickers at once via UrlFetchApp.fetchAll().
+// priceMap (optional) supplies a known current price per ticker (US stocks,
+// where Finnhub already gave us a quote); tickers without an entry fall
+// back to the price baked into their own Yahoo response metadata.
+// ── Yahoo pacing ─────────────────────────────────────────────
+// A full run touches ~73 Yahoo URLs. Previously that went out as 6 bursts
+// of up to 20 simultaneous connections roughly 300ms apart — the entire
+// run inside about two seconds. Yahoo throttles by IP and occasionally
+// rejected a whole burst, which is what wiped all 15 Greek names in one
+// go while the batches either side survived.
+//
+// Smaller batches, real gaps between them, and a built-in backoff retry
+// so EVERY universe benefits rather than just the two that had bespoke
+// retry code bolted on. Costs roughly 15-20s per run; the run has ~5
+// minutes of headroom.
+var YAHOO_BATCH_SIZE  = 8;
+var YAHOO_BATCH_PAUSE = 1200;   // between batches within one universe
+var YAHOO_RETRY_WAITS = [4000, 9000]; // backoff before each retry pass
+
+function yahooChartUrl(ticker, raw) {
+  return 'https://query1.finance.yahoo.com/v8/finance/chart/' +
+         (raw ? ticker : encodeURIComponent(ticker)) + '?interval=1d&range=1y';
+}
+
+// One parallel pass over the supplied tickers. No retry logic here — the
+// caller owns that.
+function yahooOnePass(tickers, priceMap, raw) {
+  var results = {};
+  for (var i = 0; i < tickers.length; i += YAHOO_BATCH_SIZE) {
+    var batch = tickers.slice(i, i + YAHOO_BATCH_SIZE);
+    var requests = batch.map(function(t) {
+      return { url: yahooChartUrl(t, raw), method: 'get',
+               headers: { 'User-Agent': 'Mozilla/5.0' }, muteHttpExceptions: true };
+    });
+    var responses;
+    try {
+      responses = UrlFetchApp.fetchAll(requests);
+    } catch(e) {
+      Logger.log('Yahoo batch fetch error: ' + e.message);
+      responses = batch.map(function(){ return null; });
+    }
+    for (var j = 0; j < batch.length; j++) {
+      var t = batch[j];
+      var priceHint = (priceMap && priceMap[t]) ? priceMap[t] : null;
+      results[t] = parseYahooChartResponse(responses[j], priceHint, t);
+    }
+    if (i + YAHOO_BATCH_SIZE < tickers.length) Utilities.sleep(YAHOO_BATCH_PAUSE);
+  }
+  return results;
+}
+
+// Batched fetch with automatic backoff retry for anything that comes back
+// without a price. label is only used for logging.
+function fetchYahooBatch(tickers, priceMap, label) {
+  label = label || 'yahoo';
+  var results = yahooOnePass(tickers, priceMap, false);
+
+  function missing() {
+    return tickers.filter(function(t){
+      var y = results[t]; return !y || !y.metaPrice;
+    });
+  }
+
+  var gaps = missing();
+  for (var attempt = 0; attempt < YAHOO_RETRY_WAITS.length && gaps.length; attempt++) {
+    Logger.log(label + ': ' + gaps.length + ' of ' + tickers.length +
+      ' missing after pass ' + (attempt + 1) + ' (' +
+      gaps.slice(0, 5).map(function(t){
+        var y = results[t];
+        return t + '=' + ((y && y.failReason) ? y.failReason : 'no price');
+      }).join(', ') + (gaps.length > 5 ? ', ...' : '') + ') — backing off ' +
+      (YAHOO_RETRY_WAITS[attempt] / 1000) + 's.');
+
+    Utilities.sleep(YAHOO_RETRY_WAITS[attempt]);
+    var retried = yahooOnePass(gaps, priceMap, false);
+    gaps.forEach(function(t){
+      if (retried[t] && retried[t].metaPrice) results[t] = retried[t];
+    });
+    var before = gaps.length;
+    gaps = missing();
+    Logger.log(label + ': retry ' + (attempt + 1) + ' recovered ' +
+               (before - gaps.length) + ' of ' + before + '.');
+  }
+  return results;
+}
+
+function fetchETFData() {
+  var results = [];
+  var etfErrors = [];
+  var tickers = ETF_LIST.map(function(e){ return e.ticker; });
+  var yahooResults = fetchYahooBatch(tickers, null, 'ETFs');
+
+  ETF_LIST.forEach(function(etf) {
+    var yData = yahooResults[etf.ticker];
+    if (!yData || !yData.metaPrice) {
+      var whyEtf = (yData && yData.failReason) ? yData.failReason : 'no price in response';
+      Logger.log(etf.ticker + ' ETF: ' + whyEtf);
+      etfErrors.push(etf.ticker + ' (' + whyEtf + ')');
+      return;
+    }
+    var price = Math.round(yData.metaPrice * 100) / 100;
+
+    var pos52w = (yData.high52 && yData.low52 && yData.high52 > yData.low52)
+      ? Math.round(((price - yData.low52) / (yData.high52 - yData.low52)) * 100) : null;
+
+    results.push({
+      ticker:      etf.ticker,
+      name:        etf.name,
+      category:    etf.category,
+      expense:     etf.expense,
+      desc:        etf.desc,
+      price:       price,
+      pct_1w:      yData.pct1w,
+      pct_1m:      yData.pct1m,
+      pct_3m:      yData.pct3m,
+      pct_ytd:     yData.pctYTD,
+      high_52w:    yData.high52,
+      low_52w:     yData.low52,
+      pos_52w:     pos52w,
+      rsi14:       yData.rsi14,
+      ma50:        yData.ma50,
+      above_ma50:  yData.aboveMa50,
+      vol_spike:   yData.volSpike,
+      spark:       yData.spark   || [],
+      chart20:     yData.chart20 || [],
+      avg20:       yData.avg20,
+      high20:      yData.high20,
+      low20:       yData.low20,
+      pct_vs_avg20:yData.pctVsAvg20,
+      pos_4w:      yData.pos4w,
+      vol_trend:   yData.volTrend,
+      alert:       Math.abs(yData.pct1w || 0) >= 3
+    });
+    Logger.log(etf.ticker + ' ETF: $' + price + ' 1W:' + yData.pct1w + '%');
+  });
+  results.__errors = etfErrors;
+  return results;
+}
+
+
+function fetchGreekStocks() {
+  var stocks = [];
+  var errors = [];
+  var yahooResults = fetchYahooBatch(GREEK_TICKERS, null, 'Greek');
+
+  GREEK_TICKERS.forEach(function(ticker) {
+    var yData = yahooResults[ticker];
+    if (!yData || !yData.metaPrice) {
+      // Carry the reason, not just the name. "EUROB" tells you nothing;
+      // "EUROB (HTTP 429)" tells you it was throttling and will pass.
+      var why = (yData && yData.failReason) ? yData.failReason : 'no price in response';
+      errors.push(ticker.replace('.AT','') + ' (' + why + ')');
+      Logger.log(ticker + ' Greek: ' + why);
+      return;
+    }
+    var price = Math.round(yData.metaPrice * 100) / 100;
+
+    var pos52w = (yData.high52 && yData.low52 && yData.high52 > yData.low52)
+      ? Math.round(((price - yData.low52) / (yData.high52 - yData.low52)) * 100) : null;
+
+    var displayTicker = ticker.replace('.AT','');
+
+    stocks.push({
+      rank:        0,
+      company:     GREEK_NAMES[ticker]   || ticker,
+      ticker:      displayTicker,
+      full_ticker: ticker,
+      sector:      GREEK_SECTORS[ticker] || 'Other',
+      currency:    'EUR',
+      price:       price,
+      price_1w:    yData.price1w,  pct_1w:  yData.pct1w,
+      price_1m:    yData.price1m,  pct_1m:  yData.pct1m,
+      price_3m:    yData.price3m,  pct_3m:  yData.pct3m,
+      price_ytd:   yData.priceYTD, pct_ytd: yData.pctYTD,
+      high_52w:    yData.high52,   low_52w: yData.low52,
+      pos_52w:     pos52w,
+      rsi14:       yData.rsi14,
+      ma50:        yData.ma50,
+      above_ma50:  yData.aboveMa50,
+      vol_spike:   yData.volSpike,
+      chart20:     yData.chart20 || [],
+      avg20:       yData.avg20,
+      high20:      yData.high20,
+      low20:       yData.low20,
+      pct_vs_avg20:yData.pctVsAvg20,
+      pos_4w:      yData.pos4w,
+      pct_2w:      yData.pct2w,
+      pct_prev_wk: yData.pctPrevWk,
+      vol_trend:   yData.volTrend,
+      spark:       yData.spark || [],
+      signal:      'NEUTRAL',
+      score:       0,
+      alert:       Math.abs(yData.pct1w || 0) >= 5
+    });
+  });
+
+  // Dropped tickers used to go to the log only, so the UI just showed a
+  // smaller "Tracked" count with no hint that anything had failed. Carry
+  // them out so the dashboard can say so.
+  if (errors.length) Logger.log('Greek errors: ' + errors.join(', '));
+
+  stocks.sort(function(a,b){
+    return GREEK_TICKERS.indexOf(a.full_ticker) - GREEK_TICKERS.indexOf(b.full_ticker);
+  });
+  stocks.forEach(function(s,i){ s.rank = i+1; });
+  var scored = computeGreekScores(stocks);
+  scored.__errors = errors;
+  return scored;
+}
+
+function computeGreekScores(stocks) {
+  var rankNorm = rankNormalize;
+  var r1w  = rankNorm(stocks,'pct_1w', true);
+  var r1m  = rankNorm(stocks,'pct_1m', true);
+  var rYTD = rankNorm(stocks,'pct_ytd',true);
+  var r52  = rankNorm(stocks,'pos_52w',true);
+  var rValue = rankNorm(stocks,'pos_52w', false);
+  return stocks.map(function(s){
+    var t  = s.ticker;
+    var sc = Math.round(
+      (r1w[t] !==undefined?r1w[t] :0.5)*35+
+      (r1m[t] !==undefined?r1m[t] :0.5)*30+
+      (rYTD[t]!==undefined?rYTD[t]:0.5)*20+
+      (r52[t] !==undefined?r52[t] :0.5)*15
+    );
+    s.score  = sc;
+    s.signal = sc>=72?'STRONG':sc>=45?'NEUTRAL':'WEAK';
+    s.grade_momentum = gradeFromPercentile(r1w[t]);
+    s.grade_trend    = gradeFromPercentile(r1m[t]);
+    s.grade_value    = gradeFromPercentile(rValue[t]);
+    return s;
+  });
+}
+
+
+function fetchIndices() {
+  var results = [];
+  var errors  = [];
+  var tickers = INDEX_LIST.map(function(i){ return i.ticker; });
+
+  // fetchYahooBatch already handles throttling with backoff retries. What
+  // remains index-specific is the caret: encodeURIComponent turns ^DJI into
+  // %5EDJI, which Yahoo normally accepts but has been seen to reject. So the
+  // last-resort pass sends the symbol unencoded — a different failure mode
+  // from rate limiting, hence still worth keeping.
+  var yahooResults = fetchYahooBatch(tickers, null, 'Indices');
+
+  var retry = tickers.filter(function(t){
+    var y = yahooResults[t];
+    return !y || !y.metaPrice;
+  });
+  if (retry.length) {
+    Logger.log('Indices: ' + retry.length + ' still missing — trying unencoded symbols.');
+    Utilities.sleep(2000);
+    var retryResults = fetchYahooBatchRaw(retry);
+    retry.forEach(function(t){
+      if (retryResults[t] && retryResults[t].metaPrice) yahooResults[t] = retryResults[t];
+    });
+  }
+
+  INDEX_LIST.forEach(function(idx) {
+    var yData = yahooResults[idx.ticker];
+    if (!yData || !yData.metaPrice) {
+      var why = (yData && yData.failReason) ? yData.failReason : 'no price in response';
+      Logger.log(idx.ticker + ' index: ' + why);
+      errors.push(idx.name + ' (' + why + ')');
+      return;
+    }
+    results.push({
+      ticker:  idx.ticker,
+      name:    idx.name,
+      region:  idx.region,
+      price:   Math.round(yData.metaPrice * 100) / 100,
+      dp:      yData.dp,
+      pct_1w:  yData.pct1w,
+      pct_1m:  yData.pct1m,
+      pct_ytd: yData.pctYTD,
+      chart20: yData.chart20 || []
+    });
+    Logger.log(idx.name + ': ' + yData.metaPrice + ' (' + yData.dp + '%)');
+  });
+  results.__errors = errors;
+  return results;
+}
+
+// Dumps the raw Yahoo fields behind one ticker's daily-change figure.
+// Run debugIndex('^RUT') when a "Today" number looks wrong — this shows
+// what Yahoo actually returned rather than what we inferred from it.
+function debugIndex(ticker) {
+  ticker = ticker || '^RUT';
+  var url  = 'https://query1.finance.yahoo.com/v8/finance/chart/' +
+             encodeURIComponent(ticker) + '?interval=1d&range=1y';
+  var resp = UrlFetchApp.fetch(url, {
+    method:'get', headers:{ 'User-Agent':'Mozilla/5.0' }, muteHttpExceptions:true });
+
+  Logger.log('=== debugIndex ' + ticker + ' ===');
+  Logger.log('HTTP ' + resp.getResponseCode());
+  if (resp.getResponseCode() !== 200) return;
+
+  var r = (JSON.parse(resp.getContentText()).chart || {}).result;
+  if (!r || !r[0]) { Logger.log('no chart result'); return; }
+  var meta   = r[0].meta || {};
+  var ts     = r[0].timestamp || [];
+  var closes = (r[0].indicators && r[0].indicators.quote &&
+                r[0].indicators.quote[0] && r[0].indicators.quote[0].close) || [];
+
+  Logger.log('meta.regularMarketPrice  = ' + meta.regularMarketPrice);
+  Logger.log('meta.previousClose       = ' + meta.previousClose);
+  Logger.log('meta.chartPreviousClose  = ' + meta.chartPreviousClose);
+  Logger.log('meta.regularMarketTime   = ' + (meta.regularMarketTime
+    ? new Date(meta.regularMarketTime * 1000).toISOString() : 'n/a'));
+  Logger.log('bars in series           = ' + ts.length);
+
+  // The last few daily bars, with nulls shown. A trailing bar equal to the
+  // one before it (common pre-open, when Yahoo seeds today's bar with
+  // yesterday's close) is what would pin the daily change at exactly 0.
+  var n = ts.length;
+  for (var i = Math.max(0, n - 5); i < n; i++) {
+    Logger.log('  bar[' + i + '] ' +
+      new Date(ts[i] * 1000).toISOString().substring(0, 10) +
+      '  close=' + (closes[i] === null || closes[i] === undefined ? 'null' : closes[i]));
+  }
+
+  var valid = closes.filter(function(v){ return v !== null && v !== undefined; });
+  Logger.log('last two valid closes    = ' + valid[valid.length-2] + ', ' + valid[valid.length-1]);
+  Logger.log('--- what the parser produces ---');
+  var parsed = parseYahooChartResponse(resp, null, ticker);
+  Logger.log('dp = ' + parsed.dp + '  pct1w = ' + parsed.pct1w + '  pctYTD = ' + parsed.pctYTD);
+}
+
+// Dropdown-runnable wrappers for debugIndex (the Run menu cannot pass
+// arguments). Use these when a whole universe comes back empty.
+function debugGreek()  { debugIndex('EUROB.AT'); }
+function debugETF()    { debugIndex('VOO'); }
+function debugRussell(){ debugIndex('^RUT'); }
+
+// Fetches every Greek ticker one at a time and reports exactly what each
+// returns. A batch failure and 15 individually-dead symbols look identical
+// in the normal log; this tells them apart.
+function debugGreekAll() {
+  Logger.log('=== Greek tickers, fetched individually ===');
+  var ok = 0, bad = 0;
+  GREEK_TICKERS.forEach(function(t) {
+    Utilities.sleep(400);
+    var url = 'https://query1.finance.yahoo.com/v8/finance/chart/' +
+              encodeURIComponent(t) + '?interval=1d&range=5d';
+    var r;
+    try {
+      r = UrlFetchApp.fetch(url, { method:'get',
+        headers:{ 'User-Agent':'Mozilla/5.0' }, muteHttpExceptions:true });
+    } catch(e) {
+      Logger.log(t + '  EXCEPTION ' + e.message); bad++; return;
+    }
+    var code = r.getResponseCode();
+    if (code !== 200) { Logger.log(t + '  HTTP ' + code); bad++; return; }
+    var price = null;
+    try {
+      var res = (JSON.parse(r.getContentText()).chart || {}).result;
+      price = res && res[0] && res[0].meta ? res[0].meta.regularMarketPrice : null;
+    } catch(e) {}
+    if (price) { Logger.log(t + '  OK  ' + price); ok++; }
+    else       { Logger.log(t + '  HTTP 200 but no regularMarketPrice'); bad++; }
+  });
+  Logger.log('--- ' + ok + ' OK, ' + bad + ' failed ---');
+  if (ok > 0 && bad === 0) {
+    Logger.log('All symbols work individually, so the digest failure was a ' +
+               'transient batch rejection — the new retry should absorb it.');
+  } else if (bad === GREEK_TICKERS.length) {
+    Logger.log('Every symbol fails even individually — Yahoo is blocking this ' +
+               'script, or ATHEX data is down. Try again in an hour.');
+  }
+}
+
+function fetchMetals() {
+  var results = [];
+  var errors  = [];
+  var tickers = METAL_LIST.map(function(m){ return m.ticker; });
+  var yahooResults = fetchYahooBatch(tickers, null, 'Metals');
+
+  // Futures symbols contain '=' which encodeURIComponent turns into %3D.
+  // Yahoo normally accepts that, but it rejected the percent-encoded caret
+  // on index symbols, so the same unencoded fallback applies here rather
+  // than assuming this one is fine.
+  var retry = tickers.filter(function(t){
+    var y = yahooResults[t]; return !y || !y.metaPrice;
+  });
+  if (retry.length) {
+    Logger.log('Metals: ' + retry.length + ' missing — retrying with unencoded symbols.');
+    Utilities.sleep(2000);
+    var raw = fetchYahooBatchRaw(retry);
+    retry.forEach(function(t){
+      if (raw[t] && raw[t].metaPrice) yahooResults[t] = raw[t];
+    });
+  }
+
+  METAL_LIST.forEach(function(mt) {
+    var y = yahooResults[mt.ticker];
+    if (!y || !y.metaPrice) {
+      var why = (y && y.failReason) ? y.failReason : 'no price in response';
+      Logger.log(mt.ticker + ' metal: ' + why);
+      errors.push(mt.name + ' (' + why + ')');
+      return;
+    }
+    var price = Math.round(y.metaPrice * 100) / 100;
+    var pos52 = (y.high52 && y.low52 && y.high52 > y.low52)
+      ? Math.round(((price - y.low52) / (y.high52 - y.low52)) * 100) : null;
+
+    results.push({
+      ticker:     mt.ticker,
+      name:       mt.name,
+      unit:       mt.unit,
+      group:      mt.group,
+      desc:       mt.desc,
+      price:      price,
+      dp:         y.dp,
+      pct_1w:     y.pct1w,
+      pct_1m:     y.pct1m,
+      pct_3m:     y.pct3m,
+      pct_ytd:    y.pctYTD,
+      high_52w:   y.high52,
+      low_52w:    y.low52,
+      pos_52w:    pos52,
+      rsi14:      y.rsi14,
+      ma50:       y.ma50,
+      above_ma50: y.aboveMa50,
+      chart20:    y.chart20 || []
+    });
+    Logger.log(mt.name + ': ' + price + ' (' + y.dp + '%)');
+  });
+
+  // Gold/silver ratio — how many ounces of silver buy one of gold. A
+  // long-standing relative-value gauge: historically high means silver is
+  // cheap against gold, and vice versa.
+  var gold   = results.filter(function(r){ return r.ticker === 'GC=F'; })[0];
+  var silver = results.filter(function(r){ return r.ticker === 'SI=F'; })[0];
+  results.__ratio = (gold && silver && silver.price > 0)
+    ? Math.round((gold.price / silver.price) * 10) / 10 : null;
+  results.__errors = errors;
+  return results;
+}
+
+// Same as fetchYahooBatch but sends the symbol unencoded. Used only as a
+// retry for caret-prefixed index symbols.
+function fetchYahooBatchRaw(tickers) {
+  return yahooOnePass(tickers, null, true);
+}
+
+
+// ── Stock news (Finnhub) ──────────────────────────────────────
+function fetchStockNews(ticker) {
+  var apiKey = PropertiesService.getScriptProperties().getProperty(FINNHUB_KEY_PROP);
+  var to   = Utilities.formatDate(new Date(), 'UTC', 'yyyy-MM-dd');
+  var from = Utilities.formatDate(new Date(Date.now() - 7*24*60*60*1000), 'UTC', 'yyyy-MM-dd');
+  try {
+    var resp = UrlFetchApp.fetch(
+      'https://finnhub.io/api/v1/company-news?symbol='+ticker+'&from='+from+'&to='+to+'&token='+apiKey,
+      { method:'get', muteHttpExceptions:true }
+    );
+    if (resp.getResponseCode() !== 200) return [];
+    var items = JSON.parse(resp.getContentText());
+    return items.slice(0,3).map(function(n){
+      return { headline: n.headline, source: n.source, url: n.url, time: n.datetime };
+    });
+  } catch(e) { return []; }
+}
+
+// ── Master orchestrator ──────────────────────────────────────
+function fetchAndStore() {
+  var result = {
+    stocks: [], best_week: [], worst_week: [],
+    best_month: [], events: [],
+    spy: null, sector_heatmap: [], dividends: [],
+    greek: [], etfs: [], indices: [], metals: [], warnings: []
+  };
+
+  result.spy = fetchSingleQuote('SPY');
+
+  var priceData = fetchAllStocks();
+  if (priceData.error) return { error: priceData.error };
+  result.stocks = priceData.stocks;
+  Logger.log('US stocks fetched: ' + result.stocks.length + ' of ' + TICKERS.length);
+  if (priceData.warning) {
+    result.warnings.push(priceData.warning);
+    // Previously this only travelled in the payload, so a run that quietly
+    // lost a third of the universe looked identical in the log to a clean one.
+    Logger.log('WARNING: ' + priceData.warning);
+    Logger.log('Missing tickers usually means Finnhub rate limiting — avoid running ' +
+               'fetchAndStore repeatedly in quick succession.');
+  }
+
+  result.stocks = computeScoresAndSignals(result.stocks, result.spy);
+
+  var eventsData = fetchFinnhubEarnings();
+  if (eventsData.error) {
+    result.warnings.push('Earnings calendar unavailable: ' + eventsData.error);
+    result.events = [];
+  } else {
+    result.events = eventsData.events;
+    var earningsSoon = {};
+    result.events.forEach(function(e) {
+      var daysAway = daysUntilDate(e.date);
+      if (daysAway !== null && daysAway >= 0 && daysAway <= 14) earningsSoon[e.tickers] = daysAway;
+    });
+    result.stocks = result.stocks.map(function(s) {
+      s.earnings_days = earningsSoon[s.ticker] !== undefined ? earningsSoon[s.ticker] : null;
+      return s;
+    });
+  }
+
+  result.stocks = result.stocks.map(function(s) {
+    s.alert = Math.abs(s.pct_1w || 0) >= 5;
+    return s;
+  });
+
+  result.sector_heatmap = buildSectorHeatmap(result.stocks);
+
+  result.stocks = result.stocks.map(function(s) {
+    if (s.alert) {
+      Utilities.sleep(150);
+      s.news = fetchStockNews(s.ticker);
+    } else {
+      s.news = [];
+    }
+    return s;
+  });
+
+  try {
+    result.dividends = fetchDividendData();
+    Logger.log('Dividends fetched: ' + result.dividends.length + ' paying stocks');
+  } catch(e) {
+    result.warnings.push('Dividend data unavailable: ' + e.message);
+    result.dividends = [];
+  }
+
+  result.best_week  = autoInsights(result.stocks, 'pct_1w', 5, true);
+  result.worst_week = autoInsights(result.stocks, 'pct_1w', 5, false);
+  result.best_month = autoInsights(result.stocks, 'pct_1m', 5, true);
+
+  Utilities.sleep(2000); // gap between universes, not just between batches
+  try {
+    var greekResult = fetchGreekStocks();
+    result.greek        = greekResult;
+    result.greek_errors = greekResult.__errors || [];
+    if (result.greek_errors.length) {
+      result.warnings.push('Greek tickers unavailable: ' + result.greek_errors.join(', '));
+    }
+    Logger.log('Greek stocks fetched: ' + result.greek.length);
+  } catch(e) {
+    result.warnings.push('Greek stocks unavailable: ' + e.message);
+    result.greek = [];
+  }
+
+  Utilities.sleep(2000);
+  try {
+    result.etfs = fetchETFData();
+    result.etf_errors = result.etfs.__errors || [];
+    if (result.etf_errors.length) {
+      result.warnings.push('ETFs unavailable: ' + result.etf_errors.join('; '));
+    }
+    Logger.log('ETFs fetched: ' + result.etfs.length);
+  } catch(e) {
+    result.warnings.push('ETF data unavailable: ' + e.message);
+    result.etfs = [];
+  }
+
+  Utilities.sleep(2000);
+  try {
+    result.metals = fetchMetals();
+    result.metal_ratio  = result.metals.__ratio || null;
+    result.metal_errors = result.metals.__errors || [];
+    if (result.metal_errors.length) {
+      result.warnings.push('Metals unavailable: ' + result.metal_errors.join('; '));
+    }
+    Logger.log('Metals fetched: ' + result.metals.length);
+  } catch(e) {
+    result.warnings.push('Metals unavailable: ' + e.message);
+    result.metals = [];
+  }
+
+  Utilities.sleep(2000);
+  try {
+    result.indices = fetchIndices();
+    result.index_errors = result.indices.__errors || [];
+    if (result.index_errors.length) {
+      result.warnings.push('Indices unavailable: ' + result.index_errors.join('; '));
+    }
+    Logger.log('Indices fetched: ' + result.indices.length);
+  } catch(e) {
+    result.warnings.push('Indices unavailable: ' + e.message);
+    result.indices = [];
+  }
+
+  // Stamp timing / exit / conviction onto every instrument so the frontend
+  // and the email read the same values instead of each deriving their own.
+  // Runs last, after earnings_days and scores are populated, because both
+  // feed the labels.
+  ['stocks', 'greek', 'etfs'].forEach(function(key) {
+    (result[key] || []).forEach(function(item) {
+      item.timing     = computeTimingLabel(item);
+      item.exit_label = computeExitLabel(item);
+      item.conviction = (item.timing === 'Possible Entry' || item.timing === 'Oversold Watch')
+        ? digestEntryConviction(item)
+        : digestExitConviction(item, item.exit_label);
+    });
+  });
+
+  var ts = Utilities.formatDate(new Date(), 'Europe/Athens', "dd-MM-yyyy HH:mm:ss 'Athens'");
+  result.lastUpdated = ts;
+  var jsonStr = JSON.stringify(result);
+
+  var pushed = pushToGitHub(jsonStr);
+  if (!pushed) {
+    Logger.log('GitHub push failed');
+    // This is the failure mode that hides: the digest reads MARKET_DATA
+    // from Script Properties and keeps looking healthy, while the website
+    // reads data.json from GitHub and quietly serves whatever was last
+    // pushed. Surface it where it will actually be seen.
+    result.warnings.push('GitHub push FAILED — the dashboard website is frozen on older data ' +
+      'even though this email is current. Check the GITHUB_TOKEN script property (tokens expire).');
+  }
+
+  Logger.log('Payload: ' + jsonStr.length + ' bytes — ' + result.stocks.length + ' US, ' +
+             result.greek.length + ' Greek, ' + result.etfs.length + ' ETFs, ' +
+             result.indices.length + ' indices, ' + result.metals.length + ' metals, ' +
+             result.dividends.length + ' dividends');
+
+  writeChunked(DATA_PROP, jsonStr);
+  PropertiesService.getScriptProperties().setProperty(LAST_UPDATED_PROP, ts);
+
+  return { data: result, lastUpdated: ts };
+}
+
+// ── Fetch SPY quote + candles ────────────────────────────────
+function fetchSingleQuote(ticker) {
+  var apiKey  = PropertiesService.getScriptProperties().getProperty(FINNHUB_KEY_PROP);
+  var options = { method: 'get', muteHttpExceptions: true };
+  var qResp   = UrlFetchApp.fetch(
+    'https://finnhub.io/api/v1/quote?symbol=' + ticker + '&token=' + apiKey, options);
+  if (qResp.getResponseCode() !== 200) return null;
+  var q;
+  try { q = JSON.parse(qResp.getContentText()); } catch(e) { return null; }
+  if (!q.c) return null;
+
+  // Fetch Yahoo's 1-year chart once and reuse the same response both for
+  // the derived RSI/MA-style stats (existing parser) and for the raw daily
+  // closes history. The history is what lets the Portfolio tab compute a
+  // real vs-SPY-since-entry number instead of a placeholder — it needs
+  // SPY's price on an arbitrary past date, which the derived stats alone
+  // don't retain.
+  var history = [];
+  var yData = emptyYahooResult();
+  try {
+    var url  = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(ticker) + '?interval=1d&range=1y';
+    var resp = UrlFetchApp.fetch(url, { method: 'get', headers: { 'User-Agent': 'Mozilla/5.0' }, muteHttpExceptions: true });
+    yData = parseYahooChartResponse(resp, q.c, ticker);
+    if (resp.getResponseCode() === 200) {
+      var raw    = JSON.parse(resp.getContentText());
+      var result = raw.chart && raw.chart.result && raw.chart.result[0];
+      if (result) {
+        var ts     = result.timestamp || [];
+        var closes = (result.indicators && result.indicators.quote && result.indicators.quote[0] && result.indicators.quote[0].close) || [];
+        for (var i = 0; i < ts.length; i++) {
+          if (closes[i] !== null && closes[i] !== undefined) {
+            history.push({ t: ts[i], c: Math.round(closes[i] * 100) / 100 });
+          }
         }
+      }
+    }
+  } catch(e) {
+    Logger.log(ticker + ' history fetch error: ' + e.message);
+  }
 
-    # Primary Semantic Pass via OpenAI
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": CLASSIFICATION_PROMPT},
-                {
-                    "role": "user",
-                    "content": f"Filename: {filename}\n\nDocument Text:\n{pdf_text[:12000]}",  # Pass extensive context
-                },
-            ],
-            temperature=0.0,
-        )
-        result = json.loads(response.choices[0].message.content)
-    except Exception as e:
-        result = {
-            "status": "POTENTIALLY_RELEVANT",
-            "confidence_score": 0.0,
-            "detected_indicators": ["LLM processing error"],
-            "reasoning": f"Defaulted to review due to API processing error: {str(e)}",
+  return {
+    ticker:  ticker,
+    price:   Math.round(q.c * 100) / 100,
+    pct_1w:  yData.pct1w,
+    pct_1m:  yData.pct1m,
+    pct_ytd: yData.pctYTD,
+    dp:      Math.round((q.dp || 0) * 100) / 100,
+    spark:   yData.spark   || [],
+    chart20: yData.chart20 || [],
+    history: history
+  };
+}
+
+// ── Fetch all US stocks (Finnhub quotes sequential, Yahoo batched) ───
+function fetchAllStocks() {
+  var apiKey  = PropertiesService.getScriptProperties().getProperty(FINNHUB_KEY_PROP);
+  if (!apiKey) return { error: 'FINNHUB_API_KEY not set in Script Properties' };
+  var options = { method: 'get', muteHttpExceptions: true };
+  var errors  = [];
+
+  // 1. Finnhub quotes — sequential, respects the hard 60/min limit
+  var quotes = {};
+  TICKERS.forEach(function(ticker) {
+    // 150ms + latency paced this at roughly 150 calls/min against Finnhub's
+    // documented 60/min cap. Over the limit, tickers come back non-200 and
+    // were silently dropped — the symptom was the stored payload shrinking
+    // on each successive run (86KB -> 79KB -> 53KB) as more quotes failed.
+    Utilities.sleep(1000);
+    var qResp = UrlFetchApp.fetch(
+      'https://finnhub.io/api/v1/quote?symbol=' + ticker + '&token=' + apiKey, options);
+    if (qResp.getResponseCode() !== 200) { errors.push(ticker); return; }
+    try {
+      var q = JSON.parse(qResp.getContentText());
+      if (q.c && q.c !== 0) quotes[ticker] = q; else errors.push(ticker);
+    } catch(e) { errors.push(ticker); }
+  });
+
+  // 2. Yahoo candles — batched/parallel (this was the slow part; now fast)
+  var yahooTickers = TICKERS.map(yahooTicker);
+  var priceMap = {};
+  TICKERS.forEach(function(ticker) {
+    if (quotes[ticker]) priceMap[yahooTicker(ticker)] = quotes[ticker].c;
+  });
+  var yahooResults = fetchYahooBatch(yahooTickers, priceMap, 'US stocks');
+
+  // 3. Finnhub profiles (market cap) + metrics (valuation, dividends) —
+  //    cached for a day. These were refetched every hour for data that
+  //    moves quarterly, which was ~2/3 of the Finnhub call budget and put
+  //    the run over the documented 60/min free-tier limit. Rate-limited
+  //    tickers just landed in the errors list as "unavailable".
+  var slowData = getSlowFinnhubData(apiKey);
+  var profiles        = slowData.profiles;
+  var fundamentals    = slowData.fundamentals;
+  var targets         = slowData.targets;
+  var recommendations = slowData.recommendations;
+  if (!slowData.day) Logger.log('WARNING: no slow-data cache — P/E, beta and analyst fields will be null.');
+
+  // 4. Assemble
+  var stocks = [];
+  TICKERS.forEach(function(ticker) {
+    if (!quotes[ticker]) return;
+    var q     = quotes[ticker];
+    var price = Math.round(q.c * 100) / 100;
+    var pc    = q.pc || price;
+    var yData = yahooResults[yahooTicker(ticker)] || emptyYahooResult();
+    var fund  = fundamentals[ticker] || {};
+    var tgt   = targets[ticker]         || {};
+    var rec   = recommendations[ticker] || {};
+    // Street convention: 1 = strong buy through 5 = strong sell.
+    var recLabel = null;
+    if (rec.mean) {
+      recLabel = rec.mean <= 1.5 ? 'Strong Buy'
+               : rec.mean <= 2.5 ? 'Buy'
+               : rec.mean <= 3.5 ? 'Hold'
+               : rec.mean <= 4.5 ? 'Sell' : 'Strong Sell';
+    }
+
+    // NOTE: no fallback to previous close here. The old `yData.price1w || pc`
+    // meant that whenever Yahoo was unavailable, the DAILY change was shown
+    // and scored as a WEEKLY change, with nothing flagging it. It fed the
+    // 30%-weight momentum rank, the +/-5% alert, best/worst week and rel_1w.
+    // Null is the honest answer; every consumer already handles null.
+    var price1w = yData.price1w;
+    var pct1w   = (price1w && price1w > 0)
+      ? Math.round(((price - price1w) / price1w) * 10000) / 100 : null;
+
+    var volatility = (yData.wkHigh && yData.wkLow && yData.wkLow > 0)
+      ? Math.round(((yData.wkHigh - yData.wkLow) / yData.wkLow) * 10000) / 100 : null;
+    var pos52w = (yData.high52 && yData.low52 && yData.high52 > yData.low52)
+      ? Math.round(((price - yData.low52) / (yData.high52 - yData.low52)) * 100) : null;
+    var mktCap = 'N/A';
+    var prof = profiles[ticker];
+    if (prof && prof.marketCapitalization) mktCap = formatMarketCap(prof.marketCapitalization * 1e6);
+
+    stocks.push({
+      rank:         0,
+      company:      COMPANY_NAMES[ticker] || ticker,
+      ticker:       yahooTicker(ticker),
+      sector:       SECTORS[ticker] || 'Other',
+      price:        price,
+      price_1w:     price1w,         pct_1w:    pct1w,
+      pct_1m:       yData.pct1m,
+      pct_3m:       yData.pct3m,
+      pct_ytd:      yData.pctYTD,
+      wk_high:      yData.wkHigh,    wk_low:    yData.wkLow,
+      high_52w:     yData.high52,    low_52w:   yData.low52,
+      pos_52w:      pos52w,
+      volatility:   volatility,
+      // Valuation (from the cached Finnhub metric call). Previously this
+      // endpoint was hit for dividends and its valuation fields discarded.
+      pe_ttm:       fund.pe   !== undefined ? fund.pe   : null,
+      pb:           fund.pb   !== undefined ? fund.pb   : null,
+      ps_ttm:       fund.ps   !== undefined ? fund.ps   : null,
+      beta:         fund.beta !== undefined ? fund.beta : null,
+      // Analyst consensus. target_upside is the mean target expressed as
+      // % above/below the current price — the form that's actually
+      // actionable. Null where no analyst covers the name.
+      target_mean:   tgt.mean   !== undefined ? tgt.mean   : null,
+      target_high:   tgt.high   !== undefined ? tgt.high   : null,
+      target_low:    tgt.low    !== undefined ? tgt.low    : null,
+      target_upside: (tgt.mean && price > 0)
+        ? Math.round(((tgt.mean - price) / price) * 1000) / 10 : null,
+      rec_mean:      rec.mean   !== undefined ? rec.mean   : null,
+      rec_total:     rec.total  !== undefined ? rec.total  : null,
+      rec_label:     recLabel,
+      rsi14:        yData.rsi14,
+      ma50:         yData.ma50,
+      above_ma50:   yData.aboveMa50,
+      vol_spike:    yData.volSpike,
+      avg_volume:   yData.avgVolume,
+      spark:        yData.spark    || [],
+      chart20:      yData.chart20  || [],
+      avg20:        yData.avg20,
+      high20:       yData.high20,
+      low20:        yData.low20,
+      pct_vs_avg20: yData.pctVsAvg20,
+      pos_4w:       yData.pos4w,
+      pct_2w:       yData.pct2w,
+      pct_prev_wk:  yData.pctPrevWk,
+      vol_trend:    yData.volTrend,
+      market_cap:   mktCap,
+      score:        0,
+      signal:       'NEUTRAL',
+      rel_1w:       null,
+      rel_1m:       null,
+      alert:        false,
+      earnings_days: null
+    });
+  });
+
+  if (stocks.length === 0) return { error: 'No stock data returned. Errors: ' + errors.join(', ') };
+
+  stocks.sort(function(a, b) {
+    var at = finnhubTicker(a.ticker);
+    var bt = finnhubTicker(b.ticker);
+    return TICKERS.indexOf(at) - TICKERS.indexOf(bt);
+  });
+  stocks.forEach(function(s, i) { s.rank = i + 1; });
+  return { stocks: stocks, warning: errors.length ? 'Some tickers unavailable: ' + errors.join(', ') : null };
+}
+
+// ── Slow-moving Finnhub data (cached daily) ──────────────────
+// Market cap, valuation multiples, beta, analyst targets/consensus and
+// dividend metrics all come from endpoints that change at most quarterly
+// (targets/consensus, weekly at most). One pass per day.
+//
+// IMPORTANT: the hourly fetchAndStore() never triggers this fetch. Four
+// endpoints x 36 tickers at the rate-limit-safe delay is ~160s of sleep
+// alone, which would put the hourly run near the 6-minute Apps Script
+// execution ceiling. It runs on its own daily trigger instead, and the
+// hourly run reads whatever cache exists — a day-stale cache of quarterly
+// data is fine; a timed-out hourly run is not.
+var SLOW_DATA_PROP = 'SLOW_FINNHUB_DATA';
+
+function readSlowCache() {
+  var raw = readChunked(SLOW_DATA_PROP);
+  if (!raw) return null;
+  try {
+    var c = JSON.parse(raw);
+    c.profiles        = c.profiles        || {};
+    c.fundamentals    = c.fundamentals    || {};
+    c.targets         = c.targets         || {};
+    c.recommendations = c.recommendations || {};
+    return c;
+  } catch(e) { Logger.log('Slow data cache unreadable'); return null; }
+}
+
+// Read-only accessor used by the hourly run. Never fetches.
+function getSlowFinnhubData(apiKey, forceRefresh) {
+  if (forceRefresh) return refreshSlowFinnhubData();
+  var cached = readSlowCache();
+  if (cached) return cached;
+  Logger.log('Slow data cache empty — run refreshSlowFinnhubData() once.');
+  return { day: null, profiles: {}, fundamentals: {}, targets: {}, recommendations: {} };
+}
+
+function refreshSlowFinnhubData() {
+  var apiKey = PropertiesService.getScriptProperties().getProperty(FINNHUB_KEY_PROP);
+  if (!apiKey) { Logger.log('FINNHUB_API_KEY not set'); return null; }
+  var today = Utilities.formatDate(new Date(), 'Europe/Athens', 'yyyy-MM-dd');
+
+  Logger.log('Slow Finnhub data: refetching for ' + today);
+  var options         = { method: 'get', muteHttpExceptions: true };
+  var profiles        = {};
+  var fundamentals    = {};
+  var targets         = {};
+  var recommendations = {};
+  var targetMisses       = 0;
+  var targetsUnavailable = false;
+  var targetHttpCode     = null;
+
+  TICKERS.forEach(function(ticker) {
+    Utilities.sleep(1100); // stay under the documented 60 requests/minute
+    var profResp = UrlFetchApp.fetch(
+      'https://finnhub.io/api/v1/stock/profile2?symbol=' + ticker + '&token=' + apiKey, options);
+    if (profResp.getResponseCode() === 200) {
+      try { profiles[ticker] = JSON.parse(profResp.getContentText()); } catch(e) {}
+    }
+
+    Utilities.sleep(1100);
+    var mResp = UrlFetchApp.fetch(
+      'https://finnhub.io/api/v1/stock/metric?symbol=' + ticker + '&metric=all&token=' + apiKey, options);
+    if (mResp.getResponseCode() === 200) {
+      try {
+        var m = (JSON.parse(mResp.getContentText()) || {}).metric || {};
+        fundamentals[ticker] = {
+          pe:     (m.peTTM     !== undefined && m.peTTM     !== null) ? Math.round(m.peTTM * 10) / 10 : null,
+          pb:     (m.pbAnnual  !== undefined && m.pbAnnual  !== null) ? Math.round(m.pbAnnual * 100) / 100 : null,
+          ps:     (m.psTTM     !== undefined && m.psTTM     !== null) ? Math.round(m.psTTM * 100) / 100 : null,
+          beta:   (m.beta      !== undefined && m.beta      !== null) ? Math.round(m.beta * 100) / 100 : null,
+          yield:  m.dividendYieldIndicatedAnnual || null,
+          dps:    m.dividendPerShareAnnual       || null,
+          payout: m.payoutRatioAnnual            || null,
+          grow5y: m.dividendGrowthRate5Y         || null
+        };
+      } catch(e) {}
+    }
+
+    // Analyst price target. On the free Finnhub tier this endpoint returns
+    // 403 or an empty object for every symbol, which cost ~40s of sleep per
+    // daily run for nothing. Give up after three consecutive misses rather
+    // than walking all 36.
+    if (!targetsUnavailable) {
+      Utilities.sleep(1100);
+      var tResp = UrlFetchApp.fetch(
+        'https://finnhub.io/api/v1/stock/price-target?symbol=' + ticker + '&token=' + apiKey, options);
+      var gotTarget = false;
+      if (tResp.getResponseCode() === 200) {
+        try {
+          var t = JSON.parse(tResp.getContentText()) || {};
+          if (t.targetMean) {
+            gotTarget = true;
+            targets[ticker] = {
+              mean:   Math.round(t.targetMean   * 100) / 100,
+              high:   t.targetHigh   ? Math.round(t.targetHigh   * 100) / 100 : null,
+              low:    t.targetLow    ? Math.round(t.targetLow    * 100) / 100 : null,
+              median: t.targetMedian ? Math.round(t.targetMedian * 100) / 100 : null
+            };
+          }
+        } catch(e) {}
+      } else {
+        targetHttpCode = tResp.getResponseCode();
+      }
+      if (gotTarget) targetMisses = 0;
+      else if (++targetMisses >= 3) {
+        targetsUnavailable = true;
+        Logger.log('Analyst price targets unavailable (last HTTP ' + (targetHttpCode || 200) +
+                   ') — skipping for the rest of this run. This endpoint is not on the free ' +
+                   'Finnhub tier; the Target column will stay blank.');
+      }
+    }
+
+    // Analyst recommendation distribution — most recent period only.
+    Utilities.sleep(1100);
+    var rResp = UrlFetchApp.fetch(
+      'https://finnhub.io/api/v1/stock/recommendation?symbol=' + ticker + '&token=' + apiKey, options);
+    if (rResp.getResponseCode() === 200) {
+      try {
+        var rows = JSON.parse(rResp.getContentText()) || [];
+        if (rows.length) {
+          rows.sort(function(a,b){ return a.period > b.period ? -1 : 1; });
+          var r0 = rows[0];
+          var sb = r0.strongBuy||0, b = r0.buy||0, h = r0.hold||0, sl = r0.sell||0, ss = r0.strongSell||0;
+          var total = sb + b + h + sl + ss;
+          if (total > 0) {
+            // 1 = strong buy ... 5 = strong sell, the usual street convention.
+            var mean = (sb*1 + b*2 + h*3 + sl*4 + ss*5) / total;
+            recommendations[ticker] = {
+              period: r0.period, total: total,
+              strongBuy: sb, buy: b, hold: h, sell: sl, strongSell: ss,
+              mean: Math.round(mean * 100) / 100
+            };
+          }
         }
+      } catch(e) {}
+    }
+  });
 
-    # Secondary Conservative Safety Net (Hard Override for Critical Indicators)
-    # If LLM marks document as IRRELEVANT, but strong financial triggers exist, upgrade to POTENTIALLY_RELEVANT.
-    if result["status"] == "IRRELEVANT":
-        critical_patterns = [
-            r"IBAN",
-            r"SWIFT",
-            r"Capital Call",
-            r"Drawdown",
-            r"Distribution",
-            r"Net Asset Value",
-            r"NAV",
-            r"Amount Due",
-            r"Payment Instructions",
-            r"Commitment",
-            r"Equalisation",
-            r"ISIN",
-        ]
-
-        text_upper = pdf_text.upper()
-        found_triggers = [p for p in critical_patterns if re.search(r"\b" + p + r"\b", text_upper, re.IGNORECASE)]
-
-        if found_triggers:
-            result["status"] = "POTENTIALLY_RELEVANT"
-            result["confidence_score"] = 0.5
-            result["detected_indicators"].append("Rule-Based Safety Override Triggered")
-            result["reasoning"] += f" [OVERRIDE]: Document flagged because key financial term(s) {found_triggers} were found despite initial exclusion."
-
-    return result
-
-
-# ==============================================================================
-# 3. QPLIX DATA EXTRACTION & TWO-STEP VALIDATION
-# ==============================================================================
-EXTRACTION_PROMPT = """
-Extract all relevant QPLIX investment and financial transaction parameters from the document text.
-
-Extract the following JSON structure:
-{
-  "entity_name": "string or null",
-  "fund_name": "string or null",
-  "transaction_type": "Capital Call" | "Distribution" | "NAV Update" | "Management Fee" | "Other" | null,
-  "transaction_date": "YYYY-MM-DD or null",
-  "due_date": "YYYY-MM-DD or null",
-  "currency": "string or null",
-  "amount": float or null,
-  "bank_account_iban": "string or null",
-  "notice_period_or_reference": "string or null",
-  "additional_notes": "string or null"
+  var payload = { day: today, profiles: profiles, fundamentals: fundamentals,
+                  targets: targets, recommendations: recommendations };
+  writeChunked(SLOW_DATA_PROP, JSON.stringify(payload));
+  Logger.log('Slow Finnhub data refreshed: ' + Object.keys(profiles).length + ' profiles, ' +
+             Object.keys(targets).length + ' targets, ' +
+             Object.keys(recommendations).length + ' consensus rows');
+  if (!Object.keys(targets).length) {
+    Logger.log('NOTE: 0 analyst targets. Expected on the free Finnhub tier — the Target column ' +
+               'will be blank. Analyst consensus (Buy/Hold/Sell) still works.');
+  }
+  return payload;
 }
-"""
 
-VALIDATION_PROMPT = """
-You are a Quality Control Auditor verifying data extracted from financial documents for QPLIX integration.
-
-Compare the extracted data JSON against the full document text.
-Perform a second pass verification to ensure:
-1. No amounts, currency, due dates, or payment details were missed or misextracted.
-2. If the document describes multiple amounts (e.g., Total Call vs. Share Call), ensure the correct investor-level amount was captured.
-3. Verify that zero or null fields are truly absent from the source document.
-
-Return JSON format:
-{
-  "is_validated": boolean,
-  "corrected_data": { ... matching extraction schema ... },
-  "validation_flags": [list of warnings or missing field notes]
+// Run once to schedule the daily slow-data refresh (03:00 Athens, well
+// clear of the hourly run's busiest window).
+function setupSlowDataTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'refreshSlowFinnhubData') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('refreshSlowFinnhubData').timeBased().atHour(3).everyDays(1).create();
+  Logger.log('Daily slow-data trigger set for ~03:00.');
 }
-"""
+
+// ── Composite score + signals + relative strength ────────────
+function computeScoresAndSignals(stocks, spy) {
+  var rankNorm = rankNormalize;
+
+  var r1w   = rankNorm(stocks, 'pct_1w',    true);
+  var r1m   = rankNorm(stocks, 'pct_1m',    true);
+  var rYTD  = rankNorm(stocks, 'pct_ytd',   true);
+  var r52   = rankNorm(stocks, 'pos_52w',   true);
+  var rVol  = rankNorm(stocks, 'volatility', false);
+  // "Value" grade now ranks on trailing P/E (lower = better) where Finnhub
+  // supplies it. It previously ranked on inverted 52-week position, which
+  // is a momentum measure wearing a value label — a stock down 40% on
+  // collapsed earnings graded A+ Value. Tickers with no P/E (loss-making,
+  // or missing data) get N/A rather than a fabricated grade.
+  var rValue = rankNorm(stocks.filter(function(s){ return s.pe_ttm !== null && s.pe_ttm > 0; }), 'pe_ttm', false);
+
+  return stocks.map(function(s) {
+    var t  = s.ticker;
+    var sc = Math.round(
+      (r1w[t]  !== undefined ? r1w[t]  : 0.5) * 30 +
+      (r1m[t]  !== undefined ? r1m[t]  : 0.5) * 25 +
+      (rYTD[t] !== undefined ? rYTD[t] : 0.5) * 20 +
+      (r52[t]  !== undefined ? r52[t]  : 0.5) * 15 +
+      (rVol[t] !== undefined ? rVol[t] : 0.5) * 10
+    );
+    s.score  = sc;
+    s.signal = sc >= 72 ? 'STRONG' : sc >= 45 ? 'NEUTRAL' : 'WEAK';
+
+    // Letter-grade factor breakdown. Momentum/Trend are price-based ranks
+    // within the tracked universe; Value is a trailing-P/E rank and is
+    // N/A where no P/E is available.
+    s.grade_momentum = gradeFromPercentile(r1w[t]);
+    s.grade_trend    = gradeFromPercentile(r1m[t]);
+    s.grade_value    = gradeFromPercentile(rValue[t]);
+
+    if (spy) {
+      if (spy.pct_1w !== null && s.pct_1w !== null)
+        s.rel_1w = Math.round((s.pct_1w - spy.pct_1w) * 100) / 100;
+      if (spy.pct_1m !== null && s.pct_1m !== null)
+        s.rel_1m = Math.round((s.pct_1m - spy.pct_1m) * 100) / 100;
+    }
+    return s;
+  });
+}
+
+// ── Sector heatmap ───────────────────────────────────────────
+function buildSectorHeatmap(stocks) {
+  var map = {};
+  stocks.forEach(function(s) {
+    if (!map[s.sector]) map[s.sector] = { sector: s.sector, stocks: [], avg_1w: 0, avg_1m: 0 };
+    map[s.sector].stocks.push({
+      ticker: s.ticker, pct_1w: s.pct_1w, pct_1m: s.pct_1m,
+      score: s.score, signal: s.signal
+    });
+  });
+  return Object.keys(map).map(function(k) {
+    var d = map[k];
+    var v1w = d.stocks.filter(function(s){ return s.pct_1w !== null; });
+    var v1m = d.stocks.filter(function(s){ return s.pct_1m !== null; });
+    d.avg_1w = v1w.length ? Math.round((v1w.reduce(function(a,s){ return a+s.pct_1w; },0)/v1w.length)*100)/100 : 0;
+    d.avg_1m = v1m.length ? Math.round((v1m.reduce(function(a,s){ return a+s.pct_1m; },0)/v1m.length)*100)/100 : 0;
+    return d;
+  }).sort(function(a,b){ return b.avg_1w - a.avg_1w; });
+}
 
 
-def extract_and_validate_qplix_data(pdf_text: str) -> tuple[dict, list[str]]:
-    """Step 1: Extract structure. Step 2: Perform audit/validation check before outputting."""
-    # Step 1: Initial Extraction
-    try:
-        ext_response = client.chat.completions.create(
-            model="gpt-4o",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": EXTRACTION_PROMPT},
-                {"role": "user", "content": pdf_text},
-            ],
-            temperature=0.0,
-        )
-        extracted = json.loads(ext_response.choices[0].message.content)
-    except Exception as e:
-        extracted = {}
+// ── Fetch dividend data for all tracked stocks (Finnhub, sequential) ──
+function fetchDividendData() {
+  var apiKey  = PropertiesService.getScriptProperties().getProperty(FINNHUB_KEY_PROP);
+  var results = [];
 
-    # Step 2: Second Pass Validation
-    try:
-        val_response = client.chat.completions.create(
-            model="gpt-4o",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": VALIDATION_PROMPT},
-                {
-                    "role": "user",
-                    "content": f"DOCUMENT TEXT:\n{pdf_text}\n\nEXTRACTED DATA:\n{json.dumps(extracted, indent=2)}",
-                },
-            ],
-            temperature=0.0,
-        )
-        val_result = json.loads(val_response.choices[0].message.content)
-        final_data = val_result.get("corrected_data", extracted)
-        flags = val_result.get("validation_flags", [])
-    except Exception as e:
-        final_data = extracted
-        flags = [f"Validation pass failed to execute: {str(e)}"]
+  // Reads the same daily cache fetchAllStocks() populates — this used to be
+  // its own 36-call sequential loop hitting an endpoint that updates
+  // quarterly.
+  var fundamentals = getSlowFinnhubData(apiKey).fundamentals;
 
-    return final_data, flags
+  TICKERS.forEach(function(ticker) {
+    var m = fundamentals[ticker];
+    if (!m) return;
 
+    var yld    = m.yield  || null;
+    var dps    = m.dps    || null;
+    var payout = m.payout || null;
+    var grow5y = m.grow5y || null;
 
-# ==============================================================================
-# 4. EXCEL GENERATION UTILITY
-# ==============================================================================
-def create_qplix_excel(relevant_records, review_records, excluded_records) -> bytes:
-    """Generates structured Excel workbook with dedicated tabs for processing, review, and exclusions."""
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        # Tab 1: QPLIX Import (Relevant)
-        df_rel = pd.DataFrame(relevant_records)
-        if df_rel.empty:
-            df_rel = pd.DataFrame(
-                columns=[
-                    "Filename",
-                    "Fund Name",
-                    "Transaction Type",
-                    "Date",
-                    "Due Date",
-                    "Amount",
-                    "Currency",
-                    "IBAN",
-                    "Reference",
-                ]
-            )
-        df_rel.to_excel(writer, sheet_name="QPLIX Import Data", index=False)
+    if (!yld || yld <= 0) return;
 
-        # Tab 2: Manual Review Needed (Borderline/Uncertain)
-        df_rev = pd.DataFrame(review_records)
-        if df_rev.empty:
-            df_rev = pd.DataFrame(
-                columns=["Filename", "Status", "Reasoning", "Flags", "Detected Indicators"]
-            )
-        df_rev.to_excel(writer, sheet_name="Review Needed", index=False)
+    var displayTicker = yahooTicker(ticker);
+    results.push({
+      ticker:     displayTicker,
+      company:    COMPANY_NAMES[ticker] || ticker,
+      sector:     SECTORS[ticker] || 'Other',
+      yield:      Math.round(yld * 100) / 100,
+      dps:        dps   ? Math.round(dps   * 100) / 100 : null,
+      payout:     payout? Math.round(payout * 10)  / 10  : null,
+      grow5y:     grow5y? Math.round(grow5y * 10)  / 10  : null,
+      sustainable: payout && payout < 60 ? true : payout && payout < 80 ? null : false
+    });
+  });
 
-        # Tab 3: Excluded Documents
-        df_exc = pd.DataFrame(excluded_records)
-        if df_exc.empty:
-            df_exc = pd.DataFrame(
-                columns=["Filename", "Status", "Reasoning", "Confidence Score"]
-            )
-        df_exc.to_excel(writer, sheet_name="Excluded Documents", index=False)
+  results.sort(function(a, b){ return b.yield - a.yield; });
+  return results;
+}
 
-    return output.getvalue()
+// ── Finnhub earnings calendar ────────────────────────────────
+function fetchFinnhubEarnings() {
+  var apiKey = PropertiesService.getScriptProperties().getProperty(FINNHUB_KEY_PROP);
+  if (!apiKey) return { error: 'FINNHUB_API_KEY not set' };
+  var now    = new Date();
+  var from   = Utilities.formatDate(now, 'UTC', 'yyyy-MM-dd');
+  var toDate = new Date(now.getTime() + 30 * 24 * 3600 * 1000);
+  var to     = Utilities.formatDate(toDate, 'UTC', 'yyyy-MM-dd');
+  var resp   = UrlFetchApp.fetch(
+    'https://finnhub.io/api/v1/calendar/earnings?from=' + from + '&to=' + to + '&token=' + apiKey,
+    { method: 'get', muteHttpExceptions: true });
+  if (resp.getResponseCode() !== 200) return { error: 'HTTP ' + resp.getResponseCode() };
+  var data;
+  try { data = JSON.parse(resp.getContentText()); } catch(e) { return { error: 'Parse error' }; }
+  var tickerSet = {};
+  TICKERS.forEach(function(t){ tickerSet[t] = true; });
+  var events = [], seen = {};
+  (data.earningsCalendar || []).forEach(function(item) {
+    var sym = item.symbol;
+    if (!sym || !tickerSet[sym]) return;
+    var key = sym + item.date;
+    if (seen[key]) return;
+    seen[key] = true;
+    var daysAway = daysUntilDate(item.date);
+    events.push({
+      date:      item.date,
+      days_away: daysAway,
+      event:     (COMPANY_NAMES[sym] || sym) + ' earnings' +
+                 (item.epsEstimate ? ' (EPS est: $' + item.epsEstimate + ')' : ''),
+      tickers:   yahooTicker(sym),
+      urgent:    daysAway >= 0 && daysAway <= 14
+    });
+  });
+  events.sort(function(a, b){ return a.date > b.date ? 1 : -1; });
+  return { events: events.slice(0, 10) };
+}
 
+// ── Auto insights ────────────────────────────────────────────
+function autoInsights(stocks, field, n, descending) {
+  var sorted = stocks.slice().filter(function(s){ return s[field] !== null; });
+  sorted.sort(function(a,b){ return descending ? b[field]-a[field] : a[field]-b[field]; });
+  return sorted.slice(0, n).map(function(s, i) {
+    var pct = s[field];
+    return {
+      rank:      i + 1,
+      ticker:    s.ticker,
+      company:   s.company,
+      sector:    s.sector,
+      price:     s.price,
+      pct:       pct,
+      rsi14:     s.rsi14,
+      above_ma50: s.above_ma50,
+      signal:    s.signal,
+      score:     s.score,
+      earnings_days: s.earnings_days
+    };
+  });
+}
 
-# ==============================================================================
-# 5. STREAMLIT APPLICATION INTERFACE
-# ==============================================================================
-def main():
-    st.set_page_config(
-        page_title="QPLIX Smart Document Filter & Extractor", layout="wide"
-    )
+// ── Helpers ──────────────────────────────────────────────────
+function formatMarketCap(n) {
+  if (!n || n === 0) return 'N/A';
+  if (n >= 1e12) return (n / 1e12).toFixed(1) + 'T';
+  if (n >= 1e9)  return (n / 1e9).toFixed(0)  + 'B';
+  return Math.round(n / 1e6) + 'M';
+}
 
-    st.title("QPLIX Document Processing Pipeline")
-    st.markdown(
-        "Upload PDF documents to automatically classify, review, and extract data for QPLIX using conservative financial relevance filtering."
-    )
+function clearCache() {
+  var p = PropertiesService.getScriptProperties();
+  var count = parseInt(p.getProperty(DATA_PROP + '_chunks') || '0');
+  for (var i = 0; i < count; i++) p.deleteProperty(DATA_PROP + '_' + i);
+  p.deleteProperty(DATA_PROP + '_chunks');
+  p.deleteProperty(DATA_PROP);
+  p.deleteProperty(LAST_UPDATED_PROP);
+  Logger.log('Cache cleared.');
+}
 
-    uploaded_files = st.file_uploader(
-        "Upload PDF Files", type=["pdf"], accept_multiple_files=True
-    )
+function setupHourlyTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'fetchAndStore') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('fetchAndStore').timeBased().everyHours(1).create();
+  Logger.log('Hourly trigger set.');
+}
 
-    if uploaded_files and st.button("Process Documents"):
-        relevant_records = []
-        review_records = []
-        excluded_records = []
+// ── Price Alerts ─────────────────────────────────────────────
+var ALERTS_PROP = 'PRICE_ALERTS';
 
-        progress_bar = st.progress(0)
+function getAlerts() {
+  var raw = PropertiesService.getScriptProperties().getProperty(ALERTS_PROP);
+  return raw ? JSON.parse(raw) : [];
+}
 
-        for idx, file in enumerate(uploaded_files):
-            st.text(f"Processing ({idx+1}/{len(uploaded_files)}): {file.name}")
+function saveAlert(alert) {
+  var alerts = getAlerts();
+  alert.id = Date.now().toString();
+  alert.active = true;
+  alert.createdAt = Utilities.formatDate(new Date(), 'Europe/Athens', 'dd-MM-yyyy HH:mm');
+  alerts.push(alert);
+  PropertiesService.getScriptProperties().setProperty(ALERTS_PROP, JSON.stringify(alerts));
+  return { success: true, alerts: alerts };
+}
 
-            # 1. Full text scan across all pages
-            text = extract_full_pdf_text(file)
+function deleteAlert(id) {
+  var alerts = getAlerts().filter(function(a){ return a.id !== id; });
+  PropertiesService.getScriptProperties().setProperty(ALERTS_PROP, JSON.stringify(alerts));
+  return { success: true, alerts: alerts };
+}
 
-            # 2. Semantic classification + safety net check
-            classification = classify_pdf(text, file.name)
-            status = classification["status"]
+function checkAndFireAlerts() {
+  var alerts = getAlerts();
+  if (!alerts.length) return;
 
-            if status == "RELEVANT":
-                # 3. Extract & Perform 2nd validation check
-                qplix_data, flags = extract_and_validate_qplix_data(text)
+  var apiKey  = PropertiesService.getScriptProperties().getProperty(FINNHUB_KEY_PROP);
+  var options = { method: 'get', muteHttpExceptions: true };
+  var fired   = [];
+  var updated = alerts.map(function(a) {
+    if (!a.active) return a;
+    var ticker = finnhubTicker(a.ticker);
+    var resp   = UrlFetchApp.fetch('https://finnhub.io/api/v1/quote?symbol='+ticker+'&token='+apiKey, options);
+    if (resp.getResponseCode() !== 200) return a;
+    var q;
+    try { q = JSON.parse(resp.getContentText()); } catch(e) { return a; }
+    var price = q.c;
+    if (!price) return a;
 
-                record = {"Filename": file.name, **qplix_data}
-                if flags:
-                    record["Validation Flags"] = "; ".join(flags)
+    var triggered = false;
+    if (a.condition === 'above' && price >= a.targetPrice) triggered = true;
+    if (a.condition === 'below' && price <= a.targetPrice) triggered = true;
 
-                relevant_records.append(record)
+    if (triggered) {
+      fired.push({ ticker: a.ticker, company: a.company, condition: a.condition,
+                   targetPrice: a.targetPrice, currentPrice: price, email: a.email });
+      a.active     = false;
+      a.firedAt    = Utilities.formatDate(new Date(), 'Europe/Athens', 'dd-MM-yyyy HH:mm');
+      a.firedPrice = price;
+    }
+    return a;
+  });
 
-            elif status == "POTENTIALLY_RELEVANT":
-                # Attempt partial extraction to assist manual review
-                qplix_data, flags = extract_and_validate_qplix_data(text)
+  PropertiesService.getScriptProperties().setProperty(ALERTS_PROP, JSON.stringify(updated));
 
-                review_records.append(
-                    {
-                        "Filename": file.name,
-                        "Status": status,
-                        "Reasoning": classification.get("reasoning", ""),
-                        "Indicators": ", ".join(
-                            classification.get("detected_indicators", [])
-                        ),
-                        "Validation Warnings": "; ".join(flags),
-                        "Extracted Draft Data": json.dumps(qplix_data),
-                    }
-                )
+  fired.forEach(function(f) {
+    if (!f.email) return;
+    var dir  = f.condition === 'above' ? 'risen above' : 'fallen below';
+    var subj = '🔔 Alert: ' + f.ticker + ' has ' + dir + ' $' + f.targetPrice;
+    var body = 'Your price alert has triggered.\n\n' +
+               'Stock: ' + f.company + ' (' + f.ticker + ')\n' +
+               'Condition: ' + f.condition + ' $' + f.targetPrice + '\n' +
+               'Current price: $' + f.currentPrice + '\n\n' +
+               'This alert has been deactivated. Set a new one on your Market Dashboard.\n\n' +
+               '— Market Dashboard (not financial advice)';
+    try { MailApp.sendEmail(f.email, subj, body); }
+    catch(e) { Logger.log('Email failed: ' + e.message); }
+  });
 
-            else:  # IRRELEVANT
-                excluded_records.append(
-                    {
-                        "Filename": file.name,
-                        "Status": status,
-                        "Reasoning": classification.get("reasoning", ""),
-                        "Confidence": classification.get("confidence_score", 0.0),
-                    }
-                )
+  Logger.log('Alerts checked. Fired: ' + fired.length);
+}
 
-            progress_bar.progress((idx + 1) / len(uploaded_files))
+function setupAlertTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'checkAndFireAlerts') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('checkAndFireAlerts').timeBased().everyHours(1).create();
+  Logger.log('Alert trigger set: every hour.');
+}
 
-        st.success("Processing Complete!")
+// ═══════════════════════════════════════════════════════════════
+// DAILY EMAIL DIGEST
+// ═══════════════════════════════════════════════════════════════
+// Reads the payload already stored by fetchAndStore() (MARKET_DATA) —
+// makes NO API calls of its own, so it costs nothing against the Finnhub
+// or Yahoo budgets and cannot fail the way a fetch can.
+//
+// The point of a daily email is not to restate the dashboard, which you
+// can open any time. It is to report what CHANGED since yesterday, and to
+// be honest when the data behind it is broken. Everything here is filtered
+// on "would this alter a decision today".
+//
+// !! MAINTENANCE NOTE !!
+// digestSignalLabels() below mirrors buyZoneLabel()/exitSignalLabel() in
+// index.html. Two implementations of the same rules in two languages will
+// drift. If you change the thresholds in one, change them in both, or the
+// email will disagree with the dashboard.
 
-        # Layout summary metrics
-        c1, c2, c3 = st.columns(3)
-        c1.metric("QPLIX Ready (Relevant)", len(relevant_records))
-        c2.metric("Flagged for Review", len(review_records))
-        c3.metric("Excluded", len(excluded_records))
+// Gmail clips at ~102KB. Full rendering of 36+15+13 names lands around
+// 84KB, so this only engages if the tracked universe grows.
+var DIGEST_SIZE_BUDGET = 95000;
 
-        # Excel Export
-        excel_bytes = create_qplix_excel(
-            relevant_records, review_records, excluded_records
-        )
+// Where the email links back to. Change here if the repo or Pages URL moves.
+var DASHBOARD_URL = 'https://m-friz.github.io/market-dashboard/';
 
-        st.download_button(
-            label="Download Structured QPLIX Excel Report",
-            data=excel_bytes,
-            file_name="QPLIX_Processed_Documents.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+var DIGEST_EMAIL_PROP = 'DIGEST_EMAIL';
+var DIGEST_STATE_PROP = 'DIGEST_PREV_STATE';
 
-        # UI Data Display
-        st.subheader("Data Summary")
+function digestRecipient() {
+  var set = PropertiesService.getScriptProperties().getProperty(DIGEST_EMAIL_PROP);
+  if (set) return set;
+  try { return Session.getActiveUser().getEmail(); } catch(e) { return null; }
+}
 
-        if relevant_records:
-            st.markdown("### Included Documents (QPLIX Ready)")
-            st.dataframe(pd.DataFrame(relevant_records))
+// ── Signal labels — SINGLE SOURCE OF TRUTH ───────────────────
+// These were previously duplicated in index.html, and the two copies had
+// silently diverged: the frontend checked the "Extended" guards BEFORE
+// testing for an entry, used RSI>72 (not 70), a 3% coiling band (not 2%),
+// required above_ma50 for Oversold Watch, and used YTD>30 (not 25) for
+// Trim Risk. A stock 10% above its 20-day average read "Extended" on the
+// dashboard and "Possible Entry" in the email, on the same data.
+//
+// The backend now computes the labels and emits them in data.json; the
+// frontend renders what it is given. Thresholds live here and here only.
+// The frontend's own copy is retained purely as a fallback for a stale
+// data.json and is never used once this version has run.
+function computeTimingLabel(s) {
+  var rsi    = s.rsi14;
+  var above  = s.above_ma50;
+  var pos4w  = s.pos_4w;
+  var pctAvg = s.pct_vs_avg20;
+  var sig    = s.signal;
 
-        if review_records:
-            st.markdown("### Flagged Documents (Manual Review Required)")
-            st.dataframe(pd.DataFrame(review_records))
+  // Extended / avoid — checked first, deliberately: a stock that has run
+  // too far is not an entry no matter what the other conditions say.
+  if (rsi !== null && rsi !== undefined && rsi > 72)            return 'Extended';
+  if (pos4w !== null && pos4w !== undefined && pos4w >= 88)     return 'Near 4W High';
+  if (pctAvg !== null && pctAvg !== undefined && pctAvg > 8)    return 'Extended';
 
-        if excluded_records:
-            st.markdown("### Excluded Documents")
-            st.dataframe(pd.DataFrame(excluded_records))
+  // ETFs carry no STRONG/NEUTRAL/WEAK composite (it is ranked within the
+  // US and Greek universes only); absent is read as neutral so they can
+  // still qualify.
+  var sigOk = (sig === 'STRONG' || sig === 'NEUTRAL' || sig === undefined || sig === null);
 
+  if (above === true && rsi !== null && rsi !== undefined && rsi < 58 &&
+      pos4w !== null && pos4w !== undefined && pos4w < 65 && sigOk) return 'Possible Entry';
 
-if __name__ == "__main__":
-    main()
+  if (rsi !== null && rsi !== undefined && rsi < 35 && above === true) return 'Oversold Watch';
+
+  if (rsi !== null && rsi !== undefined && rsi >= 44 && rsi <= 56 &&
+      pctAvg !== null && pctAvg !== undefined && Math.abs(pctAvg) <= 3 &&
+      above === true) return 'Coiling';
+
+  return 'Monitor';
+}
+
+function computeExitLabel(s) {
+  var rsi   = s.rsi14;
+  var above = s.above_ma50;
+  var pos52 = s.pos_52w;
+  var sig   = s.signal;
+  var ytd   = s.pct_ytd;
+  var earnD = s.earnings_days;
+
+  if (sig === 'WEAK' && above === false)                      return 'Exit Signal';
+  if (rsi !== null && rsi !== undefined && rsi > 75)          return 'Take Profit';
+  if (pos52 !== null && pos52 !== undefined && pos52 >= 95)   return 'Near 52W High';
+  if (earnD !== null && earnD !== undefined && earnD <= 7 &&
+      ytd !== null && ytd !== undefined && ytd > 30)          return 'Trim Risk';
+  return 'Hold';
+}
+
+// Kept as thin aliases so the digest code reads naturally.
+function digestEntryLabel(s) { return computeTimingLabel(s); }
+function digestExitLabel(s)  { return computeExitLabel(s); }
+
+// Exit labels that call for a decision today, as opposed to ones that
+// merely describe where the price sits. "Near 52W High" fires on every
+// name in a broad rally — treating it as an action item would bury the
+// two or three that actually need attention.
+var DIGEST_ACTIONABLE_EXITS = ['Exit Signal', 'Take Profit', 'Trim Risk'];
+
+function digestIsActionableExit(label) {
+  return DIGEST_ACTIONABLE_EXITS.indexOf(label) > -1;
+}
+
+// ── Conviction tiers ─────────────────────────────────────────
+// "Possible Entry" accepts both STRONG and NEUTRAL stocks with any trend
+// grade and any volume state, so a high-quality setup and a marginal one
+// arrive looking identical. This scores the difference.
+//
+// Deliberately NOT built on the Momentum grade: that is a 1-week return
+// rank, and a stock in the top 20% of last week's movers has usually run
+// up enough to fail the entry test anyway. Trend (1-month) is the
+// sustained-direction measure and carries the weight instead.
+//
+// Missing inputs score ZERO, never negative — ETFs carry no composite
+// signal or grades, and absent evidence is not evidence against.
+function digestEntryConviction(s) {
+  var pts = 0, why = [];
+
+  if (s.signal === 'STRONG')      { pts += 2; why.push('rated strong'); }
+  else if (s.signal === 'WEAK')   { pts -= 1; why.push('rated weak'); }
+
+  var tr = s.grade_trend;
+  if (tr === 'A+' || tr === 'A')  { pts += 2; why.push('1-month trend ' + tr); }
+  else if (tr === 'B')            { pts += 1; why.push('1-month trend B'); }
+  else if (tr === 'D' || tr === 'F') { pts -= 1; why.push('1-month trend ' + tr); }
+
+  var vol = digestVolState(s);
+  if (vol === 'confirmed')        { pts += 1; why.push('volume rising'); }
+  else if (vol === 'unconfirmed') { pts -= 1; why.push('volume fading'); }
+
+  // Room to run: RSI in the 40s is a better entry than one scraping the
+  // 58 ceiling the signal allows.
+  if (s.rsi14 !== null && s.rsi14 !== undefined && s.rsi14 >= 38 && s.rsi14 <= 52) {
+    pts += 1; why.push('RSI has room');
+  }
+
+  return { tier: pts >= 4 ? 'High' : pts >= 2 ? 'Medium' : 'Low', score: pts, why: why };
+}
+
+function digestExitConviction(s, label) {
+  var pts = 0, why = [];
+
+  // Weak AND below its 50-day average is the strongest exit case; the
+  // others describe a stretched winner rather than a breakdown.
+  if (label === 'Exit Signal')      { pts += 2; why.push('weak and below 50-day average'); }
+  else if (label === 'Take Profit') { pts += 1; why.push('momentum overheated'); }
+  else if (label === 'Trim Risk')   { pts += 1; why.push('large gain into earnings'); }
+
+  var tr = s.grade_trend;
+  if (tr === 'D' || tr === 'F')     { pts += 1; why.push('1-month trend ' + tr); }
+  else if (tr === 'A+' || tr === 'A') { pts -= 1; why.push('1-month trend still ' + tr); }
+
+  var vol = digestVolState(s);
+  if (vol === 'confirmed')          { pts += 1; why.push('volume confirms'); }
+  else if (vol === 'unconfirmed')   { pts -= 1; why.push('thin volume'); }
+
+  if (s.rsi14 !== null && s.rsi14 !== undefined && s.rsi14 > 80) {
+    pts += 1; why.push('RSI above 80');
+  }
+
+  return { tier: pts >= 3 ? 'High' : pts >= 2 ? 'Medium' : 'Low', score: pts, why: why };
+}
+
+function digestConvictionBadge(c) {
+  var bg = c.tier === 'High' ? '#0f172a' : c.tier === 'Medium' ? '#e2e8f0' : '#f8fafc';
+  var fg = c.tier === 'High' ? '#ffffff' : c.tier === 'Medium' ? '#475569' : '#94a3b8';
+  var bd = c.tier === 'Low' ? ';border:1px solid #e2e8f0' : '';
+  return '<span style="background:' + bg + ';color:' + fg +
+    ';font:700 11px Arial,sans-serif;padding:3px 9px;border-radius:12px' + bd + '">' +
+    c.tier + ' conviction</span>';
+}
+
+function digestVolState(s) {
+  if (s.vol_trend === 'building') return 'confirmed';
+  if (s.vol_trend === 'fading')   return 'unconfirmed';
+  return null;
+}
+
+// ── Main entry point (daily trigger) ─────────────────────────
+function sendDailyDigest() {
+  var tz  = 'Europe/Athens';
+  var now = new Date();
+  var dow = parseInt(Utilities.formatDate(now, tz, 'u'), 10); // 1=Mon .. 7=Sun
+
+  // Markets are shut at the weekend, so a digest then reports Friday's
+  // numbers as if they were news. Matches the working-day convention used
+  // everywhere else.
+  if (dow === 6 || dow === 7) {
+    Logger.log('Digest skipped: weekend.');
+    return { sent: false, reason: 'weekend' };
+  }
+
+  var to = digestRecipient();
+  if (!to) { Logger.log('Digest: no recipient. Set the DIGEST_EMAIL script property.'); 
+             return { sent: false, reason: 'no recipient' }; }
+
+  // Refresh right before sending so the email carries current prices rather
+  // than whatever the last hourly run happened to leave behind. Even a
+  // healthy hourly trigger leaves data up to an hour stale; this makes it
+  // minutes. Wrapped in try/catch on purpose — a failed fetch must degrade
+  // to sending the last good data, never to sending nothing. The staleness
+  // line in the Data issues block then makes the fallback visible.
+  refreshDataForDigest();
+
+  var raw = readChunked(DATA_PROP);
+  if (!raw) { Logger.log('Digest: no stored market data.'); 
+              return { sent: false, reason: 'no data' }; }
+
+  var D;
+  try { D = JSON.parse(raw); } catch(e) {
+    Logger.log('Digest: stored data unparseable.');
+    return { sent: false, reason: 'bad data' };
+  }
+
+  var prev  = readDigestState();
+  var built = buildDigest(D, prev, tz);
+
+  MailApp.sendEmail({
+    to: to,
+    subject: built.subject,
+    htmlBody: built.html,
+    body: built.text
+  });
+
+  writeDigestState(built.state);
+  Logger.log('Digest sent to ' + to + ' — ' + built.subject);
+  return { sent: true, subject: built.subject, to: to };
+}
+
+// Only refetches if the stored data is older than this (minutes). Avoids a
+// redundant 2-minute fetch when an hourly run has just completed.
+var DIGEST_MAX_DATA_AGE_MIN = 20;
+
+function refreshDataForDigest() {
+  var age = digestDataAgeHours(
+    PropertiesService.getScriptProperties().getProperty(LAST_UPDATED_PROP));
+
+  if (age !== null && age * 60 < DIGEST_MAX_DATA_AGE_MIN) {
+    Logger.log('Digest: data is ' + Math.round(age * 60) + ' min old, refresh not needed.');
+    return { refreshed: false, reason: 'fresh' };
+  }
+
+  Logger.log('Digest: refreshing market data before sending' +
+    (age !== null ? ' (was ' + Math.round(age * 60) + ' min old)' : ''));
+  try {
+    var result = fetchAndStore();
+    Logger.log('Digest: refresh complete, data now stamped ' + result.lastUpdated);
+    return { refreshed: true, lastUpdated: result.lastUpdated };
+  } catch(err) {
+    // Sending slightly old data beats sending no email at all.
+    Logger.log('Digest: refresh FAILED (' + err.message + '). Falling back to stored data.');
+    return { refreshed: false, reason: 'fetch failed: ' + err.message };
+  }
+}
+
+function readDigestState() {
+  var raw = PropertiesService.getScriptProperties().getProperty(DIGEST_STATE_PROP);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e) { return null; }
+}
+function writeDigestState(state) {
+  PropertiesService.getScriptProperties().setProperty(DIGEST_STATE_PROP, JSON.stringify(state));
+}
+
+// ── Digest construction (pure — testable without sending) ────
+// Structure is deliberately "current state first": every live entry and
+// exit signal, then how everything is actually performing. The
+// what-changed diff is kept, but demoted to a short block at the end —
+// it is a nice-to-know, not the reason to open the email.
+function buildDigest(D, prev, tz) {
+  tz = tz || 'Europe/Athens';
+  var stocks = D.stocks || [];
+  var greek  = D.greek  || [];
+  var etfs   = D.etfs   || [];
+  var today  = Utilities.formatDate(new Date(), tz, 'EEE dd MMM yyyy');
+
+  // ── Current signals across all three universes ──
+  // Previously US-only, which meant 28 tracked instruments (Greek + ETFs)
+  // produced no entry or exit signal at all despite carrying the data.
+  var universes = [
+    { list: stocks, market: 'US',    currency: null,  symbolField: null },
+    { list: greek,  market: 'ATHEX', currency: 'EUR', symbolField: 'full_ticker' },
+    { list: etfs,   market: 'ETF',   currency: null,  symbolField: null }
+  ];
+
+  function collect(test) {
+    var out = [];
+    universes.forEach(function(u) {
+      (u.list || []).forEach(function(item) {
+        if (!test(item)) return;
+        out.push({ item: item, market: u.market, currency: u.currency,
+                   symbol: u.symbolField ? (item[u.symbolField] || item.ticker) : item.ticker });
+      });
+    });
+    return out;
+  }
+
+  // Nothing is hidden — every signal still appears. They are ranked so the
+  // high-conviction ones are read first, and labelled so a marginal setup
+  // is not mistaken for a strong one.
+  // Prefer the stamped value; fall back for a payload written before this
+  // version existed.
+  var entries = collect(function(s){
+    return (s.timing || computeTimingLabel(s)) === 'Possible Entry'; });
+  entries.forEach(function(e){
+    e.conviction = e.item.conviction || digestEntryConviction(e.item); });
+  entries.sort(function(a,b){
+    return (b.conviction.score - a.conviction.score) || ((b.item.score||0) - (a.item.score||0));
+  });
+
+  var exits = collect(function(s){
+    return digestIsActionableExit(s.exit_label || computeExitLabel(s)); });
+  exits.forEach(function(e){
+    e.conviction = e.item.conviction || digestExitConviction(e.item, e.item.exit_label || computeExitLabel(e.item)); });
+  exits.sort(function(a,b){
+    return (b.conviction.score - a.conviction.score) || ((a.item.score||0) - (b.item.score||0));
+  });
+
+  var highEntries = entries.filter(function(e){ return e.conviction.tier === 'High'; }).length;
+  var highExits   = exits.filter(function(e){ return e.conviction.tier === 'High'; }).length;
+
+  // ── Snapshot for tomorrow's comparison ──
+  var state = { day: Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd'), t: {} };
+  var allTracked = [];
+  universes.forEach(function(u){ allTracked = allTracked.concat(u.list || []); });
+  allTracked.forEach(function(s) {
+    state.t[s.ticker] = { sig: s.signal || null, entry: digestEntryLabel(s),
+                          exit: digestExitLabel(s), ma: s.above_ma50 };
+  });
+
+  var prevT = (prev && prev.t) ? prev.t : null;
+  var firstRun = !prevT;
+  var changes = [];
+  allTracked.forEach(function(s) {
+    var cur = state.t[s.ticker], old = prevT ? prevT[s.ticker] : null;
+    if (!old) return;
+    if (cur.entry === 'Possible Entry' && old.entry !== 'Possible Entry')
+      changes.push(s.ticker + ' → new entry signal');
+    if (digestIsActionableExit(cur.exit) && !digestIsActionableExit(old.exit))
+      changes.push(s.ticker + ' → ' + cur.exit);
+    if (cur.sig !== old.sig) changes.push(s.ticker + ' ' + old.sig + ' → ' + cur.sig);
+    if (cur.ma !== old.ma && cur.ma !== null && old.ma !== null)
+      changes.push(s.ticker + (cur.ma ? ' crossed above 50MA' : ' lost 50MA'));
+  });
+
+  // Payload key is `events`, not `earnings` — reading the wrong one made
+  // this section permanently report "None scheduled".
+  var earnings = (D.events || D.earnings || []).filter(function(e) {
+    return e.days_away !== null && e.days_away >= 0 && e.days_away <= 7;
+  }).sort(function(a,b){ return a.days_away - b.days_away; });
+
+  var firedAlerts = [];
+  try {
+    var alerts = getAlerts();
+    var cutoff = prev && prev.day ? prev.day : null;
+    firedAlerts = alerts.filter(function(a) {
+      if (a.active !== false || !a.firedAt) return false;
+      if (!cutoff) return true;
+      var p = String(a.firedAt).split(' ')[0].split('-');
+      return p.length === 3 && (p[2]+'-'+p[1]+'-'+p[0]) >= cutoff;
+    });
+  } catch(e) {}
+
+  var health = [];
+  if (D.warnings && D.warnings.length) health = health.concat(D.warnings);
+  var ageHours = digestDataAgeHours(D.lastUpdated);
+  if (ageHours !== null && ageHours > 3) {
+    health.unshift('Data is ' + Math.round(ageHours) + 'h old — the hourly trigger may have stopped.');
+  }
+
+  // The raw counts alone ("13 entries") say nothing about quality. The
+  // high-conviction tally is the number worth reacting to.
+  var convictionNote = (highEntries + highExits) > 0
+    ? ' · ' + (highEntries + highExits) + ' high conviction' : '';
+  var subject = 'Market Digest ' + Utilities.formatDate(new Date(), tz, 'dd-MM-yyyy') + ' — ' +
+    entries.length + ' entr' + (entries.length === 1 ? 'y' : 'ies') + ', ' +
+    exits.length + ' exit' + (exits.length === 1 ? '' : 's') + convictionNote +
+    (firedAlerts.length ? ', ' + firedAlerts.length + ' alert' + (firedAlerts.length>1?'s':'') : '') +
+    (health.length ? ' (data issues)' : '');
+
+  var x = { entries:entries, exits:exits, highEntries:highEntries, highExits:highExits,
+            stocks:stocks, greek:greek, etfs:etfs,
+            earnings:earnings, firedAlerts:firedAlerts, health:health,
+            changes:changes, firstRun:firstRun };
+
+  // Gmail clips messages over ~102KB behind a "View entire message" link,
+  // which would silently truncate the tables. Render full; if that runs
+  // close to the limit, re-render compact rather than risk it.
+  var html = digestHtml(D, today, x);
+  if (html.length > DIGEST_SIZE_BUDGET) {
+    // Stage 1: trim the middle of the performance tables.
+    x.compact = true;
+    html = digestHtml(D, today, x);
+    Logger.log('Digest: performance tables compacted.');
+  }
+  if (html.length > DIGEST_SIZE_BUDGET) {
+    // Stage 2: strip the metadata lines from signal rows. Every signal is
+    // still listed — only its supporting detail goes.
+    x.signalCompact = true;
+    html = digestHtml(D, today, x);
+    Logger.log('Digest: signal rows compacted too (' + html.length + ' bytes).');
+  }
+  if (html.length > DIGEST_SIZE_BUDGET) {
+    // Stage 3: cap the number of full rows and name the rest in a list.
+    // Still nothing dropped — the tail is lower-conviction by construction,
+    // since both lists are sorted by conviction before this point.
+    x.rowCap = true;
+    html = digestHtml(D, today, x);
+    Logger.log('Digest: signal rows capped at ' + DIGEST_MAX_SIGNAL_ROWS +
+               ' with the remainder listed (' + html.length + ' bytes).');
+  }
+
+  return { subject: subject, html: html, text: digestText(D, today, x), state: state };
+}
+
+function digestDataAgeHours(lastUpdated) {
+  if (!lastUpdated) return null;
+  var m = String(lastUpdated).match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if (!m) return null;
+  var d = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]);
+  return (new Date().getTime() - d.getTime()) / 3600000;
+}
+
+// ── HTML rendering ───────────────────────────────────────────
+// Email clients strip <style> blocks and ignore flex/grid, so everything
+// is tables with inline styles, light-mode only.
+function digestFmt(n, dp, suffix) {
+  if (n === null || n === undefined) return '—';
+  var v = Number(n).toFixed(dp === undefined ? 2 : dp);
+  return (n > 0 ? '+' : '') + v + (suffix || '');
+}
+function digestColor(n) {
+  if (n === null || n === undefined) return '#94a3b8';
+  return n > 0 ? '#059669' : n < 0 ? '#dc2626' : '#64748b';
+}
+function digestEsc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function digestMoney(v, cur) {
+  if (v === null || v === undefined) return '—';
+  return (cur === 'EUR' ? '\u20AC' : '$') + Number(v).toFixed(2);
+}
+// Yahoo Finance quote URL. Greek names need the .AT suffix and index
+// symbols need the caret percent-encoded, or the link 404s.
+function digestYahooUrl(symbol) {
+  return 'https://finance.yahoo.com/quote/' + encodeURIComponent(String(symbol));
+}
+function digestTickerLink(symbol, display, size) {
+  return '<a href="' + digestYahooUrl(symbol) + '" style="font:700 ' + (size||13) +
+    'px monospace;color:#1d4ed8">' + digestEsc(display || symbol) + '</a>';
+}
+
+// Compact A+/B/F chips for the momentum / trend / value factor grades.
+function digestGrades(s) {
+  function chip(letter, grade) {
+    if (!grade || grade === 'N/A') return '';
+    var good = grade.charAt(0) === 'A' || grade === 'B';
+    var bad  = grade === 'D' || grade === 'F';
+    var bg = good ? '#d1fae5' : bad ? '#fee2e2' : '#f1f5f9';
+    var fg = good ? '#059669' : bad ? '#dc2626' : '#64748b';
+    return '<span style="background:' + bg + ';color:' + fg +
+      ';font:700 11px Arial,sans-serif;padding:3px 8px;border-radius:3px;margin-right:4px">' +
+      letter + ' ' + digestEsc(grade) + '</span>';
+  }
+  // Spelled out: "M C  T B  V C" was unreadable as three two-character pairs.
+  return chip('Momentum', s.grade_momentum) + chip('Trend', s.grade_trend) + chip('Value', s.grade_value);
+}
+
+// Market breadth — the one-line answer to "what kind of day is it".
+function digestBreadth(stocks) {
+  var withW  = stocks.filter(function(s){ return s.pct_1w !== null && s.pct_1w !== undefined; });
+  var up     = withW.filter(function(s){ return s.pct_1w > 0; }).length;
+  var above  = stocks.filter(function(s){ return s.above_ma50 === true; }).length;
+  var withMa = stocks.filter(function(s){ return s.above_ma50 !== null && s.above_ma50 !== undefined; }).length;
+  var avg    = withW.length ? withW.reduce(function(a,b){ return a + b.pct_1w; }, 0) / withW.length : null;
+  var strong = stocks.filter(function(s){ return s.signal === 'STRONG'; }).length;
+  var weak   = stocks.filter(function(s){ return s.signal === 'WEAK'; }).length;
+  return { up:up, total:withW.length, above:above, totalMa:withMa,
+           avg:avg, strong:strong, weak:weak };
+}
+
+function digestSection(title, sub, inner, blurb) {
+  return '<tr><td style="padding:26px 22px 0 22px">' +
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>' +
+      '<td style="font:700 17px Arial,sans-serif;color:#0f172a;padding-bottom:8px">' + digestEsc(title) + '</td>' +
+      (sub ? '<td align="right" style="font:400 13px Arial,sans-serif;color:#94a3b8;padding-bottom:8px">' + digestEsc(sub) + '</td>' : '') +
+    '</tr></table>' +
+    '<div style="height:3px;background:#0f172a;border-radius:2px"></div>' +
+    (blurb ? '<div style="font:400 13px/1.6 Arial,sans-serif;color:#64748b;margin-top:8px">' + blurb + '</div>' : '') +
+    '</td></tr>' +
+    '<tr><td style="padding:10px 22px 0 22px">' + inner + '</td></tr>';
+}
+function digestEmpty(msg) {
+  return '<div style="font:400 14px Arial,sans-serif;color:#94a3b8;padding:4px 0 8px 0">' +
+    digestEsc(msg) + '</div>';
+}
+
+// Signal row. Every number is labelled in place — "RSI 36.3" means
+// nothing to someone who has not memorised the scale, so each metric
+// states what it is and, where it matters, what the reading implies.
+function digestSignalRow(s, note, noteColor, opts) {
+  opts = opts || {};
+  var cur    = opts.currency || null;
+  var symbol = opts.symbol   || s.ticker;
+  var market = opts.market   || null;
+  var label  = s.company || s.name || s.ticker;
+  var conv   = opts.conviction || null;
+  var convBadge  = conv ? digestConvictionBadge(conv) : '';
+  var convReason = (conv && conv.why.length)
+    ? '<span style="color:#94a3b8">' + digestEsc(conv.why.join(', ')) + '</span>' : '';
+  var vol = digestVolState(s);
+  var volTag = vol === 'confirmed'
+    ? '<span style="background:#d1fae5;color:#047857;font:700 11px Arial,sans-serif;padding:2px 6px;border-radius:3px">VOL RISING</span>'
+    : vol === 'unconfirmed'
+    ? '<span style="background:#fef3c7;color:#b45309;font:700 11px Arial,sans-serif;padding:2px 6px;border-radius:3px">VOL FADING</span>'
+    : '';
+
+  // RSI with its plain-English reading attached.
+  var rsiTxt = '';
+  if (s.rsi14 !== null && s.rsi14 !== undefined) {
+    var r = s.rsi14;
+    var word = r >= 70 ? 'overbought' : r <= 35 ? 'oversold' : 'neutral';
+    var rc   = r >= 70 ? '#dc2626' : r <= 35 ? '#2563eb' : '#475569';
+    rsiTxt = '<span style="color:#64748b">Momentum (RSI)</span> <strong style="color:' + rc + '">' +
+             r + '</strong> <span style="color:#94a3b8">' + word + '</span>';
+  }
+
+  var bits = [];
+  if (rsiTxt) bits.push(rsiTxt);
+  if (s.pos_52w !== null && s.pos_52w !== undefined)
+    bits.push('<span style="color:#64748b">52-week range</span> <strong style="color:#334155">' + s.pos_52w + '%</strong>' +
+              ' <span style="color:#94a3b8">' + (s.pos_52w >= 80 ? 'near high' : s.pos_52w <= 25 ? 'near low' : 'mid') + '</span>');
+  if (s.pe_ttm)
+    bits.push('<span style="color:#64748b">P/E</span> <strong style="color:#334155">' + s.pe_ttm + '</strong>');
+  if (s.beta)
+    bits.push('<span style="color:#64748b">Beta</span> <strong style="color:#334155">' + s.beta + '</strong>' +
+              ' <span style="color:#94a3b8">' + (s.beta >= 1.2 ? 'swings harder than market' : s.beta <= 0.8 ? 'steadier than market' : 'moves with market') + '</span>');
+
+  var bits2 = [];
+  if (s.target_upside !== null && s.target_upside !== undefined)
+    bits2.push('<span style="color:#64748b">Analyst target</span> <strong style="color:' + digestColor(s.target_upside) + '">' +
+      digestFmt(s.target_upside,1,'%') + '</strong>' + (s.rec_label ? ' <span style="color:#94a3b8">' + digestEsc(s.rec_label) + '</span>' : ''));
+  if (s.rel_1w !== null && s.rel_1w !== undefined)
+    bits2.push('<span style="color:#64748b">vs S&amp;P</span> <strong style="color:' + digestColor(s.rel_1w) + '">' + digestFmt(s.rel_1w,1,'%') + '</strong>');
+  if (s.earnings_days !== null && s.earnings_days !== undefined && s.earnings_days <= 14)
+    bits2.push('<span style="color:#b45309">Earnings in ' + s.earnings_days + ' days</span>');
+
+  // Second-stage compaction drops the metadata lines but never a signal
+  // row itself — losing a signal is worse than losing its footnotes.
+  if (opts.compact) {
+    return '<tr>' +
+      '<td style="padding:9px 10px 9px 0;border-bottom:1px solid #e8edf3">' +
+        digestTickerLink(symbol, s.ticker, 15) + ' ' + volTag + ' ' + convBadge +
+        (market ? ' <span style="background:#e2e8f0;color:#475569;font:700 11px Arial,sans-serif;padding:2px 6px;border-radius:3px">' + digestEsc(market) + '</span>' : '') +
+        '<br><span style="font:400 13px Arial,sans-serif;color:#64748b">' + digestEsc(label) + '</span></td>' +
+      '<td align="right" style="padding:9px 0 9px 10px;border-bottom:1px solid #e8edf3;white-space:nowrap">' +
+        '<span style="font:700 15px monospace;color:#0f172a">' + digestMoney(s.price, cur) + '</span> ' +
+        '<span style="font:400 13px monospace;color:' + digestColor(s.pct_1w) + '">' + digestFmt(s.pct_1w,1,'%') + '</span>' +
+        '<br><span style="background:' + (noteColor === '#dc2626' ? '#fee2e2' : '#d1fae5') + ';color:' + (noteColor||'#0f172a') +
+        ';font:700 11px Arial,sans-serif;padding:2px 8px;border-radius:4px">' + digestEsc(note) + '</span></td>' +
+      '</tr>';
+  }
+
+  return '<tr>' +
+    '<td style="padding:12px 10px 12px 0;border-bottom:1px solid #e8edf3;vertical-align:top">' +
+      digestTickerLink(symbol, s.ticker, 16) + ' ' + volTag + ' ' + convBadge +
+      (market ? ' <span style="background:#e2e8f0;color:#475569;font:700 11px Arial,sans-serif;padding:2px 7px;border-radius:3px">' +
+        digestEsc(market) + '</span>' : '') +
+      '<br><span style="font:400 14px Arial,sans-serif;color:#334155">' + digestEsc(label) +
+        (s.sector ? ' <span style="color:#94a3b8">· ' + digestEsc(s.sector) + '</span>' :
+         s.category ? ' <span style="color:#94a3b8">· ' + digestEsc(s.category) + '</span>' : '') + '</span>' +
+      '<div style="margin-top:7px">' + digestGrades(s) + '</div>' +
+      '<div style="font:400 12px/1.9 Arial,sans-serif;margin-top:5px">' + bits.join(' &nbsp;|&nbsp; ') + '</div>' +
+      (bits2.length ? '<div style="font:400 12px/1.9 Arial,sans-serif">' + bits2.join(' &nbsp;|&nbsp; ') + '</div>' : '') +
+      (convReason ? '<div style="font:400 12px/1.7 Arial,sans-serif;margin-top:3px">' + convReason + '</div>' : '') +
+    '</td>' +
+    '<td style="padding:12px 0 12px 10px;border-bottom:1px solid #e8edf3;text-align:right;white-space:nowrap;vertical-align:top">' +
+      '<div style="font:700 19px monospace;color:#0f172a">' + digestMoney(s.price, cur) + '</div>' +
+      '<div style="font:400 13px monospace;color:' + digestColor(s.pct_1w) + ';margin-top:3px">' + digestFmt(s.pct_1w,2,'%') +
+        ' <span style="color:#94a3b8;font-family:Arial,sans-serif">1 week</span></div>' +
+      '<div style="font:400 13px monospace;color:' + digestColor(s.pct_ytd) + '">' + digestFmt(s.pct_ytd,1,'%') +
+        ' <span style="color:#94a3b8;font-family:Arial,sans-serif">this year</span></div>' +
+      '<div style="margin-top:7px"><span style="background:' + (noteColor === '#dc2626' ? '#fee2e2' : '#d1fae5') +
+        ';color:' + (noteColor||'#0f172a') + ';font:700 12px Arial,sans-serif;padding:4px 10px;border-radius:4px">' +
+        digestEsc(note) + '</span></div>' +
+    '</td></tr>';
+}
+
+// Performance row — compact, because these are scan-only.
+function digestPerfHeader() {
+  var th = 'padding:0 7px 7px;font:700 12px Arial,sans-serif;color:#64748b;border-bottom:2px solid #e2e8f0';
+  return '<tr>' +
+    '<th align="left"  style="' + th + ';padding-left:0">Stock</th>' +
+    '<th align="right" style="' + th + '">Price</th>' +
+    '<th align="right" style="' + th + '">1 week</th>' +
+    '<th align="right" style="' + th + '">This year</th>' +
+    '<th align="right" style="' + th + ';padding-right:0">RSI</th>' +
+    '</tr>';
+}
+// Zebra striping instead of a per-cell border: one short bgcolor
+// attribute per row rather than a 33-character border declaration on
+// every cell. With 60+ rows that is the difference between comfortably
+// under Gmail's 102KB clip limit and flirting with it.
+function digestPerfRow(item, nameField, cur, alt, symbolField, compact) {
+  var bg = alt ? ' bgcolor="#fafbfc"' : '';
+  // Font is declared once on the parent table instead of on all 320
+  // cells; Gmail and Apple Mail both inherit it. Cells carry only what
+  // genuinely varies — alignment and colour.
+  var td = 'padding:8px 6px';
+  var sym = symbolField ? (item[symbolField] || item.ticker) : item.ticker;
+  var rsi = (item.rsi14 !== null && item.rsi14 !== undefined) ? item.rsi14 : '—';
+  var rsiColor = (item.rsi14 >= 70) ? '#dc2626' : (item.rsi14 <= 35) ? '#2563eb' : '#94a3b8';
+  return '<tr' + bg + '>' +
+    '<td style="padding:8px 7px 8px 0">' +
+      '<a href="' + digestYahooUrl(sym) + '" style="font-weight:700;color:#1d4ed8">' + digestEsc(item.ticker) + '</a>' +
+      (compact ? '' : '<span style="font:400 12px Arial,sans-serif;color:#94a3b8"> ' +
+        digestEsc(String(item[nameField] || '').substring(0,18)) + '</span>') + '</td>' +
+    '<td align="right" style="' + td + ';color:#0f172a">' + digestMoney(item.price, cur) + '</td>' +
+    '<td align="right" style="' + td + ';color:' + digestColor(item.pct_1w)  + '">' + digestFmt(item.pct_1w,1,'%')  + '</td>' +
+    '<td align="right" style="' + td + ';color:' + digestColor(item.pct_ytd) + '">' + digestFmt(item.pct_ytd,1,'%') + '</td>' +
+    '<td align="right" style="' + td + ';padding-right:0;color:' + rsiColor + '">' + rsi + '</td>' +
+    '</tr>';
+}
+function digestPerfTable(list, nameField, cur, symbolField, compact) {
+  if (!list.length) return digestEmpty('No data.');
+  var sorted = list.slice().sort(function(a,b){
+    var av = (a.pct_1w === null || a.pct_1w === undefined) ? -9999 : a.pct_1w;
+    var bv = (b.pct_1w === null || b.pct_1w === undefined) ? -9999 : b.pct_1w;
+    return bv - av;
+  });
+  var shown = sorted, trimmed = 0;
+  // Compact mode keeps the extremes, which is where the information is,
+  // and drops the middle of the pack.
+  if (compact && sorted.length > 20) {
+    shown = sorted.slice(0, 12).concat(sorted.slice(-6));
+    trimmed = sorted.length - shown.length;
+  }
+  var html = '<table cellpadding="0" cellspacing="0" border="0" width="100%" ' +
+    'style="border-collapse:collapse;font:400 14px monospace">' +
+    digestPerfHeader() +
+    shown.map(function(i, n){ return digestPerfRow(i, nameField, cur, n % 2 === 1, symbolField, compact); }).join('') +
+    '</table>';
+  if (trimmed) html += '<div style="font:400 13px Arial,sans-serif;color:#94a3b8;padding:7px 0 0">' +
+    trimmed + ' mid-range names hidden to keep the email under the size limit — full list in the dashboard.</div>';
+  return html;
+}
+// Stage-3 compaction. Even a compacted signal row costs ~900 bytes, so a
+// day with dozens of signals can still approach Gmail's clip limit. Rather
+// than drop signals, the tail collapses into a named list: every ticker is
+// still reported, just without its own row.
+var DIGEST_MAX_SIGNAL_ROWS = 12;
+
+function digestSignalOverflow(list, labelFn) {
+  if (!list.length) return '';
+  var names = list.map(function(e){
+    return digestTickerLink(e.symbol, e.item.ticker, 13) +
+      '<span style="color:#94a3b8;font-size:12px"> ' + digestEsc(labelFn(e)) + '</span>';
+  }).join('<span style="color:#cbd5e1">&nbsp;&middot;&nbsp;</span>');
+  return '<div style="font:400 13px/2 Arial,sans-serif;color:#475569;padding:10px 0 2px 0;' +
+    'border-top:1px solid #e8edf3;margin-top:4px">' +
+    '<span style="color:#94a3b8">Also flagged (' + list.length + '), lower conviction:</span><br>' +
+    names + '</div>';
+}
+
+function digestSignalTable(rows) {
+  return '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse">' +
+    rows + '</table>';
+}
+
+function digestHtml(D, todayStr, x) {
+  var spy = D.spy || {};
+  var h = '<div style="background:#f8fafc;padding:16px 0;font-family:-apple-system,Segoe UI,Arial,sans-serif">' +
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:680px;margin:0 auto;' +
+    'background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate">';
+
+  var br = digestBreadth(x.stocks);
+
+  // Header — dark band so the email reads as a product, not a script dump.
+  h += '<tr><td bgcolor="#0f172a" style="padding:24px 22px;border-radius:12px 12px 0 0">' +
+    '<div style="font:700 24px/1.2 Arial,sans-serif">' +
+      '<a href="' + DASHBOARD_URL + '" style="color:#ffffff;text-decoration:none">Market Digest</a></div>' +
+    '<div style="font:400 14px Arial,sans-serif;color:#94a3b8;margin-top:6px">' +
+    digestEsc(todayStr) + '</div>' +
+    '<div style="font:400 13px Arial,sans-serif;color:#64748b;margin-top:2px">Prices as of ' +
+    digestEsc(D.lastUpdated || 'unknown') + '</div>' +
+    '<div style="margin-top:14px">' +
+      '<span style="background:#065f46;color:#a7f3d0;font:700 13px Arial,sans-serif;padding:6px 13px;border-radius:14px;margin-right:8px">' +
+        x.entries.length + ' possible entr' + (x.entries.length===1?'y':'ies') + '</span>' +
+      '<span style="background:#991b1b;color:#fecaca;font:700 13px Arial,sans-serif;padding:6px 13px;border-radius:14px">' +
+        x.exits.length + ' exit signal' + (x.exits.length===1?'':'s') + '</span>' +
+    '</div>' +
+    '<div style="margin-top:16px">' +
+      '<a href="' + DASHBOARD_URL + '" style="display:inline-block;background:#2563eb;color:#ffffff;' +
+      'font:700 14px Arial,sans-serif;padding:10px 20px;border-radius:6px;text-decoration:none">Open the dashboard &rarr;</a>' +
+    '</div></td></tr>';
+
+  if (x.health.length) {
+    h += '<tr><td style="padding:16px 22px 0 22px">' +
+      '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:13px 15px">' +
+      '<div style="font:700 13px Arial,sans-serif;color:#b45309;margin-bottom:6px">Data issues</div>' +
+      '<ul style="margin:0;padding-left:18px;font:400 14px/1.7 Arial,sans-serif;color:#92400e">' +
+      x.health.map(function(w){ return '<li style="margin-bottom:3px">' + digestEsc(w) + '</li>'; }).join('') +
+      '</ul></div></td></tr>';
+  }
+
+  // Market snapshot as a real data table. Financial figures scan far
+  // faster in aligned columns than in a prose run of percentages, and
+  // table markup is the only layout Outlook for Windows renders
+  // reliably (it uses Word's engine, not a browser).
+  var snapTh = 'padding:9px 10px;color:#475569;background:#e8edf3;border-bottom:1px solid #cbd5e1;font-weight:700;font-size:12px';
+  var snapTd = 'padding:9px 10px;border-bottom:1px solid #e8edf3';
+  // font declared once on each table below, not on every cell
+  var tblFont = 'border-collapse:collapse;border:1px solid #cbd5e1;border-radius:6px;font:400 14px monospace';
+
+  function snapRow(label, symbol, price, dp, w, ytd, bold, cur) {
+    return '<tr>' +
+      '<td style="' + snapTd + ';font-family:Arial,sans-serif;' + (bold ? 'font-weight:700;' : '') + 'color:#0f172a">' +
+        (symbol ? digestTickerLink(symbol, label, 14) : digestEsc(label)) + '</td>' +
+      '<td align="right" style="' + snapTd + ';color:#0f172a">' + digestMoney(price, cur) + '</td>' +
+      '<td align="right" style="' + snapTd + ';color:' + digestColor(dp)  + '">' + digestFmt(dp,2,'%')  + '</td>' +
+      '<td align="right" style="' + snapTd + ';color:' + digestColor(w)   + '">' + digestFmt(w,2,'%')   + '</td>' +
+      '<td align="right" style="' + snapTd + ';color:' + digestColor(ytd) + '">' + digestFmt(ytd,1,'%') + '</td>' +
+      '</tr>';
+  }
+
+  var spyO = D.spy || {};
+  var snapRows = snapRow('S&P 500 (SPY)', 'SPY', spyO.price, spyO.dp, spyO.pct_1w, spyO.pct_ytd, true);
+  (D.indices || []).forEach(function(i) {
+    snapRows += snapRow(i.name, i.ticker, i.price, i.dp, i.pct_1w, i.pct_ytd, false);
+  });
+
+  h += digestSection('Market snapshot', '',
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="' + tblFont + '">' +
+      '<tr>' +
+        '<th align="left"  style="' + snapTh + '">Index</th>' +
+        '<th align="right" style="' + snapTh + '">Level</th>' +
+        '<th align="right" style="' + snapTh + '">Today</th>' +
+        '<th align="right" style="' + snapTh + '">1 week</th>' +
+        '<th align="right" style="' + snapTh + '">This year</th>' +
+      '</tr>' + snapRows +
+    '</table>');
+
+  // Breadth as a labelled two-column table rather than a run-on sentence.
+  var brTd  = 'padding:8px 10px;font:400 14px Arial,sans-serif;border-bottom:1px solid #e8edf3;color:#475569';
+  var brTdV = 'padding:8px 10px;font:700 14px monospace;border-bottom:1px solid #e8edf3;text-align:right';
+  h += digestSection('Market breadth', '',
+    '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;border:1px solid #cbd5e1;border-radius:6px">' +
+      '<tr><td style="' + brTd + '">Stocks up over the past week</td>' +
+        '<td style="' + brTdV + ';color:#0f172a">' + br.up + ' of ' + br.total + '</td></tr>' +
+      '<tr><td style="' + brTd + '">Above their 50-day average <span style="color:#94a3b8;font-size:12px">(trend dividing line)</span></td>' +
+        '<td style="' + brTdV + ';color:#0f172a">' + br.above + ' of ' + br.totalMa + '</td></tr>' +
+      '<tr><td style="' + brTd + '">Average move this week</td>' +
+        '<td style="' + brTdV + ';color:' + digestColor(br.avg) + '">' + digestFmt(br.avg,2,'%') + '</td></tr>' +
+      '<tr><td style="' + brTd + ';border-bottom:none">Rated strong / weak</td>' +
+        '<td style="' + brTdV + ';border-bottom:none"><span style="color:#047857">' + br.strong +
+        '</span><span style="color:#94a3b8"> / </span><span style="color:#dc2626">' + br.weak + '</span></td></tr>' +
+    '</table>');
+
+  // Sector performance — same table treatment.
+  var heat = (D.sector_heatmap || []).filter(function(z){ return z.avg_1w !== null && z.avg_1w !== undefined; })
+                                     .sort(function(a,b){ return b.avg_1w - a.avg_1w; });
+  if (heat.length >= 2) {
+    var secTd = 'padding:8px 10px;font-family:Arial,sans-serif;border-bottom:1px solid #e8edf3';
+    function secRow(z, tag, tagColor) {
+      return '<tr>' +
+        '<td style="' + secTd + ';color:#0f172a">' + digestEsc(z.sector) + '</td>' +
+        '<td align="right" style="' + secTd + ';font-family:monospace;font-weight:700;color:' + digestColor(z.avg_1w) + '">' +
+          digestFmt(z.avg_1w,1,'%') + '</td>' +
+        '<td align="right" style="' + secTd + ';font-size:12px;color:' + tagColor + '">' + tag + '</td>' +
+        '</tr>';
+    }
+    var secRows = heat.slice(0,3).map(function(z){ return secRow(z,'leading','#047857'); }).join('') +
+                  heat.slice(-3).reverse().map(function(z){ return secRow(z,'lagging','#dc2626'); }).join('');
+    h += digestSection('Sectors', '',
+      '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="' + tblFont + '">' +
+        '<tr>' +
+          '<th align="left"  style="' + snapTh + '">Sector</th>' +
+          '<th align="right" style="' + snapTh + '">Avg 1 week</th>' +
+          '<th align="right" style="' + snapTh + '"></th>' +
+        '</tr>' + secRows +
+      '</table>');
+  }
+
+  // Metals & commodities. Same table treatment as the market snapshot.
+  // Crude is here because it drives bunker cost, which is the point of
+  // tracking it at all.
+  var metals = D.metals || [];
+  if (metals.length) {
+    var mTd = 'padding:9px 10px;border-bottom:1px solid #e8edf3';
+    var mRows = '';
+    ['Precious','Industrial','Energy'].forEach(function(grp) {
+      metals.filter(function(m){ return m.group === grp; }).forEach(function(m) {
+        mRows += '<tr>' +
+          '<td style="' + mTd + ';font-family:Arial,sans-serif;color:#0f172a">' +
+            digestTickerLink(m.ticker, m.name, 14) +
+            '<div style="font:400 11px Arial,sans-serif;color:#94a3b8">' + digestEsc(m.unit) + '</div></td>' +
+          '<td align="right" style="' + mTd + ';color:#0f172a">$' + m.price + '</td>' +
+          '<td align="right" style="' + mTd + ';color:' + digestColor(m.dp)      + '">' + digestFmt(m.dp,2,'%')      + '</td>' +
+          '<td align="right" style="' + mTd + ';color:' + digestColor(m.pct_1w)  + '">' + digestFmt(m.pct_1w,1,'%')  + '</td>' +
+          '<td align="right" style="' + mTd + ';color:' + digestColor(m.pct_ytd) + '">' + digestFmt(m.pct_ytd,1,'%') + '</td>' +
+          '</tr>';
+      });
+    });
+
+    var ratio = D.metal_ratio;
+    // Sanity gate. The ratio has not left roughly 30-130 in modern history,
+    // so anything outside 20-200 means a bad futures print rather than a
+    // market event — print the number but withhold the interpretation,
+    // because a confident reading of garbage is worse than no reading.
+    var ratioSane = ratio && ratio >= 20 && ratio <= 200;
+    var ratioLine = !ratio ? ''
+      : '<div style="font:400 13px/1.6 Arial,sans-serif;color:#64748b;margin-top:8px">' +
+        '<strong style="color:#0f172a">Gold / silver ratio ' + ratio + '</strong> &mdash; ounces of silver per ounce of gold. ' +
+        (!ratioSane
+          ? '<span style="color:#b45309">Outside the plausible range &mdash; treat the underlying prices as suspect.</span>'
+          : ratio >= 90 ? 'Above the usual 65&ndash;90 band, so silver screens cheap against gold.'
+          : ratio <= 65 ? 'Below the usual 65&ndash;90 band, so silver screens expensive against gold.'
+          : 'Within the usual 65&ndash;90 band.') + '</div>';
+
+    h += digestSection('Metals & commodities', metals.length + ' tracked',
+      '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="' + tblFont + '">' +
+        '<tr>' +
+          '<th align="left"  style="' + snapTh + '">Contract</th>' +
+          '<th align="right" style="' + snapTh + '">Price</th>' +
+          '<th align="right" style="' + snapTh + '">Today</th>' +
+          '<th align="right" style="' + snapTh + '">1 week</th>' +
+          '<th align="right" style="' + snapTh + '">This year</th>' +
+        '</tr>' + mRows +
+      '</table>' + ratioLine,
+      'Front-month futures, not spot &mdash; these carry financing and storage cost, so gold sits slightly above a bullion dealer&rsquo;s quote.');
+  }
+
+  // ── The two sections that carry the email ──
+  h += digestSection('Possible entries', x.entries.length + ' signal' + (x.entries.length===1?'':'s'),
+    x.entries.length
+      ? (function(){
+          var shown = x.rowCap ? x.entries.slice(0, DIGEST_MAX_SIGNAL_ROWS) : x.entries;
+          var rest  = x.rowCap ? x.entries.slice(DIGEST_MAX_SIGNAL_ROWS)    : [];
+          return digestSignalTable(shown.map(function(e){
+            return digestSignalRow(e.item, 'Possible Entry', '#047857',
+              { symbol:e.symbol, currency:e.currency, market:e.market,
+                compact:x.signalCompact, conviction:e.conviction }); }).join('')) +
+            digestSignalOverflow(rest, function(){ return 'Possible Entry'; });
+        })()
+      : digestEmpty('No entry signals today.'),
+    'Ranked by conviction, highest first — nothing is hidden. ' +
+    'US, Greek and ETF holdings trading above their 50-day average with momentum not yet stretched. A screen to look at, not a recommendation.' +
+    (x.signalCompact ? ' <em style="color:#94a3b8">Unusually many signals today, so per-stock detail is condensed — full metrics in the dashboard.</em>' : ''));
+
+  h += digestSection('Exit signals', x.exits.length + ' signal' + (x.exits.length===1?'':'s'),
+    x.exits.length
+      ? (function(){
+          var shown = x.rowCap ? x.exits.slice(0, DIGEST_MAX_SIGNAL_ROWS) : x.exits;
+          var rest  = x.rowCap ? x.exits.slice(DIGEST_MAX_SIGNAL_ROWS)    : [];
+          return digestSignalTable(shown.map(function(e){
+            return digestSignalRow(e.item, digestExitLabel(e.item), '#dc2626',
+              { symbol:e.symbol, currency:e.currency, market:e.market,
+                compact:x.signalCompact, conviction:e.conviction }); }).join('')) +
+            digestSignalOverflow(rest, function(e){ return digestExitLabel(e.item); });
+        })()
+      : digestEmpty('No exit signals today.'),
+    '<strong>Take Profit</strong> = momentum overheated. <strong>Exit Signal</strong> = rated weak and below its 50-day average. <strong>Trim Risk</strong> = large gain with earnings imminent.');
+
+  // ── Performance ──
+  h += digestSection('US stocks', x.stocks.length + ' tracked',
+        digestPerfTable(x.stocks, 'company', null, null, x.compact),
+        'Sorted by the past week. RSI above 70 is overbought (red), below 35 oversold (blue). Tap any ticker for its Yahoo Finance chart.');
+  h += digestSection('Greek stocks (ATHEX)', x.greek.length + ' tracked',
+        digestPerfTable(x.greek, 'company', 'EUR', 'full_ticker', x.compact));
+  h += digestSection('ETFs', x.etfs.length + ' tracked',
+        digestPerfTable(x.etfs, 'name', null, null, x.compact));
+
+  if (x.firedAlerts.length) {
+    h += digestSection('Alerts triggered', '', digestSignalTable(x.firedAlerts.map(function(a){
+      return '<tr><td style="padding:9px 0;border-bottom:1px solid #e8edf3;font:400 14px Arial,sans-serif;color:#0f172a">' +
+        '<strong style="font-family:monospace">' + digestEsc(a.ticker) + '</strong> ' +
+        digestEsc(a.condition === 'above' ? 'rose above' : 'fell below') + ' $' + digestEsc(a.targetPrice) +
+        ' <span style="color:#64748b">(' + digestEsc(a.firedAt) + ')</span></td></tr>'; }).join('')));
+  }
+
+  // ── Changes, demoted to a footnote ──
+  var changeTxt = x.firstRun
+    ? 'First run — no previous day to compare against yet.'
+    : (x.changes.length ? x.changes.join(' · ') : 'Nothing changed since yesterday.');
+  h += '<tr><td style="padding:18px 20px 0 20px">' +
+    '<div style="background:#f8fafc;border-radius:7px;padding:10px 12px">' +
+    '<div style="font:700 13px Arial,sans-serif;color:#0f172a;margin-bottom:6px">Changed since yesterday</div>' +
+    '<div style="font:400 13px/1.8 Arial,sans-serif;color:#64748b">' + digestEsc(changeTxt) + '</div>' +
+    '</div></td></tr>';
+
+  // "How to read this" — one block covering every tag and grade used
+  // above. Without it the chips and abbreviations are unreadable to
+  // anyone who has not built the dashboard.
+  h += '<tr><td style="padding:18px 22px 0 22px">' +
+    '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:15px 17px">' +
+    '<div style="font:700 14px Arial,sans-serif;color:#0f172a;margin-bottom:10px">How to read this</div>' +
+    '<div style="font:400 13px/1.85 Arial,sans-serif;color:#475569">' +
+      '<strong style="color:#0f172a">Conviction</strong> — how much the supporting evidence agrees with the signal. ' +
+      '<strong>High</strong> means the composite rating, the 1-month trend and volume all point the same way. ' +
+      '<strong>Low</strong> means the signal fired but little else backs it. ' +
+      'It is built from the <em>1-month</em> trend, not the 1-week Momentum grade: a stock in the top 20% of ' +
+      'last week&rsquo;s movers has usually already run up, which is precisely what disqualifies it from an entry. ' +
+      'So a Momentum C on a Possible Entry is normal, not a warning. ETFs carry no composite rating, ' +
+      'so they rarely reach High — missing evidence scores zero, never against.<br><br>' +
+      '<strong style="color:#0f172a">Momentum / Trend / Value grades</strong> — each stock graded A+ to F against the others tracked. ' +
+      'Momentum is the 1-week ranking, Trend the 1-month, Value the price-to-earnings ranking (lower P/E scores better). ' +
+      'Value shows N/A for companies with no earnings.<br><br>' +
+      '<span style="background:#d1fae5;color:#047857;font:700 11px Arial,sans-serif;padding:2px 6px;border-radius:3px">VOL RISING</span> ' +
+      'recent volume is 30%+ above the prior fortnight — real buying or selling behind the move.<br>' +
+      '<span style="background:#fef3c7;color:#b45309;font:700 11px Arial,sans-serif;padding:2px 6px;border-radius:3px">VOL FADING</span> ' +
+      'volume is 30%+ below it. A price signal on thin volume is the classic false move — size down or wait.<br><br>' +
+      '<strong style="color:#0f172a">RSI</strong> measures how stretched recent buying is, 0 to 100. Above 70 usually means overbought, below 35 oversold.<br>' +
+      '<strong style="color:#0f172a">P/E</strong> is price divided by annual earnings per share — roughly, years of profit to pay for the share. Only comparable within a sector.<br>' +
+      '<strong style="color:#0f172a">Beta</strong> is how hard the stock swings against the market. 1.0 moves with it, 1.5 amplifies by half, under 1.0 is steadier.<br>' +
+      '<strong style="color:#0f172a">52-week range</strong> shows where today sits between the year low (0%) and high (100%).' +
+    '</div></div></td></tr>';
+
+  h += '<tr><td style="padding:16px 20px 20px 20px;border-top:1px solid #e2e8f0;margin-top:14px">' +
+    '<div style="font:400 13px/1.7 Arial,sans-serif;color:#94a3b8">' +
+    'Signals are price-based and not investment advice. Portfolio positions are stored in your browser only, ' +
+    'so this email cannot see them. Generated automatically from your ' +
+    '<a href="' + DASHBOARD_URL + '" style="color:#2563eb">Market Dashboard</a>.</div>' +
+    '</td></tr></table></div>';
+
+  return h;
+}
+
+function digestText(D, todayStr, x) {
+  var L = ['MARKET DIGEST — ' + todayStr, 'Data as of ' + (D.lastUpdated || 'unknown'),
+           DASHBOARD_URL, ''];
+  if (x.health.length) { L.push('DATA ISSUES:'); x.health.forEach(function(w){ L.push('  ! ' + w); }); L.push(''); }
+
+  function sig(title, arr, labelFn) {
+    L.push(title.toUpperCase() + ' (' + arr.length + ')');
+    if (!arr.length) L.push('  none');
+    else arr.forEach(function(e){
+      var s = e.item;
+      L.push('  [' + (e.conviction ? e.conviction.tier.toUpperCase() : '?') + '] ' +
+             '[' + e.market + '] ' + s.ticker + '  ' + digestMoney(s.price, e.currency) +
+             '  ' + digestFmt(s.pct_1w,2,'% 1W') +
+             '  RSI ' + (s.rsi14 !== null && s.rsi14 !== undefined ? s.rsi14 : '—') + '  ' + labelFn(s) +
+             (e.conviction && e.conviction.why.length ? '  (' + e.conviction.why.join(', ') + ')' : ''));
+    });
+    L.push('');
+  }
+  sig('Possible entries', x.entries, function(s){
+    var v = digestVolState(s);
+    return 'Possible Entry' + (v === 'confirmed' ? '  [VOL RISING]' : v === 'unconfirmed' ? '  [VOL FADING]' : '');
+  });
+  sig('Exit signals', x.exits, function(s){
+    var v = digestVolState(s);
+    return digestExitLabel(s) + (v === 'confirmed' ? '  [VOL RISING]' : v === 'unconfirmed' ? '  [VOL FADING]' : '');
+  });
+  L.push('VOL RISING = 5-day volume 30%+ above prior fortnight (move has participation).');
+  L.push('VOL FADING = 5-day volume 30%+ below it (signal on thin volume — less reliable).');
+  L.push('');
+
+  function perf(title, list, cur) {
+    L.push(title.toUpperCase());
+    if (!list.length) { L.push('  no data'); L.push(''); return; }
+    list.slice().sort(function(a,b){
+      return ((b.pct_1w===null||b.pct_1w===undefined)?-9999:b.pct_1w) -
+             ((a.pct_1w===null||a.pct_1w===undefined)?-9999:a.pct_1w);
+    }).forEach(function(i){
+      L.push('  ' + (i.ticker+'        ').substring(0,8) + digestMoney(i.price, cur) +
+             '  1W ' + digestFmt(i.pct_1w,1,'%') + '  YTD ' + digestFmt(i.pct_ytd,1,'%'));
+    });
+    L.push('');
+  }
+  if ((D.metals || []).length) {
+    L.push('METALS & COMMODITIES (front-month futures, not spot)');
+    D.metals.forEach(function(m){
+      L.push('  ' + (m.name + '                ').substring(0,18) + '$' + m.price +
+             '  today ' + digestFmt(m.dp,2,'%') + '  1W ' + digestFmt(m.pct_1w,1,'%') +
+             '  YTD ' + digestFmt(m.pct_ytd,1,'%'));
+    });
+    if (D.metal_ratio) L.push('  Gold/silver ratio: ' + D.metal_ratio + ' (usual band 65-90)');
+    L.push('');
+  }
+
+  perf('US stocks', x.stocks);
+  perf('Greek stocks', x.greek, 'EUR');
+  perf('ETFs', x.etfs);
+
+  L.push('CHANGED SINCE YESTERDAY');
+  L.push('  ' + (x.firstRun ? 'First run.' : (x.changes.length ? x.changes.join('; ') : 'Nothing changed.')));
+  return L.join('\n');
+}
+
+// ── Setup helpers ────────────────────────────────────────────
+// Delivery hour, settable without editing code: add a DIGEST_HOUR script
+// property (0-23). Defaults to 7.
+//
+// Two things worth knowing about Apps Script triggers:
+//  1. atHour(7) means SOMETIME between 07:00 and 08:00. nearMinute()
+//     narrows it to roughly +/-15 minutes but nothing pins it exactly.
+//  2. The hour is interpreted in the SCRIPT PROJECT's timezone, not
+//     Athens. If Project Settings says otherwise, this fires at the wrong
+//     local time. The log below prints the resolved zone so you can check
+//     rather than assume.
+var DIGEST_HOUR_PROP = 'DIGEST_HOUR';
+
+function setupDigestTrigger() {
+  var hour = parseInt(PropertiesService.getScriptProperties().getProperty(DIGEST_HOUR_PROP), 10);
+  if (isNaN(hour) || hour < 0 || hour > 23) hour = 7;
+
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'sendDailyDigest') ScriptApp.deleteTrigger(t);
+  });
+
+  ScriptApp.newTrigger('sendDailyDigest')
+    .timeBased().atHour(hour).nearMinute(30).everyDays(1).create();
+
+  var tz = Session.getScriptTimeZone();
+  Logger.log('Daily digest trigger set for ~' + hour + ':30 in timezone "' + tz + '".');
+  if (tz !== 'Europe/Athens') {
+    Logger.log('WARNING: project timezone is "' + tz + '", not Europe/Athens. The digest will ' +
+               'arrive at ' + hour + ':30 ' + tz + ' time, not Athens time. Change it in ' +
+               'Project Settings > Time zone, then run this function again.');
+  }
+  Logger.log('Weekends are skipped inside sendDailyDigest() using Athens time regardless.');
+}
+
+// Prints every installed trigger. Run this when the dashboard or digest
+// reports stale data — the usual cause is a leftover DAILY fetchAndStore
+// trigger from an earlier setup, which refreshes once each morning and
+// then leaves the data ageing all day.
+function diagnoseTriggers() {
+  var triggers = ScriptApp.getProjectTriggers();
+  Logger.log('=== Installed triggers: ' + triggers.length + ' ===');
+
+  var counts = {};
+  triggers.forEach(function(t, i) {
+    var fn = t.getHandlerFunction();
+    counts[fn] = (counts[fn] || 0) + 1;
+    Logger.log((i + 1) + '. ' + fn + '  [' + t.getEventType() + ']');
+  });
+
+  var expected = ['fetchAndStore', 'refreshSlowFinnhubData', 'checkAndFireAlerts', 'sendDailyDigest'];
+  Logger.log('--- checks ---');
+  expected.forEach(function(fn) {
+    var n = counts[fn] || 0;
+    if (n === 0)      Logger.log('MISSING: ' + fn + ' has no trigger.');
+    else if (n > 1)   Logger.log('DUPLICATE: ' + fn + ' has ' + n + ' triggers — delete the extras.');
+    else if (fn === 'fetchAndStore')
+      // The Trigger object exposes the handler and event type but NOT the
+      // interval, so a daily trigger is indistinguishable from an hourly
+      // one here. Don't claim it is fine when only the count was checked.
+      Logger.log('PRESENT (count only): ' + fn + ' — the interval cannot be read from code. ' +
+                 'Open the Triggers page and confirm this row says "Hour timer / Every hour", not "Day timer".');
+    else              Logger.log('OK: ' + fn);
+  });
+  Object.keys(counts).forEach(function(fn) {
+    if (expected.indexOf(fn) < 0) Logger.log('UNEXPECTED: ' + fn + ' (' + counts[fn] + ') — probably stale.');
+  });
+
+  var last = PropertiesService.getScriptProperties().getProperty(LAST_UPDATED_PROP);
+  if (last) {
+    var age = digestDataAgeHours(last);
+    Logger.log('--- data freshness ---');
+    Logger.log('Last successful fetchAndStore: ' + last +
+      (age !== null ? '  (' + Math.round(age * 10) / 10 + ' hours ago)' : ''));
+    if (age !== null && age > 2) {
+      Logger.log('That is older than one hour, so the hourly refresh is NOT working. Two possible causes:');
+      Logger.log('  (a) the trigger is a DAILY one — check the Triggers page, the row should read "Hour timer".');
+      Logger.log('  (b) it is hourly but the runs are FAILING — check the Executions page for red entries.');
+      Logger.log('Either way: run setupHourlyTrigger() to reset it, then watch Executions for the next hour.');
+    }
+  }
+  return counts;
+}
+
+function setDigestEmail(address) {
+  if (!address || address.indexOf('@') < 0) { Logger.log('Provide a valid email address.'); return; }
+  PropertiesService.getScriptProperties().setProperty(DIGEST_EMAIL_PROP, address);
+  Logger.log('Digest recipient set to ' + address);
+}
+
+// Send one now regardless of weekday, WITHOUT consuming the comparison
+// state — so a test never blanks out tomorrow's real "what changed".
+function sendTestDigest() {
+  var to = digestRecipient();
+  if (!to) { Logger.log('No recipient. Run setDigestEmail("you@example.com") first.'); return; }
+  var raw = readChunked(DATA_PROP);
+  if (!raw) { Logger.log('No stored market data — run fetchAndStore() first.'); return; }
+  var built = buildDigest(JSON.parse(raw), readDigestState(), 'Europe/Athens');
+  MailApp.sendEmail({ to: to, subject: '[TEST] ' + built.subject,
+                      htmlBody: built.html, body: built.text });
+  Logger.log('Test digest sent to ' + to + ' (comparison state left untouched).');
+}
