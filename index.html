@@ -2343,7 +2343,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbzdTXAdHd0jCHNao0XQhsZqXGRoxVedFLI1nYrdbTWzhREgzuNQ6U6UrLG3h8XUQWib_g/exec';
+var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbyeR6Pt-u5nHyqTX22FW9mD-RLv9xUyUBrqaZwfavmQFrTNXYLoQTk1OfMGcesCdFss1w/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2535,12 +2535,23 @@ var US_INDEX_TICKERS = ['^DJI','^IXIC','^RUT'];
 function renderMetalsTab(metals, ratio) {
   var content = document.getElementById('metals-content');
   if (content) content.style.display = 'block';
+
+  // A data.json written before the metals feature shipped has no `metals`
+  // key at all. That is a completely different problem from a failed fetch,
+  // and saying "No data." for both sends you hunting in the wrong place.
+  var stalePayload = !D || D.metals === undefined || D.metals === null;
   metals = metals || [];
 
   var errEl = document.getElementById('metals-errors');
   if (errEl) {
     var errs = (D && D.metal_errors) || [];
-    if (errs.length) {
+    if (stalePayload) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'The data file this page loaded (' +
+        ((D && D.lastUpdated) || 'unknown timestamp') + ') was written before metals were added, ' +
+        'so it contains no metals data. Run fetchAndStore in Apps Script, then hard-refresh ' +
+        '(Ctrl+Shift+R). Nothing is wrong with the metals feed itself.';
+    } else if (errs.length) {
       errEl.style.display = 'block';
       errEl.textContent = 'Could not load: ' + errs.join('; ');
     } else { errEl.style.display = 'none'; }
@@ -2609,7 +2620,8 @@ function renderMetalsTab(metals, ratio) {
       if (!el) return;
       var items = metals.filter(function(m){ return m.group === pair[0]; });
       el.innerHTML = items.length ? items.map(card).join('')
-        : '<div style="color:var(--muted);font-size:12px">No data.</div>';
+        : '<div style="color:var(--muted);font-size:12px">' +
+          (stalePayload ? 'Not in this data file.' : 'No data.') + '</div>';
     });
 }
 
@@ -3663,7 +3675,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.09.18-a';
+var APP_VERSION = '2026.10.05-a';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
