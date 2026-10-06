@@ -290,6 +290,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <button id="settings-close" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;margin-top:4px">Close</button>
 </div>
     <div id="last-updated">Loading...</div>
+    <div id="backend-version" title="Version of Code.gs that produced this data file." style="font-size:10px;color:var(--muted);font-family:var(--mono);opacity:.75"></div>
     <div id="app-version" title="Build currently running in your browser. If this does not match what you just deployed, you are on a cached copy." style="font-size:10px;color:var(--muted);font-family:var(--mono);opacity:.75"></div>
     <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
   </div>
@@ -2343,7 +2344,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbyeR6Pt-u5nHyqTX22FW9mD-RLv9xUyUBrqaZwfavmQFrTNXYLoQTk1OfMGcesCdFss1w/exec';
+var GAS_URL  = 'https://script.google.com/a/macros/thesignalgroup.com/s/AKfycbxcgiMSNoLBIGdnbOt39rfLDxEuV6q_A8CDafzCCIYg67Qra8VUoBZLyMTq4sgct1hkoQ/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2547,10 +2548,13 @@ function renderMetalsTab(metals, ratio) {
     var errs = (D && D.metal_errors) || [];
     if (stalePayload) {
       errEl.style.display = 'block';
-      errEl.textContent = 'The data file this page loaded (' +
-        ((D && D.lastUpdated) || 'unknown timestamp') + ') was written before metals were added, ' +
-        'so it contains no metals data. Run fetchAndStore in Apps Script, then hard-refresh ' +
-        '(Ctrl+Shift+R). Nothing is wrong with the metals feed itself.';
+      var bver = (D && D.codeVersion) || null;
+      errEl.textContent = 'This data file (' + ((D && D.lastUpdated) || 'unknown time') +
+        ') contains no metals data. It was written by Code.gs version ' +
+        (bver || 'older than 2026.10.06-a') + '. ' +
+        'The metals feed is fine — the Apps Script project is running older code than you pasted. ' +
+        'In the Apps Script editor, check the file list on the left for a second .gs file that also ' +
+        'defines fetchAndStore, and confirm the file you pasted into was saved.';
     } else if (errs.length) {
       errEl.style.display = 'block';
       errEl.textContent = 'Could not load: ' + errs.join('; ');
@@ -3367,6 +3371,12 @@ function renderStaleness(lastUpdated) {
 
 function renderAll(data) {
   document.getElementById('last-updated').textContent = 'Updated: ' + (data.lastUpdated || 'unknown');
+  var bv = document.getElementById('backend-version');
+  if (bv) {
+    bv.textContent = 'backend ' + (data.codeVersion || 'pre-2026.10.06');
+    bv.title = 'Version of Code.gs that produced this data file. If this looks older than what ' +
+               'you pasted into Apps Script, the paste did not take effect.';
+  }
   renderStaleness(data.lastUpdated);
   document.getElementById('ov-loading').style.display = 'none';
   document.getElementById('ov-content').style.display = 'block';
@@ -3675,7 +3685,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.10.05-a';
+var APP_VERSION = '2026.10.06-a';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
