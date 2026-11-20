@@ -284,6 +284,19 @@ button.attn-card:hover{border-color:var(--accent)}
 #to-top{display:none;position:fixed;right:14px;bottom:18px;width:42px;height:42px;border-radius:50%;border:1px solid var(--border);background:var(--surf);color:var(--text);font-size:18px;cursor:pointer;z-index:200;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 #ov-watchlist,#greek-watchlist{scroll-margin-top:130px}
 #foot-ver{margin-top:6px;font-family:var(--mono);font-size:10px;opacity:.75}
+/* availability badges */
+.acc-badge{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:help;margin-top:3px}
+.acc-badge span{font-family:var(--mono);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid var(--border);white-space:nowrap}
+.acc-badge .e-y{color:var(--green);background:rgba(16,185,129,.10)}
+.acc-badge .e-c{color:var(--amber);background:rgba(245,158,11,.10)}
+.acc-badge .e-n{color:var(--red);background:rgba(239,68,68,.10)}
+.acc-badge .e-x{color:var(--muted);background:rgba(100,116,139,.10)}
+.acc-badge .ac-v{color:var(--green);background:rgba(16,185,129,.16)}
+.acc-badge .ac-m{color:var(--cyan);background:rgba(6,182,212,.10)}
+.acc-badge .ac-p{color:var(--amber);background:rgba(245,158,11,.10)}
+.acc-badge .ac-u{color:var(--muted);background:rgba(100,116,139,.10);border-style:dashed}
+.acc-badge .ac-n{color:var(--red);background:rgba(239,68,68,.10)}
+.acc-bar{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
 @media(max-width:760px){
   .ver-line{display:none}
   div:has(>.wl-filter),div:has(>.gk-filter),div:has(>.ix-filter),div:has(>.mt-filter),div:has(>.etf-filter){flex-wrap:nowrap!important;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
@@ -398,7 +411,7 @@ button.attn-card:hover{border-color:var(--accent)}
   <button class="wl-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#9650; Above 50MA</button>
   <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#9660; Below 50MA</button>
 </div>
-<div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button type="button" id="wl-ai" class="chip tip" aria-pressed="false" onclick="toggleAiTheme(this)" data-tip="Shows only tracked names with a large AI link (chips, cloud, software, infrastructure). A personal grouping, not an official index.">&#129302; AI-exposed</button><input class="search-box" id="wl-search" type="search" placeholder="Search ticker / name" oninput="wlSearch=this.value;if(D)renderWatchlist(D.stocks)" aria-label="Search US stocks"></div>
+<div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="acc-slot" data-scope="us"></span><button type="button" id="wl-ai" class="chip tip" aria-pressed="false" onclick="toggleAiTheme(this)" data-tip="Shows only tracked names with a large AI link (chips, cloud, software, infrastructure). A personal grouping, not an official index.">&#129302; AI-exposed</button><input class="search-box" id="wl-search" type="search" placeholder="Search ticker / name" oninput="wlSearch=this.value;if(D)renderWatchlist(D.stocks)" aria-label="Search US stocks"></div>
 <div id="ov-watchlist" style="margin-bottom:16px"></div>
     <div class="panel" style="margin-bottom:16px">
       <h3>Sector Heatmap <span class="sub">Weekly &amp; Monthly avg</span></h3>
@@ -766,7 +779,7 @@ button.attn-card:hover{border-color:var(--accent)}
   <button class="gk-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#9650; Above 50MA</button>
   <button class="gk-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#9660; Below 50MA</button>
 </div>
-<div style="margin-bottom:8px"><input class="search-box" id="gk-search" type="search" placeholder="Search ticker / name" oninput="gkSearch=this.value;if(D)renderGreekWatchlist(D.greek)" aria-label="Search Greek stocks"></div>
+<div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="acc-slot" data-scope="gr"></span><input class="search-box" id="gk-search" type="search" placeholder="Search ticker / name" oninput="gkSearch=this.value;if(D)renderGreekWatchlist(D.greek)" aria-label="Search Greek stocks"></div>
 <div id="greek-watchlist" style="margin-bottom:16px"></div>
 
     <!-- Sector Heatmap (replaces the old redundant full table — watchlist cards above already give per-stock detail) -->
@@ -799,8 +812,8 @@ button.attn-card:hover{border-color:var(--accent)}
     <!-- Header banner (matches Greek style) -->
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Exchange Traded Funds (ETFs) &#8212; 13 Tracked</div>
-        <div style="font-size:11px;color:var(--muted)">Prices in USD &#183; Data via Yahoo Finance &#183; Across 5 categories: Broad Market, Growth, Dividend, Defensive, Thematic</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">EU-accessible ETFs &amp; ETCs</div>
+        <div style="font-size:11px;color:var(--muted)">Prices in EUR &#183; EU-domiciled UCITS ETFs (and one ETC) listed on Xetra &#183; US-listed ETFs such as VOO, QQQ or GLD are excluded because EU retail investors cannot buy them (no PRIIPs KID)</div>
       </div>
       <div id="etf-inline-strip" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
     </div>
@@ -830,6 +843,7 @@ button.attn-card:hover{border-color:var(--accent)}
     <div id="etf-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px"></div>
 
     <!-- ETF filter bar -->
+    <div style="margin-bottom:8px"><span class="acc-slot" data-scope="etf"></span></div>
     <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <span style="font-size:11px;color:var(--muted);font-weight:600">Filter:</span>
       <button class="etf-filter active-filter tip" data-filter="all" data-tip="Show all ETFs regardless of signal, RSI or trend.">All</button>
@@ -839,11 +853,11 @@ button.attn-card:hover{border-color:var(--accent)}
       <button class="etf-filter tip" data-filter="oversold" data-tip="RSI under 35: ETF has been sold too aggressively. Price may bounce. Watch for confirmation.">RSI &lt;35</button>
       <button class="etf-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend structurally intact. Best ETFs to buy on dips.">&#9650; Above 50MA</button>
       <button class="etf-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying.">&#9660; Below 50MA</button>
-      <button class="etf-filter tip" data-filter="Broad Market"   data-tip="Show only Broad Market ETFs: VOO, VTI, QQQ, VT.">&#127760; Broad Market</button>
+      <button class="etf-filter tip" data-filter="Broad Market"   data-tip="Show only Broad Market funds: S&P 500, All-World, MSCI World, Nasdaq-100.">&#127760; Broad Market</button>
       <button class="etf-filter tip" data-filter="Growth & Tech"  data-tip="Show only Growth & Tech ETFs: VGT, VUG.">&#128200; Growth</button>
-      <button class="etf-filter tip" data-filter="Dividend"       data-tip="Show only Dividend ETFs: SCHD, VYM.">&#128176; Dividend</button>
-      <button class="etf-filter tip" data-filter="Defensive"      data-tip="Show only Defensive ETFs: AGG, GLD, IAU.">&#128737; Defensive</button>
-      <button class="etf-filter tip" data-filter="Thematic"       data-tip="Show only Thematic ETFs: BOTZ, IBIT.">&#128640; Thematic</button>
+      <button class="etf-filter tip" data-filter="Dividend"       data-tip="Show only Dividend funds: US Dividend Aristocrats.">&#128176; Dividend</button>
+      <button class="etf-filter tip" data-filter="Defensive"      data-tip="Show only Defensive products: global bonds, physical gold ETC.">&#128737; Defensive</button>
+      <button class="etf-filter tip" data-filter="Thematic"       data-tip="Show only Thematic funds: AI &amp; Big Data.">&#128640; Thematic</button>
     </div>
 
     <!-- ETF cards by category -->
@@ -1101,6 +1115,7 @@ button.attn-card:hover{border-color:var(--accent)}
         <div style="display:flex;flex-direction:column;gap:10px">
           <div><strong style="color:var(--text)">Entry / stop / target levels</strong> (Indices and Metals cards) &mdash; mechanical reference levels from the numbers on the card, not advice. <em>Zone</em> = the pullback band between the 20-day and 50-day averages (never below the 4-week low), shown only while price is above its 50-day average; below it the card shows the 50-day level to reclaim instead. <em>Stop</em> = 4-week low minus a quarter of the 4-week range (at least 0.5% of price). <em>T1/T2</em> = next resistances (4-week high, then 52-week high), or half-range measured moves when price is already at them. <em>R:R</em> = (T1 &minus; entry) / (entry &minus; stop), from the current price when inside the zone, otherwise from the zone middle. Near highs (Take Profit / Near 52W High) the card shows a trail stop at the 20-day average. They know nothing about your position, horizon or risk limit.</div>
           <div><strong style="color:var(--text)">Quick navigation</strong> &mdash; the four boxes at the top of US Stocks count what is currently on each filter and jump straight to that list; the number always equals the cards you get. <em>AI-exposed</em> narrows the list to tracked names with a large AI link (a personal grouping, not an index). Tap a Strong / Neutral / Weak heading to collapse it. The dashboard reopens on the tab you last used, <kbd>/</kbd> jumps to the search box, and the arrow keys move between tabs. The coloured chip next to the update time shows the data age (green under 3 hours, amber under a day, red beyond).</div>
+          <div><strong style="color:var(--text)">Availability tags (EU / IBKR / Revolut)</strong> &mdash; <em>EU &#10003;</em> means legally open to EU retail investors: ordinary shares are not PRIIPs, funds need a Key Information Document (KID), and US-listed ETFs have none, so they were removed. The broker tags are separate and describe actual availability: <b>&#10003;</b> verified for that exact instrument by official sources; <b>&#9680;</b> market-level &mdash; the broker's official pages show EU clients can trade this type of instrument on this market, but this ticker was not individually checked; <b>!</b> needs extra permissions (futures); <b>?</b> unverified; <b>&#10005;</b> not available. Nothing is marked &#10003; yet: neither broker publishes a per-ticker list that can be read automatically, Revolut offers a curated list, and IBKR's public pages do not mention Athens. Treat &#9680; as &ldquo;probably yes &mdash; confirm in the app before trading&rdquo;. Futures are complex leveraged products needing an appropriateness assessment. Sources: <a class="tk" href="https://www.interactivebrokers.com/support/faq/content/1136192471" target="_blank" rel="noopener noreferrer">IBKR PRIIPs FAQ</a>, <a class="tk" href="https://www.interactivebrokers.ie/en/trading/products-stocks.php" target="_blank" rel="noopener noreferrer">IBKR stocks</a>, <a class="tk" href="https://help.revolut.com/en-CH/help/wealth/stocks/getting-started-with-trading/what-s-available-to-trade/whats-available-to-trade/" target="_blank" rel="noopener noreferrer">Revolut what's available</a> (read 2026-11-20). Not legal or investment advice.</div>
           <div><strong style="color:var(--text)">Tickers</strong> &mdash; every ticker is a link to its Yahoo Finance page (Greek stocks use the .AT symbol). Links open in a new tab.</div>
           <div><strong style="color:var(--text)">Exit signal</strong> — every place you see a Timing (entry) badge, there's now an Exit badge next to it: <span class="tip bz-wait" data-tip="Example only">Exit Signal</span>/<span class="tip bz-wait" data-tip="Example only">Take Profit</span> mean the case for holding has weakened; <span class="tip bz-watch" data-tip="Example only">Near 52W High</span>/<span class="tip bz-watch" data-tip="Example only">Trim Risk</span> are softer caution flags; <span class="tip bz-hold" data-tip="Example only">Hold</span> means nothing's changed. It uses the same logic as the "When to sell" section below — just computed live per stock instead of sitting as static text. It shows up on watchlist cards, the Signals table, and — most usefully — your Portfolio tab, since that's your actual holdings. Use the <strong style="color:var(--text)">&#9660; Possible Exit</strong> filter button (US Stocks, Greek, and ETFs tabs) to see only stocks with an active exit signal, the same way the existing Possible Entry filter works.</div>
           <div><strong style="color:var(--text)">Grades column</strong> (Signals tab) — three letter grades (A+ to F) per stock: Momentum (1-week rank), Trend (1-month rank), and Value (trailing P/E rank vs the other tracked stocks, lower P/E = higher grade). Momentum and Trend are <strong style="color:var(--amber)">price-based only</strong> — they say nothing about whether the business is good. Value now uses real trailing P/E, but P/E alone is still a blunt instrument: it ignores growth rate, debt and cyclicality, and it is N/A for loss-making companies. Treat an A+ Value as "screens cheap on one multiple," not "objectively undervalued."</div>
@@ -1475,7 +1490,7 @@ function renderGreek(greek) {
 
 function renderGreekWatchlist(greek) {
   var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
-  greek.forEach(function(s){ if(matchesFilter(s,gkFilter) && matchesSearch(s,gkSearch)) (groups[s.signal]||groups.NEUTRAL).push(s); });
+  greek.forEach(function(s){ if(matchesFilter(s,gkFilter) && matchesSearch(s,gkSearch) && matchesAccess(s)) (groups[s.signal]||groups.NEUTRAL).push(s); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
 
   var configs = [
@@ -1522,7 +1537,7 @@ function renderGreekWatchlist(greek) {
                 '<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);min-width:56px">'+tkOf(s)+'</span>'+
                 '<div>'+
                   '<div style="font-size:12px;font-weight:600">'+esc(s.company)+'</div>'+
-                  '<div style="font-size:10px;color:var(--muted)">'+esc(s.sector)+' &#183; &#8364;'+fmt(s.price)+'</div>'+
+                  '<div style="font-size:10px;color:var(--muted)">'+esc(s.sector)+' &#183; &#8364;'+fmt(s.price)+'</div>'+accessBadge(s)+
                 '</div>'+
               '</div>'+
               '<div style="text-align:right">'+
@@ -1634,19 +1649,15 @@ function renderGreekHeatmapData(hm) {
 var etfSortField = 'pct_1w', etfSortDir = 'desc';
 
 var ETF_META = {
-  'VOO': { category:'Broad Market', expense:0.03, desc:'Tracks S&P 500. Best core holding for most investors. Near-zero cost.' },
-  'VTI': { category:'Broad Market', expense:0.03, desc:'Covers entire US market including small & mid caps. 3,700+ stocks.' },
-  'QQQ': { category:'Broad Market', expense:0.20, desc:'Top 100 Nasdaq companies. Heavy tech/AI. Higher growth, higher risk.' },
-  'VT':  { category:'Broad Market', expense:0.06, desc:'Global diversification. 10,000+ stocks across all countries.' },
-  'VGT': { category:'Growth & Tech', expense:0.10, desc:'Pure technology exposure. Apple, Microsoft, Nvidia. Strong AI play.' },
-  'VUG': { category:'Growth & Tech', expense:0.04, desc:'Large-cap US growth stocks. Lower cost alternative to QQQ.' },
-  'SCHD':{ category:'Dividend',     expense:0.06, desc:'Quality dividend payers screened for financial strength. Yield ~3-4%.' },
-  'VYM': { category:'Dividend',     expense:0.06, desc:'~400 high-yield US stocks. Pairs well with SCHD for income.' },
-  'AGG': { category:'Defensive',    expense:0.03, desc:'US investment-grade bonds. Reduces volatility. Yield ~4-5%.' },
-  'GLD': { category:'Defensive',    expense:0.40, desc:'Physical gold exposure. Hedge against inflation and currency risk.' },
-  'IAU': { category:'Defensive',    expense:0.25, desc:'Same as GLD but cheaper. Lower cost gold ETF.' },
-  'BOTZ':{ category:'Thematic',     expense:0.68, desc:'AI, robotics, and automation companies. High growth, high volatility.' },
-  'IBIT':{ category:'Thematic',     expense:0.25, desc:'Direct Bitcoin exposure. $70B+ AUM. High risk, high potential.' }
+  'VUAA.DE': { category:'Broad Market', expense:0.07, desc:'S&P 500 index, EU-listed alternative to VOO. Core large-cap US exposure.' },
+  'VWCE.DE': { category:'Broad Market', expense:0.19, desc:'Developed + emerging markets in one fund, EU-listed alternative to VT/VTI.' },
+  'EUNL.DE': { category:'Broad Market', expense:0.20, desc:'Developed-world large and mid caps (about 70% US). No emerging markets.' },
+  'SXRV.DE': { category:'Broad Market', expense:0.33, desc:'Top 100 Nasdaq companies, EU-listed alternative to QQQ. Heavy tech / AI.' },
+  'QDVE.DE': { category:'Growth & Tech', expense:0.15, desc:'US information-technology sector, EU-listed alternative to VGT.' },
+  'SPYD.DE': { category:'Dividend',     expense:0.35, desc:'US companies with long dividend-growth records, EU-listed alternative to SCHD / VYM.' },
+  'VAGF.DE': { category:'Defensive',    expense:0.10, desc:'Global investment-grade bonds, EUR-hedged. EU-listed alternative to AGG.' },
+  '4GLD.DE': { category:'Defensive',    expense:0.36, desc:'Gold-backed bond (an ETC, not a UCITS ETF). EU-accessible alternative to GLD / IAU.' },
+  'XAIX.DE': { category:'Thematic',     expense:0.35, desc:'Companies tied to AI and big data, EU-listed thematic alternative to BOTZ. Higher volatility.' }
 };
 
 var ETF_CAT_COLORS = {
@@ -1716,7 +1727,7 @@ function renderETFs(etfs) {
   var etfTop3El = document.getElementById('etf-top3');
   if (etfTop3El) {
     var allForTop3 = D && D.etfs ? D.etfs : etfs;
-    etfTop3El.innerHTML = makeTop3Strip(allForTop3, 'USD');
+    etfTop3El.innerHTML = makeTop3Strip(allForTop3, 'EUR');
   }
 
   document.getElementById('etf-summary').innerHTML = [
@@ -1754,9 +1765,9 @@ function renderETFs(etfs) {
               '<div>'+
                 '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'+
                   '<span style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--accent)">'+tkOf(e)+'</span>'+
-                  '<span class="tip" data-tip="Expense ratio: '+e.expense+'% per year = $'+(e.expense*100).toFixed(0)+' per $10,000 invested annually" style="font-size:10px;color:'+expClr+';font-family:var(--mono);cursor:help">'+e.expense+'%</span>'+
+                  '<span class="tip" data-tip="Expense ratio: '+e.expense+'% per year = '+ccy(e)+(e.expense*100).toFixed(0)+' per '+ccy(e)+'10,000 invested annually" style="font-size:10px;color:'+expClr+';font-family:var(--mono);cursor:help">'+e.expense+'%</span>'+
                 '</div>'+
-                '<div style="font-size:11px;font-weight:600;color:var(--text)">'+esc(e.name)+'</div>'+
+                '<div style="font-size:11px;font-weight:600;color:var(--text)">'+esc(e.name)+'</div>'+accessBadge(e)+
               '</div>'+
               '<div style="text-align:right">'+
                 '<div style="font-family:var(--mono);font-size:14px;font-weight:800;color:'+pctClr+'">'+(e.pct_1w!==null?(e.pct_1w>=0?'+':'')+e.pct_1w+'%':'N/A')+'</div>'+
@@ -1809,10 +1820,10 @@ function renderETFTable(etfs) {
     return '<tr title="'+esc(e.name)+' ('+e.ticker+') | '+e.category+' | Expense: '+e.expense+'% | RSI: '+(e.rsi14||'N/A')+'">' +
       '<td data-label="#">'+(i+1)+'</td>'+
       '<td data-label="Name" style="font-weight:600">'+esc(e.name)+'</td>'+
-      '<td data-label="Ticker" style="font-family:var(--mono);color:var(--accent);font-weight:700">'+tkOf(e)+'</td>'+
+      '<td data-label="Ticker" style="font-family:var(--mono);color:var(--accent);font-weight:700">'+tkOf(e)+accessBadge(e)+'</td>'+
       '<td data-label="Category" style="font-size:11px;color:'+cfg.color+'">'+esc(e.category)+'</td>'+
       '<td data-label="Expense" style="font-family:var(--mono)">'+(e.expense!==null?e.expense+'%':'-')+'</td>'+
-      '<td data-label="Price" style="font-family:var(--mono)">$'+fmt(e.price)+'</td>'+
+      '<td data-label="Price" style="font-family:var(--mono)">'+ccy(e)+fmt(e.price)+'</td>'+
       '<td data-label="&#916; 1W" class="'+pcls(e.pct_1w)+'">'+pn(e.pct_1w)+'</td>'+
       '<td data-label="&#916; 1M" class="'+pcls(e.pct_1m)+'">'+pn(e.pct_1m)+'</td>'+
       '<td data-label="&#916; YTD" class="'+pcls(e.pct_ytd)+'">'+pn(e.pct_ytd)+'</td>'+
@@ -2306,6 +2317,7 @@ function range4wBar(s) {
 var etfWatchFilter = 'all';
 
 function applyETFFilter(etfs) {
+  etfs = etfs.filter(matchesAccess);
   var f = etfWatchFilter;
   if (f === 'all') return etfs;
   return etfs.filter(function(e) {
@@ -2635,7 +2647,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbw_vaR0KYz9R2cmyus8ucM0z9P0gy3LgyMnIk-LIGch6DAHGJ_bsUqbBa7RRBORW9UcMw/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycby5fEldRmyE_0lMMn-9_KuajAUTp16Fq-S6CP_NywD53uB6Nzwstju_40MKLHDnlPk4JA/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2667,14 +2679,14 @@ function toggleAiTheme(btn) {
   if (D) renderWatchlist(D.stocks);
 }
 function resetWlFilters() {
-  wlFilter = 'all'; wlSearch = ''; wlAI = false;
+  wlFilter = 'all'; wlSearch = ''; wlAI = false; accessFilter = 'all'; renderAccSlots();
   var i = document.getElementById('wl-search'); if (i) i.value = '';
   var b = document.getElementById('wl-ai'); if (b) { b.classList.remove('active-filter'); b.setAttribute('aria-pressed', 'false'); }
   document.querySelectorAll('.wl-filter').forEach(function(x){ x.classList.toggle('active-filter', x.dataset.filter === 'all'); });
   if (D) renderWatchlist(D.stocks);
 }
 function resetGkFilters() {
-  gkFilter = 'all'; gkSearch = '';
+  gkFilter = 'all'; gkSearch = ''; accessFilter = 'all'; renderAccSlots();
   var i = document.getElementById('gk-search'); if (i) i.value = '';
   document.querySelectorAll('.gk-filter').forEach(function(x){ x.classList.toggle('active-filter', x.dataset.filter === 'all'); });
   if (D) renderGreekWatchlist(D.greek);
@@ -2727,6 +2739,7 @@ function renderHowto() {
     '<li><b>Strong / Neutral / Weak</b> is a rank against the other tracked stocks — not a buy or sell call.</li>' +
     '<li><b>Timing badge</b> (Possible Entry, Extended, …) says whether the setup looks attractive or stretched. An <b>Exit</b> badge only appears when a rule triggers.</li>' +
     '<li>Tap the <b>boxes above</b> to jump to a filtered list. Tap a <b>ticker</b> to open it on Yahoo Finance and a <b>chart</b> to enlarge it. Dashed underlines have a tooltip.</li>' +
+    '<li><b>Availability tags</b> (EU / IBKR / REV) show whether you can legally and practically buy a name from Greece. ◐ means market-level only — confirm in your broker; ? means unverified. Hover one for the reason; details are in the Guide.</li>' +
     '<li>Indices and Metals show mechanical entry / stop / target reference levels — see the Guide tab. Not financial advice.</li></ul>' +
     '<button class="chip" type="button" onclick="dismissHowto()">Got it — hide this</button></div>';
 }
@@ -2747,6 +2760,110 @@ function syncFootVer() {
   var f = document.getElementById('foot-ver'); if (!f) return;
   var a = document.getElementById('app-version'), b = document.getElementById('backend-version');
   f.textContent = [a && a.textContent, b && b.textContent].filter(Boolean).join(' · ');
+}
+
+
+// ── EU retail eligibility / broker availability (2026-11-20-e) ───
+// The statuses are computed in Code.gs (stampAccess_) and arrive as item.access:
+//   e: y yes | c complex product | n no | x not an instrument
+//   i (IBKR) / r (Revolut): v verified for this exact instrument | m market-level
+//   only | p permission-dependent | u unverified | n not available
+// The wording below is keyed by instrument kind (k). Evidence and its limits are
+// documented in Code.gs above accessFor_().
+var ACCESS_SYM = { v:'✓', m:'◐', p:'!', u:'?', n:'✕' };
+var ACCESS_LBL = { v:'Verified', m:'Market-level', p:'Permission needed', u:'Unverified', n:'Not available' };
+var ACCESS_GENERIC = {
+  v:'Confirmed for this instrument by the broker\'s own official sources.',
+  m:'Market-level only: official pages show EU clients can trade this type of instrument here; this ticker was not individually checked.',
+  p:'Offered only with extra permissions or suitability checks.',
+  u:'Availability unverified: no public official evidence either way.',
+  n:'Not available.'
+};
+var ACCESS_TXT = {
+  us:  { eu:'Ordinary shares are not PRIIPs and are non-complex under MiFID II, so EU retail investors can buy them execution-only.',
+         i:{ m:'IBKR publishes US-stock trading costs for EU residents, so US stocks are offered at market level. This exact ticker was not individually checked.' },
+         r:{ u:'Revolut says it offers US-listed stocks, but only a curated list (2,500+ stocks) with no public per-ticker list, so this ticker cannot be confirmed.' } },
+  gr:  { eu:'Shares listed on an EU regulated market (Athens), so EU retail investors can buy them.',
+         i:{ u:'IBKR\'s public stock pages do not mention Greece or Athens, so this cannot be confirmed. Search the symbol in IBKR\'s contract search; a market-data subscription may be needed.' },
+         r:{ u:'Revolut\'s EEA stock expansion names no Athens listings, so this cannot be confirmed. Search the symbol in the app.' } },
+  etf: { eu:'EU-domiciled UCITS ETF. PRIIPs requires a Key Information Document (KID), which European-issued ETFs normally have, so EU retail investors can buy it. Check the fund\'s KID.',
+         i:{ m:'IBKR\'s PRIIPs FAQ says European-issued ETFs usually have a KID and are tradable by EEA retail clients (class level). This fund was not individually checked.' },
+         r:{ u:'Revolut offers ETFs (including savings plans in Greece) but publishes no per-fund list, so this fund cannot be confirmed.' } },
+  etc: { eu:'Exchange-traded commodity (a debt security, not a UCITS ETF). It also needs a KID; check that one exists in a language you can access.',
+         i:{ u:'IBKR\'s PRIIPs FAQ covers ETFs, not ETCs, so this cannot be confirmed.' },
+         r:{ u:'Revolut publishes no per-product list for ETCs, so this cannot be confirmed.' } },
+  fut: { eu:'This is the reference price of a futures contract. Futures are complex, leveraged products: retail access needs the broker\'s appropriateness assessment and a futures trading permission.',
+         i:{ p:'IBKR lists futures and metals, but its public pages do not say which are open to EU retail accounts. Requires futures permission.' },
+         r:{ u:'No public evidence that Revolut offers this futures contract; commodity exposure there, if any, is through other products.' } },
+  idx: { eu:'A reference index cannot be bought directly. Tradable routes: a UCITS index ETF (ETFs tab), or index futures/options at IBKR, which need permissions and are complex products.' },
+  bm:  { eu:'Used only as the benchmark for relative-strength figures. US-listed ETFs such as SPY are not available to EU retail investors (no PRIIPs KID).' }
+};
+var accessFilter = 'all';
+
+function accessOf(s) { return (s && s.access) || { k:'?', e:'?', i:'u', r:'u', v:'' }; }
+function accessTip(s) {
+  var a = accessOf(s), t = ACCESS_TXT[a.k] || {}, out = [];
+  if (a.v) out.push('Market: ' + a.v + '.');
+  out.push('EU retail: ' + (t.eu || 'not assessed (data file predates the eligibility update).'));
+  if (a.i) out.push('IBKR (' + ACCESS_LBL[a.i] + '): ' + ((t.i && t.i[a.i]) || ACCESS_GENERIC[a.i]));
+  if (a.r) out.push('Revolut (' + ACCESS_LBL[a.r] + '): ' + ((t.r && t.r[a.r]) || ACCESS_GENERIC[a.r]));
+  if (a.n) out.push('Note: ' + a.n);
+  out.push('Based on public pages read 2026-11-20. Legal eligibility is not the same as broker availability. Not legal or investment advice.');
+  return out.join(' ');
+}
+function accessBadge(s) {
+  var a = accessOf(s);
+  var eu = { y:'EU &#10003;', c:'EU &#10003; complex', n:'EU &#10005;', x:'Not tradable' }[a.e] || 'EU ?';
+  var h = '<span class="acc-badge tip" tabindex="0" data-tip="' + esc(accessTip(s)) + '"><span class="e-' + ({y:1,c:1,n:1,x:1}[a.e] ? a.e : 'x') + '">' + eu + '</span>';
+  if (a.i) h += '<span class="ac-' + a.i + '">IBKR ' + ACCESS_SYM[a.i] + '</span>';
+  if (a.r) h += '<span class="ac-' + a.r + '">REV ' + ACCESS_SYM[a.r] + '</span>';
+  return h + '</span>';
+}
+function ccy(e) { return (e && e.currency === 'EUR') ? '&#8364;' : '$'; }
+
+// IBKR / Revolut filter. "Confirmed" = verified or market-level; unverified and
+// permission-dependent items never count as tradable.
+function accOK(code) { return code === 'v' || code === 'm'; }
+function matchesAccess(s) {
+  if (accessFilter === 'all') return true;
+  var a = accessOf(s);
+  if (a.e === 'n' || a.e === 'x') return false;
+  if (accessFilter === 'ibkr') return accOK(a.i);
+  if (accessFilter === 'rev')  return accOK(a.r);
+  return accOK(a.i) && accOK(a.r);
+}
+function renderAccSlots() {
+  var scopes = { us: D && D.stocks, gr: D && D.greek, etf: D && D.etfs };
+  document.querySelectorAll('.acc-slot').forEach(function(slot) {
+    var list = scopes[slot.dataset.scope] || [];
+    var cnt = function(f){ return list.filter(function(x){ var a = accessOf(x); if (a.e === 'n' || a.e === 'x') return false;
+      return f === 'ibkr' ? accOK(a.i) : f === 'rev' ? accOK(a.r) : (accOK(a.i) && accOK(a.r)); }).length; };
+    function b(k, label) {
+      return '<button type="button" class="chip' + (accessFilter === k ? ' active-filter' : '') + '" aria-pressed="' + (accessFilter === k ? 'true' : 'false') + '" onclick="setAccessFilter(\'' + k + '\')">' + label + '</button>';
+    }
+    slot.innerHTML = '<span class="acc-bar" role="group" aria-label="Broker availability filter"><span style="font-size:11px;color:var(--muted);font-weight:600">Broker:</span>' +
+      b('all', 'All') + b('ibkr', 'IBKR &#9680;/&#10003; (' + cnt('ibkr') + ')') + b('rev', 'Revolut &#9680;/&#10003; (' + cnt('rev') + ')') + b('both', 'Both (' + cnt('both') + ')') + '</span>';
+  });
+}
+function setAccessFilter(v) {
+  accessFilter = v;
+  renderAccSlots();
+  if (!D) return;
+  if (D.stocks) renderWatchlist(D.stocks);
+  if (D.greek)  renderGreekWatchlist(D.greek);
+  if (D.etfs)   renderETFs(D.etfs);
+}
+// A data file written before this update still contains the 13 US-listed ETFs.
+// EU retail investors cannot buy them (no PRIIPs KID), so hide them and say why.
+function applyEuEligibility(data) {
+  if (!data || data._euNorm) return;
+  data._euNorm = true;
+  var etfs = data.etfs || [];
+  var keep = etfs.filter(function(e){ return e.access ? e.access.e !== 'n' : e.currency === 'EUR'; });
+  if (keep.length !== etfs.length) {
+    data.warnings = (data.warnings || []).concat([(etfs.length - keep.length) + ' US-listed ETF(s) hidden: not available to EU retail investors (no PRIIPs KID). Run the updated Code.gs to load the EU-accessible fund list.']);
+    data.etfs = keep;
+  }
 }
 
 document.addEventListener('click', function(e) {
@@ -2956,7 +3073,7 @@ function liveRefresh() {
 function renderSpyBar(spy) {
   if (!spy) { document.getElementById('spy-bar').style.display='none'; return; }
   var items = [
-    { lbl:'S&P 500 (SPY)', val:'$'+fmt(spy.price), cls:'' },
+    { lbl:'S&P 500 (SPY, benchmark only)', val:'$'+fmt(spy.price), cls:'' },
     { lbl:'Today',  val:p(spy.dp),      cls:(spy.dp||0)>=0?'tt-g':'tt-r' },
     { lbl:'1 Week', val:p(spy.pct_1w),  cls:(spy.pct_1w||0)>=0?'tt-g':'tt-r' },
     { lbl:'1 Month',val:p(spy.pct_1m),  cls:(spy.pct_1m||0)>=0?'tt-g':'tt-r' },
@@ -3034,7 +3151,8 @@ function renderMetalsTab(metals, ratio) {
         '<span style="font-size:14px;font-weight:700;color:var(--text)">' + esc(m.name) + '</span>' +
         '<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">' + tkLink(m.ticker, m.ticker) + '</span>' +
       '</div>' +
-      '<div style="font-size:10px;color:var(--muted);margin-bottom:10px">' + esc(m.unit) + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-bottom:4px">' + esc(m.unit) + '</div>' +
+      '<div style="margin-bottom:8px">' + accessBadge(m) + '</div>' +
       '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">' +
         '<span style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text)">$' + m.price + '</span>' +
         '<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:' + dpCls + '">' +
@@ -3074,7 +3192,7 @@ function renderIndicesTab(indices, spy) {
       ? '<div style="margin-top:2px">'+chartHoverWrap(makeChart20(idx.chart20, 220, 44), idx.chart20, idx.name, idx.currency||'')+'</div>'
       : '';
     return '<div class="idx-card">' +
-      '<div><div class="idx-name">'+esc(idx.name)+'</div><div class="idx-region">'+esc(idx.region||'')+' &#183; '+tkLink(idx.ticker, idx.ticker)+'</div></div>' +
+      '<div><div class="idx-name">'+esc(idx.name)+'</div><div class="idx-region">'+esc(idx.region||'')+' &#183; '+tkLink(idx.ticker, idx.ticker)+'</div>'+accessBadge(idx)+'</div>' +
       '<div style="display:flex;align-items:baseline;gap:8px">' +
         '<div class="idx-price">'+fmt(idx.price)+'</div>' +
         '<div class="idx-day '+dpCls+'">'+p(idx.dp)+'</div>' +
@@ -3143,7 +3261,7 @@ function renderSummary(stocks, spy) {
 
 function renderWatchlist(stocks) {
   var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
-  stocks.forEach(function(s){ if(matchesFilter(s,wlFilter) && matchesSearch(s,wlSearch) && (!wlAI || AI_TICKERS.indexOf(s.ticker)!==-1)) (groups[s.signal]||groups.NEUTRAL).push(s); });
+  stocks.forEach(function(s){ if(matchesFilter(s,wlFilter) && matchesSearch(s,wlSearch) && (!wlAI || AI_TICKERS.indexOf(s.ticker)!==-1) && matchesAccess(s)) (groups[s.signal]||groups.NEUTRAL).push(s); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
   var configs = [
     { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Ranked highest vs peers on the composite score. This is NOT an entry signal \u2014 strong names are often already extended. Check each stock\u0027s Timing badge below.', color:'var(--green)', border:'rgba(16,185,129,.25)' },
@@ -3194,7 +3312,7 @@ function renderWatchlist(stocks) {
                 '<div>'+
                   '<div style="font-size:12px;font-weight:600">'+esc(s.company)+'</div>'+
                   '<div style="font-size:10px;color:var(--muted)">'+esc(s.sector)+'</div>'+
-                '<div style="font-size:10px;color:var(--muted)">$'+fmt(s.price)+'</div>'+
+                '<div style="font-size:10px;color:var(--muted)">$'+fmt(s.price)+'</div>'+accessBadge(s)+
                 '</div>'+
               '</div>'+
               '<div style="text-align:right">'+
@@ -3295,7 +3413,7 @@ function renderActionTable(stocks) {
     return '<tr title="'+esc(tip)+'" style="cursor:default">'+
       '<td data-label="#">'+(i+1)+'</td>'+
       '<td data-label="Company">'+esc(st.company)+'</td>'+
-      '<td data-label="Ticker">'+tkOf(st)+'</td>'+
+      '<td data-label="Ticker">'+tkOf(st)+accessBadge(st)+'</td>'+
       '<td data-label="Grades" style="white-space:nowrap"><div style="display:flex;gap:3px;flex-wrap:wrap">'+
         gradeBadge('M', st.grade_momentum, 'Momentum grade '+st.grade_momentum+': ranked on 1-week price performance vs all tracked stocks.')+
         gradeBadge('T', st.grade_trend, 'Trend grade '+st.grade_trend+': ranked on 1-month price performance vs all tracked stocks.')+
@@ -3422,7 +3540,7 @@ function renderHistRows() {
     return '<tr title="'+esc(htip)+'">'+
       '<td data-label="#">'+(i+1)+'</td>'+
       '<td data-label="Company">'+esc(st.company)+'</td>'+
-      '<td data-label="Ticker">'+tkOf(st)+'</td>'+
+      '<td data-label="Ticker">'+tkOf(st)+accessBadge(st)+'</td>'+
       '<td data-label="Market" style="font-size:11px;color:var(--muted);white-space:nowrap">'+mktLbl+'</td>'+
       '<td data-label="Price" class="tp">'+st.currency+fmt(st.price)+'</td>'+
       '<td data-label="&#916; 3M" class="'+pcls(st.pct_3m)+'">'+pn(st.pct_3m)+'</td>'+
@@ -3845,6 +3963,7 @@ function renderAll(data) {
   var gc=document.getElementById('greek-content'); if(gc) gc.style.display='block';
   var ec2=document.getElementById('etf-content'); if(ec2) ec2.style.display='block';
 
+  applyEuEligibility(data);
   var wb = document.getElementById('warning-banner');
   var ws = data.warnings || [];
   wb.innerHTML = ws.map(function(w){ return '<div class="warn-item">! ' + esc(w) + '</div>'; }).join('');
@@ -3875,7 +3994,7 @@ function renderAll(data) {
       document.getElementById('last-updated').textContent = 'Error in ' + pair[0] + ': ' + e.message;
     }
   });
-  try { renderAge(); syncFootVer(); } catch (e) {}
+  try { renderAge(); syncFootVer(); renderAccSlots(); } catch (e) {}
 }
 
 // Event listeners
@@ -4154,7 +4273,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.20-d';
+var APP_VERSION = '2026.11.20-e';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
