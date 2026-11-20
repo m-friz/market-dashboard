@@ -256,6 +256,40 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .top3-pct.up   { color:var(--green) }
 .top3-pct.down { color:var(--red) }
 .top3-badges { display:flex; gap:4px; flex-wrap:wrap; align-items:center; margin-top:2px }
+
+/* ── UX pass 2026-11-20-d ── */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.tab:focus-visible{outline-offset:-2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+.chip{padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--muted)}
+.chip:hover{color:var(--text);border-color:var(--accent)}
+.age-chip{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border)}
+.age-chip:empty{display:none}
+.age-fresh{color:var(--green)}.age-warn{color:var(--amber)}.age-old{color:var(--red)}
+.attn{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 12px}
+.attn-card{text-align:left;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font:inherit}
+button.attn-card{cursor:pointer}
+button.attn-card:hover{border-color:var(--accent)}
+.attn-card .n{font-family:var(--mono);font-size:20px;font-weight:800;line-height:1.1}
+.attn-card .l{font-size:11px;color:var(--muted);margin-top:3px}
+.attn-card .n.g{color:var(--green)}.attn-card .n.r{color:var(--red)}.attn-card .n.c{color:var(--cyan)}.attn-card .n.a{color:var(--amber)}
+.howto{background:var(--surf2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 16px;margin:0 0 12px;font-size:12px;line-height:1.7;color:var(--muted)}
+.howto b{color:var(--text)}
+.howto ul{margin:6px 0 8px 18px;padding:0}
+.grp-head{cursor:pointer;user-select:none}
+.grp-head::after{content:'\25BE';color:var(--muted);margin-left:10px}
+.grp.collapsed .grp-head::after{content:'\25B8'}
+.grp.collapsed>:not(.grp-head){display:none}
+.grp.collapsed .grp-head{margin-bottom:0!important;padding-bottom:0!important;border-bottom:none!important}
+#to-top{display:none;position:fixed;right:14px;bottom:18px;width:42px;height:42px;border-radius:50%;border:1px solid var(--border);background:var(--surf);color:var(--text);font-size:18px;cursor:pointer;z-index:200;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+#ov-watchlist,#greek-watchlist{scroll-margin-top:130px}
+#foot-ver{margin-top:6px;font-family:var(--mono);font-size:10px;opacity:.75}
+@media(max-width:760px){
+  .ver-line{display:none}
+  div:has(>.wl-filter),div:has(>.gk-filter),div:has(>.ix-filter),div:has(>.mt-filter),div:has(>.etf-filter){flex-wrap:nowrap!important;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+  .wl-filter,.gk-filter,.ix-filter,.mt-filter,.etf-filter,.chip{white-space:nowrap;flex:0 0 auto;min-height:34px}
+  .search-box{width:100%;min-height:38px;font-size:16px}
+}
 </style>
 </head>
 <body>
@@ -307,10 +341,10 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 
   <button id="settings-close" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;margin-top:4px">Close</button>
 </div>
-    <div id="last-updated">Loading...</div>
-    <div id="backend-version" title="Version of Code.gs that produced this data file." style="font-size:10px;color:var(--muted);font-family:var(--mono);opacity:.75"></div>
-    <div id="app-version" title="Build currently running in your browser. If this does not match what you just deployed, you are on a cached copy." style="font-size:10px;color:var(--muted);font-family:var(--mono);opacity:.75"></div>
-    <button class="btn" id="refresh-btn"><span id="btn-icon">&#10227;</span> Refresh</button>
+    <div id="last-updated" role="status" aria-live="polite">Loading...</div><span id="updated-age" class="age-chip"></span>
+    <div id="backend-version" class="ver-line" title="Version of Code.gs that produced this data file." style="font-size:10px;color:var(--muted);font-family:var(--mono);opacity:.75"></div>
+    <div id="app-version" class="ver-line" title="Build currently running in your browser. If this does not match what you just deployed, you are on a cached copy." style="font-size:10px;color:var(--muted);font-family:var(--mono);opacity:.75"></div>
+    <button class="btn" id="refresh-btn" aria-label="Refresh live data"><span id="btn-icon">&#10227;</span> Refresh</button>
   </div>
 </header>
 <div id="sw-update-bar" style="display:none;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);color:var(--cyan);font-size:12px;padding:9px 14px;margin:8px 12px 0;border-radius:8px;cursor:pointer">A newer version of the dashboard is ready. Tap here to load it.</div>
@@ -350,6 +384,8 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <div id="ov-content" style="display:none">
     <div id="warning-banner"></div>
     <div class="spy-bar" id="spy-bar"></div>
+    <div id="ov-howto"></div>
+    <div id="ov-attention"></div>
     <div id="ov-top3" style="margin-bottom:0"></div>
     <div class="summary-grid" id="summary-cards"></div>
     <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -362,7 +398,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
   <button class="wl-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend is structurally intact. Best stocks to buy on dips.">&#9650; Above 50MA</button>
   <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#9660; Below 50MA</button>
 </div>
-<div style="margin-bottom:8px"><input class="search-box" id="wl-search" type="search" placeholder="Search ticker / name" oninput="wlSearch=this.value;if(D)renderWatchlist(D.stocks)" aria-label="Search US stocks"></div>
+<div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button type="button" id="wl-ai" class="chip tip" aria-pressed="false" onclick="toggleAiTheme(this)" data-tip="Shows only tracked names with a large AI link (chips, cloud, software, infrastructure). A personal grouping, not an official index.">&#129302; AI-exposed</button><input class="search-box" id="wl-search" type="search" placeholder="Search ticker / name" oninput="wlSearch=this.value;if(D)renderWatchlist(D.stocks)" aria-label="Search US stocks"></div>
 <div id="ov-watchlist" style="margin-bottom:16px"></div>
     <div class="panel" style="margin-bottom:16px">
       <h3>Sector Heatmap <span class="sub">Weekly &amp; Monthly avg</span></h3>
@@ -1064,6 +1100,7 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
       <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
         <div style="display:flex;flex-direction:column;gap:10px">
           <div><strong style="color:var(--text)">Entry / stop / target levels</strong> (Indices and Metals cards) &mdash; mechanical reference levels from the numbers on the card, not advice. <em>Zone</em> = the pullback band between the 20-day and 50-day averages (never below the 4-week low), shown only while price is above its 50-day average; below it the card shows the 50-day level to reclaim instead. <em>Stop</em> = 4-week low minus a quarter of the 4-week range (at least 0.5% of price). <em>T1/T2</em> = next resistances (4-week high, then 52-week high), or half-range measured moves when price is already at them. <em>R:R</em> = (T1 &minus; entry) / (entry &minus; stop), from the current price when inside the zone, otherwise from the zone middle. Near highs (Take Profit / Near 52W High) the card shows a trail stop at the 20-day average. They know nothing about your position, horizon or risk limit.</div>
+          <div><strong style="color:var(--text)">Quick navigation</strong> &mdash; the four boxes at the top of US Stocks count what is currently on each filter and jump straight to that list; the number always equals the cards you get. <em>AI-exposed</em> narrows the list to tracked names with a large AI link (a personal grouping, not an index). Tap a Strong / Neutral / Weak heading to collapse it. The dashboard reopens on the tab you last used, <kbd>/</kbd> jumps to the search box, and the arrow keys move between tabs. The coloured chip next to the update time shows the data age (green under 3 hours, amber under a day, red beyond).</div>
           <div><strong style="color:var(--text)">Tickers</strong> &mdash; every ticker is a link to its Yahoo Finance page (Greek stocks use the .AT symbol). Links open in a new tab.</div>
           <div><strong style="color:var(--text)">Exit signal</strong> — every place you see a Timing (entry) badge, there's now an Exit badge next to it: <span class="tip bz-wait" data-tip="Example only">Exit Signal</span>/<span class="tip bz-wait" data-tip="Example only">Take Profit</span> mean the case for holding has weakened; <span class="tip bz-watch" data-tip="Example only">Near 52W High</span>/<span class="tip bz-watch" data-tip="Example only">Trim Risk</span> are softer caution flags; <span class="tip bz-hold" data-tip="Example only">Hold</span> means nothing's changed. It uses the same logic as the "When to sell" section below — just computed live per stock instead of sitting as static text. It shows up on watchlist cards, the Signals table, and — most usefully — your Portfolio tab, since that's your actual holdings. Use the <strong style="color:var(--text)">&#9660; Possible Exit</strong> filter button (US Stocks, Greek, and ETFs tabs) to see only stocks with an active exit signal, the same way the existing Possible Entry filter works.</div>
           <div><strong style="color:var(--text)">Grades column</strong> (Signals tab) — three letter grades (A+ to F) per stock: Momentum (1-week rank), Trend (1-month rank), and Value (trailing P/E rank vs the other tracked stocks, lower P/E = higher grade). Momentum and Trend are <strong style="color:var(--amber)">price-based only</strong> — they say nothing about whether the business is good. Value now uses real trailing P/E, but P/E alone is still a blunt instrument: it ignores growth rate, debt and cyclicality, and it is N/A for loss-making companies. Treat an A+ Value as "screens cheap on one multiple," not "objectively undervalued."</div>
@@ -1239,7 +1276,8 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 </div>
 
 </main>
-<footer>Prices: Finnhub &middot; History, RSI, MA, Volume: Yahoo Finance &middot; Earnings: Finnhub &middot; Data pushed daily by GAS &middot; Not financial advice.</footer>
+<footer>Prices: Finnhub &middot; History, RSI, MA, Volume: Yahoo Finance &middot; Earnings: Finnhub &middot; Data pushed daily by GAS &middot; Not financial advice.<div id="foot-ver"></div></footer>
+<button id="to-top" type="button" aria-label="Back to top">&#8593;</button>
 
 <script>
 
@@ -1449,7 +1487,7 @@ function renderGreekWatchlist(greek) {
   var totalGkItems = Object.keys(groups).reduce(function(t,k){ return t + groups[k].length; }, 0);
   if (totalGkItems === 0) {
     document.getElementById('greek-watchlist').innerHTML =
-      '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">No Greek stocks match this filter. Try a different filter or click All.</div>';
+      '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">No Greek stocks match these filters.<br><button type="button" class="chip" style="margin-top:10px" onclick="resetGkFilters()">Clear filters &amp; search</button></div>';
     return;
   }
 
@@ -1457,8 +1495,8 @@ function renderGreekWatchlist(greek) {
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
     configs.map(function(cfg){
       var items = groups[cfg.key];
-      return '<div style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
+      return '<div class="grp'+(collapsedGrp['gk'+cfg.key]?' collapsed':'')+'" data-gk="gk'+cfg.key+'" style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px">'+
+        '<div class="grp-head" role="button" tabindex="0" aria-expanded="'+(collapsedGrp['gk'+cfg.key]?'false':'true')+'" title="Tap to collapse / expand" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">'+
           '<div>'+
             '<div style="font-size:13px;font-weight:700;color:'+cfg.color+'">'+cfg.icon+' '+cfg.label+'</div>'+
             '<div style="font-size:10px;color:var(--muted);margin-top:2px">'+cfg.sub+'</div>'+
@@ -2256,7 +2294,7 @@ function range4wBar(s) {
   return '<div class="tip range4w-wrap" data-tip="'+tip+'">'+
     '<div class="range4w-track">'+
       '<div class="range4w-fill" style="width:100%"></div>'+
-      '<div class="range4w-dot" style="left:'+p+'%"></div>'+
+      '<div class="range4w-dot" style="left:'+Math.max(0,Math.min(100,p))+'%"></div>'+
     '</div>'+
     '<span style="font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap">'+p+'%</span>'+
   '</div>';
@@ -2455,6 +2493,8 @@ function pfAddPosition() {
 }
 
 function pfRemove(id) {
+  var pos = pfLoad().filter(function(p){ return p.id === id; })[0];
+  if (!confirm('Remove ' + (pos ? pos.ticker : 'this position') + ' from your portfolio? This cannot be undone.')) return;
   var positions = pfLoad().filter(function(p){ return p.id !== id; });
   pfSave(positions);
   renderPortfolio();
@@ -2595,17 +2635,165 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbw_5uiQ9PvmonCIyfyy24pODN1Zgy7Q2KAs-xjOLmSFa3pVYfqqUSucJ1X0YJBsRKbWGg/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxikGBOuovA-CP-7dnnNecJxgAD7ugidRdDqaudKwaBD3Tld6hFNThk6lX9FupSHaSSDg/exec';
 
 // Tab switching
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
   var activeTab = document.querySelector('[data-tab="'+name+'"]');
+  var panel = document.getElementById('panel-'+name);
+  if (!activeTab || !panel) return;
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
   activeTab.classList.add('active');
-  document.getElementById('panel-'+name).classList.add('active');
+  activeTab.setAttribute('aria-selected','true');
+  panel.classList.add('active');
   activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  try { localStorage.setItem('dashTab', name); } catch (e) {}
+  try { history.replaceState(null, '', '#' + name); } catch (e) {}
+  window.scrollTo(0, 0);
 }
+
+// ── UX helpers (2026-11-20-d) ──────────────────────────────────
+// "AI-exposed" is a personal grouping of tracked names with a large AI
+// revenue / capex link — not an official index or sector.
+var AI_TICKERS = ['NVDA','MSFT','GOOGL','AMZN','META','AVGO','AMD','TSM','ARM','MU','ORCL','PLTR','CRM','NOW','SNOW','NET','PANW','ALAB','TEM','QCOM','AMAT','MRVL','ANET','SMCI','VRT','IBM','ADBE'];
+var wlAI = false;
+var collapsedGrp = {};
+
+function toggleAiTheme(btn) {
+  wlAI = !wlAI;
+  btn.classList.toggle('active-filter', wlAI);
+  btn.setAttribute('aria-pressed', wlAI ? 'true' : 'false');
+  if (D) renderWatchlist(D.stocks);
+}
+function resetWlFilters() {
+  wlFilter = 'all'; wlSearch = ''; wlAI = false;
+  var i = document.getElementById('wl-search'); if (i) i.value = '';
+  var b = document.getElementById('wl-ai'); if (b) { b.classList.remove('active-filter'); b.setAttribute('aria-pressed', 'false'); }
+  document.querySelectorAll('.wl-filter').forEach(function(x){ x.classList.toggle('active-filter', x.dataset.filter === 'all'); });
+  if (D) renderWatchlist(D.stocks);
+}
+function resetGkFilters() {
+  gkFilter = 'all'; gkSearch = '';
+  var i = document.getElementById('gk-search'); if (i) i.value = '';
+  document.querySelectorAll('.gk-filter').forEach(function(x){ x.classList.toggle('active-filter', x.dataset.filter === 'all'); });
+  if (D) renderGreekWatchlist(D.greek);
+}
+function jumpToFilter(kind) {
+  var btn = document.querySelector('.wl-filter[data-filter="' + kind + '"]');
+  if (!btn) return;
+  wlSearch = ''; wlAI = false;
+  var i = document.getElementById('wl-search'); if (i) i.value = '';
+  var ai = document.getElementById('wl-ai'); if (ai) { ai.classList.remove('active-filter'); ai.setAttribute('aria-pressed', 'false'); }
+  filterWatchlist(kind, btn);
+  var el = document.getElementById('ov-watchlist');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// "What needs attention" strip. Counts use matchesFilter(), the same
+// function the filter buttons use, so a number here always equals the
+// number of cards you get after tapping it.
+function renderAttention(stocks) {
+  var el = document.getElementById('ov-attention');
+  if (!el) return;
+  stocks = stocks || [];
+  var n = function(f){ return stocks.filter(function(s){ return matchesFilter(s, f); }).length; };
+  function btn(cls, num, label, kind, tip) {
+    return '<button class="attn-card" type="button" onclick="jumpToFilter(\'' + kind + '\')" title="' + esc(tip) + '">' +
+      '<div class="n ' + cls + '">' + num + '</div><div class="l">' + label + ' &rsaquo;</div></button>';
+  }
+  el.innerHTML = '<div class="attn" role="group" aria-label="What needs attention">' +
+    btn('g', n('entry'),    'Possible entries', 'entry',    'Tap to list stocks whose Timing badge is Possible Entry or Oversold Watch.') +
+    btn('r', n('exit'),     'Exit signals',     'exit',     'Tap to list stocks showing an Exit badge.') +
+    btn('c', n('oversold'), 'Oversold (RSI &lt;35)', 'oversold', 'Tap to list stocks with RSI under 35.') +
+    btn('a', n('extended'), 'Extended / near 4W high', 'extended', 'Tap to list stocks that look stretched.') +
+    '</div>';
+  var ai = document.getElementById('wl-ai');
+  if (ai) {
+    var c = stocks.filter(function(s){ return AI_TICKERS.indexOf(s.ticker) !== -1; }).length;
+    ai.innerHTML = '&#129302; AI-exposed (' + c + ')';
+  }
+}
+
+function dismissHowto() { try { localStorage.setItem('dashHowtoDismissed', '1'); } catch (e) {} renderHowto(); }
+function showHowto()    { try { localStorage.removeItem('dashHowtoDismissed'); } catch (e) {} renderHowto(); }
+function renderHowto() {
+  var el = document.getElementById('ov-howto');
+  if (!el) return;
+  var gone = false;
+  try { gone = localStorage.getItem('dashHowtoDismissed') === '1'; } catch (e) {}
+  if (gone) { el.innerHTML = '<div style="margin:0 0 10px"><button class="chip" type="button" onclick="showHowto()">? How to read this page</button></div>'; return; }
+  el.innerHTML = '<div class="howto"><b>How to read this page</b><ul>' +
+    '<li><b>Strong / Neutral / Weak</b> is a rank against the other tracked stocks — not a buy or sell call.</li>' +
+    '<li><b>Timing badge</b> (Possible Entry, Extended, …) says whether the setup looks attractive or stretched. An <b>Exit</b> badge only appears when a rule triggers.</li>' +
+    '<li>Tap the <b>boxes above</b> to jump to a filtered list. Tap a <b>ticker</b> to open it on Yahoo Finance and a <b>chart</b> to enlarge it. Dashed underlines have a tooltip.</li>' +
+    '<li>Indices and Metals show mechanical entry / stop / target reference levels — see the Guide tab. Not financial advice.</li></ul>' +
+    '<button class="chip" type="button" onclick="dismissHowto()">Got it — hide this</button></div>';
+}
+
+// Relative age of the data file, coloured against the same 3-hour limit
+// the stale-data banner uses.
+function renderAge() {
+  var chip = document.getElementById('updated-age');
+  if (!chip) return;
+  var d = (typeof D !== 'undefined' && D) ? parseLastUpdated(D.lastUpdated) : null;
+  if (!d) { chip.textContent = ''; return; }
+  var min = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
+  chip.textContent = min < 60 ? min + ' min ago' : min < 2880 ? Math.round(min / 60) + ' h ago' : Math.round(min / 1440) + ' d ago';
+  chip.className = 'age-chip ' + (min < 180 ? 'age-fresh' : min < 1440 ? 'age-warn' : 'age-old');
+  chip.title = 'Time since the data file was written (' + D.lastUpdated + ')';
+}
+function syncFootVer() {
+  var f = document.getElementById('foot-ver'); if (!f) return;
+  var a = document.getElementById('app-version'), b = document.getElementById('backend-version');
+  f.textContent = [a && a.textContent, b && b.textContent].filter(Boolean).join(' · ');
+}
+
+document.addEventListener('click', function(e) {
+  var h = e.target.closest && e.target.closest('.grp-head');
+  if (!h || e.target.closest('a')) return;
+  var g = h.parentNode;
+  g.classList.toggle('collapsed');
+  var open = !g.classList.contains('collapsed');
+  h.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (g.dataset.gk) collapsedGrp[g.dataset.gk] = !open;
+});
+document.addEventListener('keydown', function(e) {
+  var t = e.target;
+  var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+  if ((e.key === 'Enter' || e.key === ' ') && t && t.classList && (t.classList.contains('grp-head') || t.classList.contains('tab'))) {
+    e.preventDefault(); t.click(); return;
+  }
+  if (t && t.classList && t.classList.contains('tab') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab[data-tab]'));
+    var i = tabs.indexOf(t) + (e.key === 'ArrowRight' ? 1 : -1);
+    if (tabs[i]) { tabs[i].focus(); tabs[i].click(); }
+    return;
+  }
+  if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    var box = document.querySelector('.tab-panel.active input[type="search"], .tab-panel.active input[type="text"]');
+    if (box) { e.preventDefault(); box.focus(); }
+  }
+});
+document.addEventListener('DOMContentLoaded', function() {
+  var tl = document.querySelector('.tabs'); if (tl) tl.setAttribute('role', 'tablist');
+  document.querySelectorAll('.tab[data-tab]').forEach(function(t) {
+    t.setAttribute('role', 'tab'); t.setAttribute('tabindex', '0');
+    t.setAttribute('aria-selected', t.classList.contains('active') ? 'true' : 'false');
+  });
+  // Reopen on the tab you were last using (or the one in the link).
+  var want = (location.hash || '').replace('#', '');
+  if (!want) { try { want = localStorage.getItem('dashTab') || ''; } catch (e) {} }
+  if (want && want !== 'overview' && document.getElementById('panel-' + want)) switchTab(want);
+  renderHowto();
+  setInterval(renderAge, 60000);
+  var top = document.getElementById('to-top');
+  if (top) {
+    top.addEventListener('click', function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    window.addEventListener('scroll', function(){ top.style.display = window.scrollY > 700 ? 'block' : 'none'; }, { passive: true });
+  }
+  syncFootVer();
+});
 
 // Show left/right fade hints on the tab bar when there are more tabs
 // scrolled out of view, so it's obvious the bar is swipeable on mobile.
@@ -2955,7 +3143,7 @@ function renderSummary(stocks, spy) {
 
 function renderWatchlist(stocks) {
   var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
-  stocks.forEach(function(s){ if(matchesFilter(s,wlFilter) && matchesSearch(s,wlSearch)) (groups[s.signal]||groups.NEUTRAL).push(s); });
+  stocks.forEach(function(s){ if(matchesFilter(s,wlFilter) && matchesSearch(s,wlSearch) && (!wlAI || AI_TICKERS.indexOf(s.ticker)!==-1)) (groups[s.signal]||groups.NEUTRAL).push(s); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
   var configs = [
     { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Ranked highest vs peers on the composite score. This is NOT an entry signal \u2014 strong names are often already extended. Check each stock\u0027s Timing badge below.', color:'var(--green)', border:'rgba(16,185,129,.25)' },
@@ -2966,7 +3154,7 @@ function renderWatchlist(stocks) {
   var totalItems = Object.keys(groups).reduce(function(t,k){ return t + groups[k].length; }, 0);
   if (totalItems === 0) {
     document.getElementById('ov-watchlist').innerHTML =
-      '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">No stocks match this filter. Try a different filter or click All.</div>';
+      '<div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;background:var(--surf);border:1px solid var(--border);border-radius:10px">No stocks match these filters.<br><button type="button" class="chip" style="margin-top:10px" onclick="resetWlFilters()">Clear filters &amp; search</button></div>';
     return;
   }
 
@@ -2974,8 +3162,8 @@ function renderWatchlist(stocks) {
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">' +
     configs.map(function(cfg){
       var items = groups[cfg.key];
-      return '<div style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+
+      return '<div class="grp'+(collapsedGrp['ov'+cfg.key]?' collapsed':'')+'" data-gk="ov'+cfg.key+'" style="background:var(--surf);border:1px solid '+cfg.border+';border-radius:10px;padding:16px 18px">'+
+        '<div class="grp-head" role="button" tabindex="0" aria-expanded="'+(collapsedGrp['ov'+cfg.key]?'false':'true')+'" title="Tap to collapse / expand" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+
           '<div>'+
             '<div style="font-size:14px;font-weight:700;color:'+cfg.color+'">'+cfg.icon+' '+cfg.label+'</div>'+
             '<div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4">'+cfg.sub+'</div>'+
@@ -3464,9 +3652,9 @@ function addAlert() {
   var condition=document.getElementById('alert-condition').value;
   var price=parseFloat(document.getElementById('alert-price').value);
   var email=document.getElementById('alert-email').value.trim();
-  if(!ticker){ alert('Please select a ticker.'); return; }
-  if(!price||price<=0){ alert('Please enter a valid price.'); return; }
-  if(!email||!email.includes('@')){ alert('Please enter a valid email.'); return; }
+  if(!ticker){ setAlertStatus('Please select a ticker.', true); return; }
+  if(!price||price<=0){ setAlertStatus('Please enter a valid target price.', true); return; }
+  if(!email||!email.includes('@')){ setAlertStatus('Please enter a valid email address.', true); return; }
   var company=ticker;
   if(D&&D.stocks){ var st=D.stocks.filter(function(s){ return s.ticker===ticker; })[0]; if(st) company=st.company; }
 
@@ -3482,6 +3670,7 @@ function addAlert() {
 }
 
 function deleteAlertById(id) {
+  if (!confirm('Remove this alert?')) return;
   setAlertStatus('Removing alert...');
   gasAlertCall({ action:'deleteAlert', id:id })
     .then(function(r){ setAlertStatus(''); renderAlerts(r.alerts || []); })
@@ -3666,6 +3855,7 @@ function renderAll(data) {
     ['renderIndicesTab', function(){ renderIndicesTab(data.indices, data.spy); }],
     ['renderMetalsTab',  function(){ renderMetalsTab(data.metals, data.metal_ratio); }],
     ['renderSummary',    function(){ renderSummary(data.stocks, data.spy); }],
+    ['renderAttention',  function(){ renderAttention(data.stocks); }],
     ['renderWatchlist',  function(){ renderWatchlist(data.stocks); }],
     ['renderHeatmap',    function(){ renderHeatmap(data.sector_heatmap); }],
     ['renderEvents',     function(){ renderEvents(data.events); }],
@@ -3685,6 +3875,7 @@ function renderAll(data) {
       document.getElementById('last-updated').textContent = 'Error in ' + pair[0] + ': ' + e.message;
     }
   });
+  try { renderAge(); syncFootVer(); } catch (e) {}
 }
 
 // Event listeners
@@ -3963,12 +4154,13 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.20-b';
+var APP_VERSION = '2026.11.20-d';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
   if (el) el.textContent = 'build ' + APP_VERSION;
   console.log('[dashboard] build ' + APP_VERSION);
+  if (typeof syncFootVer === 'function') syncFootVer();
 })();
 
 if ('serviceWorker' in navigator) {
