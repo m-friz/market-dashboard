@@ -551,6 +551,7 @@ button.attn-card:hover{border-color:var(--accent)}
 <!-- HISTORICAL -->
 <div id="panel-history" class="tab-panel">
   <div id="hist-content" style="display:none">
+    <div id="help-history"></div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
       <div style="position:relative;flex:1;min-width:200px;max-width:340px">
         <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">&#128269;</span>
@@ -699,6 +700,7 @@ button.attn-card:hover{border-color:var(--accent)}
 <!-- GLOBAL INDICES -->
 <div id="panel-indices" class="tab-panel">
   <div id="indices-content" style="display:none">
+    <div id="help-indices"></div>
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Global Market Indices</div>
       <div style="font-size:11px;color:var(--muted)">S&amp;P 500 stays on the US Stocks tab as the primary benchmark &#183; Data via Yahoo Finance</div>
@@ -723,6 +725,7 @@ button.attn-card:hover{border-color:var(--accent)}
 <!-- METALS & COMMODITIES -->
 <div id="panel-metals" class="tab-panel">
   <div id="metals-content" style="display:none">
+    <div id="help-metals"></div>
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Precious Metals &amp; Commodities</div>
       <div style="font-size:11px;color:var(--muted)">Front-month futures via Yahoo Finance, not spot. Futures carry financing and storage cost, so gold here sits slightly above a bullion dealer&#39;s spot quote &#183; USD</div>
@@ -752,6 +755,7 @@ button.attn-card:hover{border-color:var(--accent)}
 <!-- GREEK STOCKS -->
 <div id="panel-greek" class="tab-panel">
   <div id="greek-content" style="display:none">
+    <div id="help-greek"></div>
 
 
     <!-- Header banner -->
@@ -907,6 +911,7 @@ button.attn-card:hover{border-color:var(--accent)}
 <!-- PORTFOLIO -->
 <div id="panel-portfolio" class="tab-panel">
   <div style="max-width:900px;margin:0 auto">
+    <div id="help-portfolio"></div>
 
     <!-- Add position form -->
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px">
@@ -2647,7 +2652,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycby5fEldRmyE_0lMMn-9_KuajAUTp16Fq-S6CP_NywD53uB6Nzwstju_40MKLHDnlPk4JA/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxkRcnORXvE8cu3ZU0T4xV3WemKacrW5SwsWrJwhS2aUilvh4SEp64Eu1la6fkIda6csg/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2729,19 +2734,60 @@ function renderAttention(stocks) {
 
 function dismissHowto() { try { localStorage.setItem('dashHowtoDismissed', '1'); } catch (e) {} renderHowto(); }
 function showHowto()    { try { localStorage.removeItem('dashHowtoDismissed'); } catch (e) {} renderHowto(); }
+
+// Per-tab help. Only tabs that do not already explain themselves get a card
+// (Signals, Dividends, ETFs and the Guide have their own explainer panels).
+// Every claim below must match what the tab actually does.
+var TAB_HELP = {
+  greek: ['How to read Greek stocks', [
+    '<b>Availability is unverified</b> at both brokers. Search the plain symbol (without <b>.AT</b>) in IBKR or Revolut before relying on it.',
+    'Small caps can trade thinly: expect wide spreads and gaps, so check volume before sizing a position.',
+    'Use the <b>search box</b> and filters to narrow the list; tap a ticker to open it on Yahoo Finance.']],
+  indices: ['How to read Indices', [
+    '<b>Indices are reference gauges, not products you can buy.</b> To get exposure, use a UCITS index ETF (ETFs tab) or index futures/options at IBKR, which need trading permissions.',
+    'The <b>entry / stop / target levels</b> are mechanical reference points built from the price history — see the Guide. Not financial advice.',
+    'The <b>filters</b> narrow the list by timing signal; hover a filter for its exact rule.']],
+  metals: ['How to read Metals & Commodities', [
+    '<b>Futures are complex, leveraged products</b> and need an appropriateness assessment and permissions at IBKR; they are not offered by Revolut.',
+    'An <b>EU-accessible route</b> to gold is the Xetra-Gold ETC (4GLD.DE, ETFs tab).',
+    'The <b>entry / stop / target levels</b> are mechanical reference points — see the Guide. Not financial advice.']],
+  history: ['How to read Historical', [
+    'Longer-horizon context: price, 3-month and year-to-date performance, and market cap. It is <b>not a timing tool</b> — use the US Stocks tab for that.',
+    'Click a <b>column header</b> to sort; use the market buttons and the search box to narrow the list.']],
+  portfolio: ['How to use Portfolio', [
+    '<b>Positions are saved only in this browser on this device.</b> Clearing site data or opening the dashboard on another device starts you from an empty list, and there is no export.',
+    'Enter the <b>ticker exactly as shown on the dashboard</b> (Greek names without .AT) so the live price can be matched.',
+    'The <b>vs SPY</b> column compares from your entry date and only covers the last year of SPY history.']]
+};
+function tabHelpGone(tab) {
+  try { return localStorage.getItem('dashHelp_' + tab) === '1'; } catch (e) { return false; }
+}
+function dismissTabHelp(tab) { try { localStorage.setItem('dashHelp_' + tab, '1'); } catch (e) {} renderHowto(); }
+function showTabHelp(tab)    { try { localStorage.removeItem('dashHelp_' + tab); } catch (e) {} renderHowto(); }
+function renderTabHelp(tab) {
+  var el = document.getElementById('help-' + tab), h = TAB_HELP[tab];
+  if (!el || !h) return;
+  if (tabHelpGone(tab)) {
+    el.innerHTML = '<div style="margin:0 0 10px"><button class="chip" type="button" onclick="showTabHelp(\'' + tab + '\')">? ' + h[0] + '</button></div>';
+    return;
+  }
+  el.innerHTML = '<div class="howto"><b>' + h[0] + '</b><ul><li>' + h[1].join('</li><li>') + '</li></ul>' +
+    '<button class="chip" type="button" onclick="dismissTabHelp(\'' + tab + '\')">Got it \u2014 hide this</button></div>';
+}
 function renderHowto() {
+  Object.keys(TAB_HELP).forEach(renderTabHelp);
   var el = document.getElementById('ov-howto');
   if (!el) return;
   var gone = false;
   try { gone = localStorage.getItem('dashHowtoDismissed') === '1'; } catch (e) {}
   if (gone) { el.innerHTML = '<div style="margin:0 0 10px"><button class="chip" type="button" onclick="showHowto()">? How to read this page</button></div>'; return; }
   el.innerHTML = '<div class="howto"><b>How to read this page</b><ul>' +
-    '<li><b>Strong / Neutral / Weak</b> is a rank against the other tracked stocks — not a buy or sell call.</li>' +
-    '<li><b>Timing badge</b> (Possible Entry, Extended, …) says whether the setup looks attractive or stretched. An <b>Exit</b> badge only appears when a rule triggers.</li>' +
+    '<li><b>Strong / Neutral / Weak</b> is a rank against the other tracked stocks \u2014 not a buy or sell call.</li>' +
+    '<li><b>Timing badge</b> (Possible Entry, Extended, \u2026) says whether the setup looks attractive or stretched. An <b>Exit</b> badge only appears when a rule triggers.</li>' +
     '<li>Tap the <b>boxes above</b> to jump to a filtered list. Tap a <b>ticker</b> to open it on Yahoo Finance and a <b>chart</b> to enlarge it. Dashed underlines have a tooltip.</li>' +
-    '<li><b>Availability tags</b> (EU / IBKR / REV) show whether you can legally and practically buy a name from Greece. ◐ means market-level only — confirm in your broker; ? means unverified. Hover one for the reason; details are in the Guide.</li>' +
-    '<li>Indices and Metals show mechanical entry / stop / target reference levels — see the Guide tab. Not financial advice.</li></ul>' +
-    '<button class="chip" type="button" onclick="dismissHowto()">Got it — hide this</button></div>';
+    '<li><b>Availability tags</b> (EU / IBKR / REV) show whether you can legally and practically buy a name from Greece. \u25D0 means market-level only \u2014 confirm in your broker; ? means unverified. Hover one for the reason; details are in the Guide.</li>' +
+    '<li>Indices and Metals show mechanical entry / stop / target reference levels \u2014 see the Guide tab. Not financial advice.</li></ul>' +
+    '<button class="chip" type="button" onclick="dismissHowto()">Got it \u2014 hide this</button></div>';
 }
 
 // Relative age of the data file, coloured against the same 3-hour limit
@@ -4273,7 +4319,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.20-e';
+var APP_VERSION = '2026.11.23-a';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
