@@ -302,6 +302,10 @@ button.attn-card:hover{border-color:var(--accent)}
   div:has(>.wl-filter),div:has(>.gk-filter),div:has(>.ix-filter),div:has(>.mt-filter),div:has(>.etf-filter){flex-wrap:nowrap!important;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
   .wl-filter,.gk-filter,.ix-filter,.mt-filter,.etf-filter,.chip{white-space:nowrap;flex:0 0 auto;min-height:34px}
   .search-box{width:100%;min-height:38px;font-size:16px}
+  /* touch comfort: bigger hit areas without changing the layout, readable badges */
+  .hist-market-filter{min-height:34px}
+  a.tk{display:inline-block;padding:9px 3px;margin:-9px -3px}
+  .acc-badge span{font-size:10.5px}
 }
 </style>
 </head>
@@ -926,7 +930,7 @@ button.attn-card:hover{border-color:var(--accent)}
           <input id="pf-shares" type="number" placeholder="100" min="0.001" step="any" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:90px">
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
-          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Entry Price ($)</label>
+          <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Entry Price (in its own currency)</label>
           <input id="pf-entry" type="number" placeholder="150.00" min="0.01" step="any" style="padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:13px;width:110px">
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
@@ -2559,6 +2563,7 @@ function renderPortfolio() {
   }
 
   var totalCost = 0, totalVal = 0, totalPnl = 0, winners = 0;
+  var byCcy = {};   // totals per currency: EUR and USD positions are never added together
 
   // Enrich each position with computed fields first, so they can be sorted
   // on (cost/value/P&L aren't stored on the raw position — they're derived
@@ -2571,7 +2576,11 @@ function renderPortfolio() {
     var pnlAbs  = val !== null ? val - cost : null;
     var pnlPct  = pnlAbs !== null ? Math.round((pnlAbs / cost) * 10000) / 100 : null;
 
-    if (val !== null) { totalCost += cost; totalVal += val; totalPnl += pnlAbs; }
+    if (val !== null) {
+      totalCost += cost; totalVal += val; totalPnl += pnlAbs;
+      var cs = ccy(st), b = byCcy[cs] || (byCcy[cs] = { cost: 0, val: 0, pnl: 0 });
+      b.cost += cost; b.val += val; b.pnl += pnlAbs;
+    }
     if (pnlAbs > 0) winners++;
 
     return {
@@ -2596,12 +2605,15 @@ function renderPortfolio() {
     var sigLbl  = st.signal==='STRONG'?'Strong':st.signal==='WEAK'?'Weak':st.signal?'Neutral':'-';
     var bz      = st.price ? buyZone(st) : { label:'-', cls:'', tip:'' };
     var ex      = st.price ? exitSignal(st) : { label:'-', cls:'', tip:'' };
+    var cs      = ccy(st);
 
     // vs SPY since entry — a genuine calculation now: looks up SPY's actual
     // price on the position's entry date (from data.spy.history) and
     // compares SPY's % change since then to this position's own % change.
     var vsSPY = '-', vsSPYTip = 'SPY history not available yet — refresh once after deploying the updated Code.gs.';
-    if (pnlPct !== null && D && D.spy && D.spy.history && D.spy.history.length && p.date) {
+    if (cs !== '$') {
+      vsSPYTip = 'SPY is priced in USD, so a comparison with a EUR-priced instrument would mix currencies and is not shown.';
+    } else if (pnlPct !== null && D && D.spy && D.spy.history && D.spy.history.length && p.date) {
       var spyEntryPrice = findSPYPriceOnDate(D.spy.history, p.date);
       if (spyEntryPrice) {
         var spyPctSinceEntry = Math.round(((D.spy.price - spyEntryPrice) / spyEntryPrice) * 10000) / 100;
@@ -2618,17 +2630,17 @@ function renderPortfolio() {
     return '<tr>'+
       '<td style="font-family:var(--mono);font-weight:700;color:var(--accent)">'+tkLink(p.ticker, (st && st.full_ticker) || p.ticker)+'</td>'+
       '<td style="font-family:var(--mono)">'+p.shares+'</td>'+
-      '<td style="font-family:var(--mono)">$'+fmt(p.entry)+'</td>'+
-      '<td style="font-family:var(--mono)">'+(curPrice ? '$'+fmt(curPrice) : '-')+'</td>'+
-      '<td style="font-family:var(--mono)">$'+fmt(cost)+'</td>'+
-      '<td style="font-family:var(--mono)">'+(val !== null ? '$'+fmt(val) : '-')+'</td>'+
-      '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlAbs !== null ? (pnlAbs>=0?'+':'')+'$'+fmt(Math.abs(pnlAbs)) : '-')+'</td>'+
+      '<td style="font-family:var(--mono)">'+cs+fmt(p.entry)+'</td>'+
+      '<td style="font-family:var(--mono)">'+(curPrice ? cs+fmt(curPrice) : '-')+'</td>'+
+      '<td style="font-family:var(--mono)">'+cs+fmt(cost)+'</td>'+
+      '<td style="font-family:var(--mono)">'+(val !== null ? cs+fmt(val) : '-')+'</td>'+
+      '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlAbs !== null ? (pnlAbs>=0?'+':'-')+cs+fmt(Math.abs(pnlAbs)) : '-')+'</td>'+
       '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlPct !== null ? (pnlPct>=0?'+':'')+pnlPct+'%' : '-')+'</td>'+
       '<td>'+(vsSPY!=='-' ? '<span class="tip" data-tip="'+esc(vsSPYTip)+'" style="cursor:help">'+vsSPY+'</span>' : '<span class="tip" data-tip="'+esc(vsSPYTip)+'" style="cursor:help;color:var(--muted)">-</span>')+'</td>'+
       '<td>'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>'+
       '<td>'+(bz.label !== '-' ? '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>' : '-')+'</td>'+
       '<td>'+(ex.label !== '-' ? '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>' : '-')+'</td>'+
-      '<td style="font-size:11px;color:var(--muted)">'+(p.date||'-')+'</td>'+
+      '<td style="font-size:11px;color:var(--muted)">'+fmtDMY(p.date)+'</td>'+
       '<td style="font-size:11px;color:var(--muted);max-width:120px;white-space:normal">'+esc(p.notes||'')+'</td>'+
       '<td><button onclick="pfRemove('+p.id+')" style="background:none;border:1px solid var(--border);color:var(--red);font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer">&#10005;</button></td>'+
     '</tr>';
@@ -2636,12 +2648,15 @@ function renderPortfolio() {
 
   document.getElementById('pf-body').innerHTML = rows.join('');
 
-  var totalPnlPct = totalCost > 0 ? Math.round((totalPnl/totalCost)*10000)/100 : 0;
+  var ccyKeys = Object.keys(byCcy);
+  if (!ccyKeys.length) ccyKeys = ['$'];
+  function perCcy(f) { return ccyKeys.map(function(k){ return f(k, byCcy[k] || { cost: 0, val: 0, pnl: 0 }); }).join(' \u00B7 '); }
+  var pnlPctTxt = perCcy(function(k, b){ var pc = b.cost > 0 ? Math.round((b.pnl / b.cost) * 10000) / 100 : 0; return (pc >= 0 ? '+' : '') + pc + '%'; });
   sumDiv.innerHTML = [
     { lbl:'Positions',     val:positions.length,                   sub:'tracked' },
-    { lbl:'Total Cost',    val:'$'+fmt(totalCost),                 sub:'invested' },
-    { lbl:'Market Value',  val:'$'+fmt(totalVal),                  sub:'current' },
-    { lbl:'Total P&L',     val:(totalPnl>=0?'+':'')+'$'+fmt(Math.abs(totalPnl)), sub:(totalPnlPct>=0?'+':'')+totalPnlPct+'%' },
+    { lbl:'Total Cost',    val:perCcy(function(k,b){ return k+fmt(b.cost); }),  sub:'invested' + (ccyKeys.length > 1 ? ' (per currency)' : '') },
+    { lbl:'Market Value',  val:perCcy(function(k,b){ return k+fmt(b.val); }),   sub:'current' },
+    { lbl:'Total P&L',     val:perCcy(function(k,b){ return (b.pnl>=0?'+':'-')+k+fmt(Math.abs(b.pnl)); }), sub:pnlPctTxt },
     { lbl:'Winners',       val:winners+'/'+positions.length,       sub:'in profit' }
   ].map(function(c){
     return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val" style="color:'+(c.lbl==='Total P&L'?(totalPnl>=0?'var(--green)':'var(--red)'):'var(--text)')+'">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
@@ -2652,7 +2667,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxkRcnORXvE8cu3ZU0T4xV3WemKacrW5SwsWrJwhS2aUilvh4SEp64Eu1la6fkIda6csg/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwcgpZ4Gb6PZtcovMTBJir5S4J3TXRqPpkZnGKFo67HWWH1Fmxto4u02p4rxk6w_wnz9w/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2865,7 +2880,17 @@ function accessBadge(s) {
   if (a.r) h += '<span class="ac-' + a.r + '">REV ' + ACCESS_SYM[a.r] + '</span>';
   return h + '</span>';
 }
-function ccy(e) { return (e && e.currency === 'EUR') ? '&#8364;' : '$'; }
+function ccy(e) { return (e && (e.currency === 'EUR' || /\.AT$/.test(e.full_ticker || ''))) ? '&#8364;' : '$'; }
+// Alert targets are typed in the instrument's own currency.
+function alertCcy(t) {
+  var pools = D ? [(D.greek || []), (D.etfs || [])] : [];
+  for (var i = 0; i < pools.length; i++) for (var j = 0; j < pools[i].length; j++) {
+    var it = pools[i][j];
+    if (it.ticker === t || it.full_ticker === t) return ccy(it);
+  }
+  return '$';
+}
+function fmtDMY(d) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? m[3] + '-' + m[2] + '-' + m[1] : (d || '-'); }
 
 // IBKR / Revolut filter. "Confirmed" = verified or market-level; unverified and
 // permission-dependent items never count as tradable.
@@ -3863,7 +3888,7 @@ function renderAlerts(alerts) {
           '<span style="font-size:10px;color:'+stateClr+'">'+stateTxt+'</span>'+
         '</div>'+
         '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">'+
-          condStr+' <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber)">$'+a.targetPrice+'</span>'+
+          condStr+' <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber)">'+alertCcy(a.ticker)+a.targetPrice+'</span>'+
           ' - <span>'+esc(a.email)+'</span>'+
         '</div>'+
         '<div style="display:flex;align-items:center;justify-content:space-between">'+
@@ -4319,7 +4344,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.23-a';
+var APP_VERSION = '2026.11.24-b';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
