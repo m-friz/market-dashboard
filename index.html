@@ -2667,7 +2667,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwcgpZ4Gb6PZtcovMTBJir5S4J3TXRqPpkZnGKFo67HWWH1Fmxto4u02p4rxk6w_wnz9w/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxkKmF2xMLEO8D5jlx0ncWmsqhBC9-7c-FsdniLsYjk2Gqzl9yfG28EzYXSVuZ5m0OD/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2926,13 +2926,28 @@ function setAccessFilter(v) {
 }
 // A data file written before this update still contains the 13 US-listed ETFs.
 // EU retail investors cannot buy them (no PRIIPs KID), so hide them and say why.
+// The oldest backend this page is designed for (EU-aware: UCITS ETFs, access tags).
+// A data file written by anything older means an OLD Apps Script project or
+// deployment is still pushing to GitHub — say so, with the exact remedy.
+var MIN_BACKEND = '2026.11.20-e';
+function flagStaleBackend(data) {
+  if (!data || data._staleChecked) return;
+  data._staleChecked = true;
+  var v = data.codeVersion || '';
+  var valid = /^\d{4}\.\d{2}\.\d{2}-[a-z]$/.test(v);
+  if (valid && v >= MIN_BACKEND) return;
+  data.warnings = (data.warnings || []).concat(['The data file was written by an OLD backend (' + (v || 'unversioned') +
+    '; this page needs ' + MIN_BACKEND + ' or newer). An old Apps Script project or deployment is still pushing to GitHub. ' +
+    'Fix: create a new GitHub token, save it only in the current project (Script properties \u2192 GITHUB_TOKEN) and delete the old token on GitHub; ' +
+    'then run diagnoseWriter() in Apps Script to confirm.']);
+}
 function applyEuEligibility(data) {
   if (!data || data._euNorm) return;
   data._euNorm = true;
   var etfs = data.etfs || [];
   var keep = etfs.filter(function(e){ return e.access ? e.access.e !== 'n' : e.currency === 'EUR'; });
   if (keep.length !== etfs.length) {
-    data.warnings = (data.warnings || []).concat([(etfs.length - keep.length) + ' US-listed ETF(s) hidden: not available to EU retail investors (no PRIIPs KID). Run the updated Code.gs to load the EU-accessible fund list.']);
+    data.warnings = (data.warnings || []).concat([(etfs.length - keep.length) + ' US-listed ETF(s) hidden: not available to EU retail investors (no PRIIPs KID). They come from an old data file; current backends only publish EU-accessible funds.']);
     data.etfs = keep;
   }
 }
@@ -4034,6 +4049,7 @@ function renderAll(data) {
   var gc=document.getElementById('greek-content'); if(gc) gc.style.display='block';
   var ec2=document.getElementById('etf-content'); if(ec2) ec2.style.display='block';
 
+  flagStaleBackend(data);
   applyEuEligibility(data);
   var wb = document.getElementById('warning-banner');
   var ws = data.warnings || [];
@@ -4344,7 +4360,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.24-b';
+var APP_VERSION = '2026.11.25-a';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
