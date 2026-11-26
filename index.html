@@ -98,7 +98,7 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 
 
-/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.26-b) ===== */
+/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.26-c) ===== */
 .regime{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:var(--surf);border:1px solid var(--border);border-left:4px solid var(--muted);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px}
 .regime.t-g{border-left-color:var(--green)}.regime.t-a{border-left-color:var(--amber)}.regime.t-r{border-left-color:var(--red)}
 .regime .rg-tone{font-weight:800;font-size:13px}
@@ -471,8 +471,8 @@ button.attn-card:hover{border-color:var(--accent)}
     <div id="warning-banner"></div>
     <div class="spy-bar" id="spy-bar"></div>
     <div id="ov-howto"></div>
-    <div id="ov-regime"></div>
-    <div id="ov-changes"></div>
+    <div id="rg-us"></div>
+    <div id="chg-us"></div>
     <div id="ov-attention"></div>
     <div id="ov-top3" style="margin-bottom:0"></div>
     <div class="summary-grid" id="summary-cards"></div>
@@ -778,6 +778,8 @@ button.attn-card:hover{border-color:var(--accent)}
 <div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="indices-content" style="display:none">
     <div id="help-indices"></div>
+    <div id="rg-indices"></div>
+    <div id="chg-indices"></div>
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Global Market Indices</div>
       <div style="font-size:11px;color:var(--muted)">S&amp;P 500 stays on the US Stocks tab as the primary benchmark &#183; Data via Yahoo Finance</div>
@@ -804,6 +806,8 @@ button.attn-card:hover{border-color:var(--accent)}
 <div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="metals-content" style="display:none">
     <div id="help-metals"></div>
+    <div id="rg-metals"></div>
+    <div id="chg-metals"></div>
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Precious Metals &amp; Commodities</div>
       <div style="font-size:11px;color:var(--muted)">Front-month futures via Yahoo Finance, not spot. Futures carry financing and storage cost, so gold here sits slightly above a bullion dealer&#39;s spot quote &#183; USD</div>
@@ -835,6 +839,8 @@ button.attn-card:hover{border-color:var(--accent)}
 <div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="greek-content" style="display:none">
     <div id="help-greek"></div>
+    <div id="rg-greek"></div>
+    <div id="chg-greek"></div>
 
 
     <!-- Header banner -->
@@ -891,6 +897,8 @@ button.attn-card:hover{border-color:var(--accent)}
 <!-- ETFs -->
 <div id="panel-etfs" class="tab-panel">
   <div id="etf-content" style="display:none">
+    <div id="rg-etfs"></div>
+    <div id="chg-etfs"></div>
 
     <!-- Header banner (matches Greek style) -->
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -1573,7 +1581,8 @@ function renderGreek(greek) {
 
 function renderGreekWatchlist(greek) {
   var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
-  greek.forEach(function(s){ if(matchesFilter(s,gkFilter) && matchesSearch(s,gkSearch) && matchesAccess(s)) (groups[s.signal]||groups.NEUTRAL).push(s); });
+  var gcap = exitCapGreek(greek);
+  greek.forEach(function(s){ if((!gcap.set||gcap.set[s.ticker]) && matchesFilter(s,gkFilter) && matchesSearch(s,gkSearch) && matchesAccess(s)) (groups[s.signal]||groups.NEUTRAL).push(s); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
 
   var configs = [
@@ -1657,7 +1666,7 @@ function renderGreekWatchlist(greek) {
         }).join('')+
       '</div>';
     }).join('')+
-    '</div>';
+    '</div>' + (gcap.hidden ? '<div style="text-align:center;margin-top:12px"><button class="chip" type="button" onclick="gkAllExits=true;renderGreekWatchlist(D.greek)">+' + gcap.hidden + ' more exit signals &mdash; show all</button></div>' : '');
 }
 
 var greekHeatmapData = [];
@@ -1865,8 +1874,9 @@ function renderETFs(etfs) {
               (function(){
                 var bze=buyZone(e);
                 var exe=exitSignal(e);
-                return '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'" style="margin-left:4px">'+bze.label+'</span>'+confirmMarker(bze)+
+                return '<span class="tip '+bze.cls+'" data-tip="'+esc(bze.tip)+'" style="margin-left:4px">'+bze.label+'</span>'+convictionMarker(e)+confirmMarker(bze)+
                   (exe.label==='Hold' ? '' : '<span class="tip '+exe.cls+'" data-tip="'+esc(exe.tip)+'">'+exe.label+'</span>'+confirmMarker(exe))+
+                  sizeHintInline(e)+
                   '<div style="width:100%;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px">'+
                     chartHoverWrap(makeChart20(e.chart20||[],80,28), e.chart20||[], e.ticker)+
                     '<div style="display:flex;flex-direction:column;gap:2px;min-width:70px">'+
@@ -2421,6 +2431,15 @@ var wlFilter = 'all', gkFilter = 'all', wlSearch = '', gkSearch = '';
 var wlAllExits = false;
 function isNarrow() { return !!(window.matchMedia && window.matchMedia('(max-width: 760px)').matches); }
 // On a phone the exit filter shows the 5 strongest-conviction exits first.
+var gkAllExits = false;
+function exitCapGreek(list0) {
+  if (gkFilter !== 'exit' || gkAllExits || !isNarrow()) return { set: null, hidden: 0 };
+  var list = list0.filter(function(s){ return matchesFilter(s,gkFilter) && matchesSearch(s,gkSearch) && matchesAccess(s); });
+  if (list.length <= 5) return { set: null, hidden: 0 };
+  list.sort(function(a,b){ return ((b.conviction&&b.conviction.score)||0) - ((a.conviction&&a.conviction.score)||0) || ((a.score||0) - (b.score||0)); });
+  var set = {}; list.slice(0,5).forEach(function(s){ set[s.ticker] = 1; });
+  return { set: set, hidden: list.length - 5 };
+}
 function exitCap(stocks) {
   if (wlFilter !== 'exit' || wlAllExits || !isNarrow()) return { set: null, hidden: 0 };
   var list = stocks.filter(function(s){ return matchesFilter(s,wlFilter) && matchesSearch(s,wlSearch) && (!wlAI || AI_TICKERS.indexOf(s.ticker)!==-1) && matchesAccess(s); });
@@ -2456,7 +2475,8 @@ function filterWatchlist(filter, btn) {
 }
 
 function filterGreekWatchlist(filter, btn) {
-  gkFilter = filter;
+  gkFilter = filter; gkAllExits = false;
+  if (filter !== 'all') collapsedGrp.gkWEAK = false;
   document.querySelectorAll('.gk-filter').forEach(function(b){ b.classList.remove('active-filter'); });
   btn.classList.add('active-filter');
   if (D) renderGreekWatchlist(D.greek);
@@ -2747,7 +2767,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbz2s80U7O5pOPVWrFlnV_o4_OHgV1PxM-we5Z_RThRDG_0Bkmij1_oR7K6rViENav3-6A/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwGMm22IO6TmH_jzp1PXTmFhngIHmQaybWniOh0jSNT3Yz8BZGLljl-zo98dLzwBj3y4A/exec';
 
 // Tab switching
 var MKT_TABS = ['greek','indices','metals'];
@@ -2796,7 +2816,7 @@ document.addEventListener('click', function(e) {
 var AI_TICKERS = ['NVDA','MSFT','GOOGL','AMZN','META','AVGO','AMD','TSM','ARM','MU','ORCL','PLTR','CRM','NOW','SNOW','NET','PANW','ALAB','TEM','QCOM','AMAT','MRVL','ANET','SMCI','VRT','IBM','ADBE'];
 var wlAI = false;
 var collapsedGrp = {};
-try { if (window.matchMedia && window.matchMedia('(max-width: 760px)').matches) collapsedGrp.ovWEAK = true; } catch (e) {}
+try { if (window.matchMedia && window.matchMedia('(max-width: 760px)').matches) collapsedGrp.ovWEAK = true; collapsedGrp.gkWEAK = true; } catch (e) {}
 
 function toggleAiTheme(btn) {
   wlAI = !wlAI;
@@ -2812,7 +2832,7 @@ function resetWlFilters() {
   if (D) renderWatchlist(D.stocks);
 }
 function resetGkFilters() {
-  gkFilter = 'all'; gkSearch = ''; accessFilter = 'all'; renderAccSlots();
+  gkFilter = 'all'; gkAllExits = false; gkSearch = ''; accessFilter = 'all'; renderAccSlots();
   var i = document.getElementById('gk-search'); if (i) i.value = '';
   document.querySelectorAll('.gk-filter').forEach(function(x){ x.classList.toggle('active-filter', x.dataset.filter === 'all'); });
   if (D) renderGreekWatchlist(D.greek);
@@ -2854,42 +2874,53 @@ function renderAttention(stocks) {
 }
 
 
-// ── Market regime strip ──
-function renderRegime(stocks) {
-  var el = document.getElementById('ov-regime'); if (!el) return;
-  stocks = stocks || [];
-  var withMa = stocks.filter(function(s){ return s.above_ma50 === true || s.above_ma50 === false; });
+// ── Market regime strip + "what changed" block: same on every tab ──
+// scope -> { list: data key, noun, id suffix }
+var SCOPES = {
+  us:      { key:'stocks',  noun:'US stocks',     vix:true  },
+  greek:   { key:'greek',   noun:'Greek stocks' },
+  etfs:    { key:'etfs',    noun:'ETFs' },
+  indices: { key:'indices', noun:'indices',       vix:true  },
+  metals:  { key:'metals',  noun:'commodities' }
+};
+function scopeList(scope) { return (D && D[SCOPES[scope].key]) || []; }
+function renderRegime(scope) {
+  var sc = SCOPES[scope], el = document.getElementById('rg-' + scope); if (!el || !sc) return;
+  var list = scopeList(scope);
+  var withMa = list.filter(function(s){ return s.above_ma50 === true || s.above_ma50 === false; });
   if (!withMa.length) { el.innerHTML = ''; return; }
   var above = withMa.filter(function(s){ return s.above_ma50; }).length;
   var pct = Math.round(above / withMa.length * 100);
-  var ent = stocks.filter(function(s){ return matchesFilter(s,'entry'); }).length;
-  var ex  = stocks.filter(function(s){ return matchesFilter(s,'exit'); }).length;
-  var tone = pct >= 70 ? ['Broad strength','g'] : pct >= 40 ? ['Mixed market','a'] : ['Broad weakness','r'];
-  var vix = D && D.vix && typeof D.vix.price === 'number' ? D.vix : null, vixTxt = '';
+  var ent = list.filter(function(s){ return matchesFilter(s,'entry'); }).length;
+  var ex  = list.filter(function(s){ return matchesFilter(s,'exit'); }).length;
+  var tone = pct >= 70 ? ['Broad strength','g'] : pct >= 40 ? ['Mixed','a'] : ['Broad weakness','r'];
+  var vix = sc.vix && D && D.vix && typeof D.vix.price === 'number' ? D.vix : null, vixTxt = '';
   if (vix) {
     var lvl = vix.price < 15 ? 'calm' : vix.price < 25 ? 'normal' : 'stressed';
     vixTxt = '<span class="rg-m tip" data-tip="VIX = market-implied volatility of the S&amp;P 500. Under 15 calm, 15-25 normal, over 25 stressed.">VIX <b>' + vix.price.toFixed(1) + '</b>' +
       (typeof vix.dp === 'number' ? ' (' + (vix.dp >= 0 ? '+' : '') + vix.dp.toFixed(1) + '%)' : '') + ' &middot; ' + lvl + '</span>';
   }
-  var read = (pct < 40 && ex > ent * 2) ? 'Exits this broad usually reflect the market, not many separate problems: judge each one against the index before acting.' :
-             (pct >= 70 && ent > ex) ? 'Most stocks are in an uptrend and entries outnumber exits.' : '';
+  var read = (pct < 40 && ex > ent * 2 && ex >= 3) ? 'Exits this broad usually reflect the group, not many separate problems: judge each one against the group before acting.' :
+             (pct >= 70 && ent > ex) ? 'Most of this group is in an uptrend and entries outnumber exits.' : '';
   el.innerHTML = '<div class="regime t-' + tone[1] + '" role="status">' +
     '<span class="rg-tone">' + tone[0] + '</span>' +
-    '<span class="rg-m tip" data-tip="Share of tracked US stocks trading above their 50-day average. Above 70% = broad uptrend, below 40% = broad pullback.">' +
-      '<span class="rg-bar"><i style="width:' + pct + '%"></i></span><b>' + above + '</b> of ' + withMa.length + ' above 50MA (' + pct + '%)</span>' +
+    '<span class="rg-m tip" data-tip="Share of tracked ' + sc.noun + ' trading above their 50-day average. Above 70% = broad uptrend, below 40% = broad pullback.">' +
+      '<span class="rg-bar"><i style="width:' + pct + '%"></i></span><b>' + above + '</b> of ' + withMa.length + ' ' + sc.noun + ' above 50MA (' + pct + '%)</span>' +
     '<span class="rg-m"><b>' + ent + '</b> entries &middot; <b>' + ex + '</b> exits</span>' + vixTxt +
     (read ? '<span class="rg-read">' + read + '</span>' : '') + '</div>';
 }
-
-// ── What changed since the previous day ──
-function renderChanges() {
-  var el = document.getElementById('ov-changes'); if (!el) return;
+function renderChanges(scope) {
+  var sc = SCOPES[scope], el = document.getElementById('chg-' + scope); if (!el || !sc) return;
   var dl = D && D.deltas;
   if (!dl) { el.innerHTML = ''; return; }
-  var total = 0; (dl.groups || []).forEach(function(g){ total += g.items.length; });
+  var mine = {}; scopeList(scope).forEach(function(s){ mine[s.ticker] = 1; });
+  var groups = (dl.groups || []).map(function(g){
+    return { label: g.label, items: g.items.filter(function(it){ return mine[String(it).split(' ')[0]]; }) };
+  }).filter(function(g){ return g.items.length; });
+  var total = 0; groups.forEach(function(g){ total += g.items.length; });
   var head = !dl.since ? 'What changed <span style="color:var(--muted);font-weight:400">tracking starts after the next day rollover</span>' :
     'What changed since ' + esc(dl.since) + ' <span style="color:var(--muted);font-weight:400">' + (total ? total + ' signal change' + (total === 1 ? '' : 's') : 'nothing changed') + '</span>';
-  var body = (dl.groups || []).map(function(g){
+  var body = groups.map(function(g){
     return '<div class="chg-g"><span class="chg-l">' + esc(g.label) + ' (' + g.items.length + ')</span>' + g.items.map(function(it){
       var tk = String(it).split(' ')[0];
       return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(tk).replace(/'/g,'') + '\')">' + esc(it) + '</button>';
@@ -2897,6 +2928,8 @@ function renderChanges() {
   }).join('');
   el.innerHTML = '<details class="chg"' + ((!isNarrow() || total <= 6) && total ? ' open' : '') + '><summary>' + head + '</summary>' + body + '</details>';
 }
+function renderScopeBlocks() { Object.keys(SCOPES).forEach(function(k){ renderRegime(k); renderChanges(k); }); }
+
 function jumpToTicker(tk) {
   var inUS = D && (D.stocks || []).some(function(s){ return s.ticker === tk; });
   var inGR = D && (D.greek || []).some(function(s){ return s.ticker === tk; });
@@ -2909,7 +2942,9 @@ function jumpToTicker(tk) {
     switchTab('greek'); gkSearch = tk; gkFilter = 'all';
     var g = document.getElementById('gk-search'); if (g) g.value = tk;
     renderGreekWatchlist(D.greek);
-  } else { switchTab('etfs'); }
+  } else if (D && (D.etfs || []).some(function(s){ return s.ticker === tk; })) { switchTab('etfs');
+  } else if (D && (D.indices || []).some(function(s){ return s.ticker === tk; })) { switchTab('indices');
+  } else if (D && (D.metals || []).some(function(s){ return s.ticker === tk; })) { switchTab('metals'); }
   var w = document.getElementById(inGR && !inUS ? 'greek-watchlist' : 'ov-watchlist'); if (w) w.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -4344,8 +4379,7 @@ function renderAll(data) {
     ['renderMetalsTab',  function(){ renderMetalsTab(data.metals, data.metal_ratio); }],
     ['renderSummary',    function(){ renderSummary(data.stocks, data.spy); }],
     ['renderAttention',  function(){ renderAttention(data.stocks); }],
-    ['renderRegime',     function(){ renderRegime(data.stocks); }],
-    ['renderChanges',    function(){ renderChanges(); }],
+    ['renderScopeBlocks',function(){ renderScopeBlocks(); }],
     ['renderWatchlist',  function(){ renderWatchlist(data.stocks); }],
     ['renderHeatmap',    function(){ renderHeatmap(data.sector_heatmap); }],
     ['renderEvents',     function(){ renderEvents(data.events); }],
@@ -4671,7 +4705,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.26-b';
+var APP_VERSION = '2026.11.26-c';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
