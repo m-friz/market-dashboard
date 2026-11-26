@@ -306,6 +306,25 @@ button.attn-card:hover{border-color:var(--accent)}
   .hist-market-filter{min-height:34px}
   a.tk{display:inline-block;padding:9px 3px;margin:-9px -3px}
   .acc-badge span{font-size:10.5px}
+
+  /* Compact sticky header: one row (logo, display, age, refresh) plus a thin
+     timestamp line, instead of three stacked rows. */
+  header{flex-wrap:wrap;row-gap:2px;align-items:center}
+  .header-right{display:contents}
+  .logo{margin-right:auto}
+  #settings-btn{font-size:0!important;padding:0!important;width:38px;height:36px;display:inline-flex;align-items:center;justify-content:center}
+  #settings-btn::before{content:"\2699";font-size:18px}
+  #refresh-btn{font-size:0!important;padding:0!important;width:44px;height:36px;display:inline-flex;align-items:center;justify-content:center}
+  #refresh-btn #btn-icon{font-size:20px}
+  #last-updated{order:10;flex:0 0 100%;font-size:10px}
+  #sw-update-bar{order:11;flex:0 0 100%}
+  /* A long data warning must not eat a third of the sticky area: two lines, tap to expand. */
+  #stale-warning{max-height:2.9em;overflow:hidden;font-size:11px!important;padding:6px 10px!important;margin:6px 10px 0!important;cursor:pointer}
+  #stale-warning.open{max-height:none}
+  /* Touch comfort for the small secondary buttons. */
+  #font-down,#font-up,#font-reset{min-width:38px;min-height:36px}
+  .tbl-wrap td button{min-width:36px;min-height:36px}
+  #alerts-list button{min-height:34px;padding:6px 12px!important}
 }
 </style>
 </head>
@@ -522,7 +541,7 @@ button.attn-card:hover{border-color:var(--accent)}
     </div>
 
     <div class="panel" style="margin-bottom:16px">
-      <h3>&#128276; Price Alerts <span class="sub">Email when price crosses your target</span></h3>
+      <h3>&#128276; Price Alerts <span class="sub">Reported in your daily digest e-mail when a US stock crosses your target</span></h3>
       <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Run <strong>setupAlertTrigger()</strong> once in GAS editor to enable hourly checks.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;padding:14px;background:var(--surf2);border-radius:8px;border:1px solid var(--border)">
         <div>
@@ -647,7 +666,7 @@ button.attn-card:hover{border-color:var(--accent)}
 
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
-        Only stocks from the tracked 20 that currently pay a dividend are shown. Data from Finnhub.
+        Only tracked US stocks that currently pay a dividend are shown. Data from Finnhub.
       </div>
     </div>
 
@@ -835,7 +854,7 @@ button.attn-card:hover{border-color:var(--accent)}
         </div>
         <div>
           <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
-            <span class="tip" data-tip="Expense Ratio: annual fee charged by the ETF manager. 0.03% = $3/yr per $10,000 invested. Lower is always better.">Expense Ratio</span>
+            <span class="tip" data-tip="Expense Ratio: annual fee charged by the ETF manager. 0.07% = &euro;7/yr per &euro;10,000 invested. Lower is always better.">Expense Ratio</span>
           </div>
           Annual fee as % of investment. Small differences compound significantly over decades. Prefer under 0.20%.
         </div>
@@ -862,7 +881,7 @@ button.attn-card:hover{border-color:var(--accent)}
       <button class="etf-filter tip" data-filter="above50" data-tip="Above 50MA: price is above its 50-day moving average. Uptrend structurally intact. Best ETFs to buy on dips.">&#9650; Above 50MA</button>
       <button class="etf-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying.">&#9660; Below 50MA</button>
       <button class="etf-filter tip" data-filter="Broad Market"   data-tip="Show only Broad Market funds: S&P 500, All-World, MSCI World, Nasdaq-100.">&#127760; Broad Market</button>
-      <button class="etf-filter tip" data-filter="Growth & Tech"  data-tip="Show only Growth & Tech ETFs: VGT, VUG.">&#128200; Growth</button>
+      <button class="etf-filter tip" data-filter="Growth & Tech"  data-tip="Show only Growth &amp; Tech funds: S&amp;P 500 IT Sector (QDVE.DE).">&#128200; Growth</button>
       <button class="etf-filter tip" data-filter="Dividend"       data-tip="Show only Dividend funds: US Dividend Aristocrats.">&#128176; Dividend</button>
       <button class="etf-filter tip" data-filter="Defensive"      data-tip="Show only Defensive products: global bonds, physical gold ETC.">&#128737; Defensive</button>
       <button class="etf-filter tip" data-filter="Thematic"       data-tip="Show only Thematic funds: AI &amp; Big Data.">&#128640; Thematic</button>
@@ -882,7 +901,7 @@ button.attn-card:hover{border-color:var(--accent)}
             <th class="sort" data-f="ticker" data-tbl="etf">Ticker</th>
             <th class="sort" data-f="category" data-tbl="etf">Category</th>
             <th class="sort" data-f="expense" data-tbl="etf">
-              <span class="tip" data-tip="Expense Ratio: annual fee. Lower = better. 0.03% = $3/yr per $10,000.">Expense</span>
+              <span class="tip" data-tip="Expense Ratio: annual fee. Lower = better. 0.07% = &euro;7/yr per &euro;10,000.">Expense</span>
             </th>
             <th class="sort" data-f="price" data-tbl="etf">Price</th>
             <th class="sort sd" data-f="pct_1w" data-tbl="etf">&#916; 1W</th>
@@ -957,11 +976,11 @@ button.attn-card:hover{border-color:var(--accent)}
             <tr>
               <th class="sort" data-f="ticker" data-tbl="pf">Ticker</th>
               <th class="sort" data-f="shares" data-tbl="pf">Shares</th>
-              <th class="sort" data-f="entry" data-tbl="pf">Entry $</th>
-              <th class="sort" data-f="curPrice" data-tbl="pf">Current $</th>
+              <th class="sort" data-f="entry" data-tbl="pf">Entry</th>
+              <th class="sort" data-f="curPrice" data-tbl="pf">Current</th>
               <th class="sort" data-f="cost" data-tbl="pf">Cost</th>
               <th class="sort" data-f="val" data-tbl="pf">Value</th>
-              <th class="sort tip" data-f="pnlAbs" data-tbl="pf" data-tip="Profit or Loss in dollars: (Current Price - Entry Price) x Shares">P&amp;L $</th>
+              <th class="sort tip" data-f="pnlAbs" data-tbl="pf" data-tip="Profit or loss in the instrument\u0027s own currency (USD or EUR): (Current Price - Entry Price) x Shares">P&amp;L</th>
               <th class="sort tip" data-f="pnlPct" data-tbl="pf" data-tip="Percentage return since entry: (Current Price - Entry Price) / Entry Price">P&amp;L %</th>
               <th class="tip" data-tip="How this position has performed vs SPY since your actual entry date. Positive = outperforming the market over that period. Limited to the last 1 year of SPY history.">vs SPY</th>
               <th class="sort" data-f="signal" data-tbl="pf">Signal</th>
@@ -1006,13 +1025,12 @@ button.attn-card:hover{border-color:var(--accent)}
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
         <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">1</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text)">Start with the Overview tab — find Strong Momentum stocks</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Start on the Overview tab — find what needs attention</div>
       </div>
       <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
-        The three watchlist columns (Strong / Neutral / Weak) give you the first filter.
-        <strong style="color:var(--green)">Only consider stocks in Strong Momentum for buying.</strong>
-        Neutral and Weak stocks are either going sideways or declining — not the right time to enter.
-        Strong Momentum means the stock is outperforming its peers across 1W, 1M, and YTD timeframes.
+        Start with the <strong style="color:var(--green)">What needs attention</strong> strip, or use the <strong>Possible Entry</strong> filter.
+        The Strong / Neutral / Weak columns rank recent performance against peers; they are a quality filter, not a buy signal.
+        Strong names have often already run, so many of the best pullback entries sit in <strong>Neutral</strong>. Be cautious with Weak.
       </div>
     </div>
 
@@ -1063,7 +1081,7 @@ button.attn-card:hover{border-color:var(--accent)}
         <div style="font-size:14px;font-weight:700;color:var(--text)">Use the Signals tab for deeper analysis</div>
       </div>
       <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
-        Sort the Signals table by Score (descending). For your top candidates check:
+        Open the Signals tab (or the Possible Entry filter on US Stocks). For your top candidates check:
         <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:10px;max-width:520px">
           <span style="color:var(--text);font-family:var(--mono);font-weight:700">52W Position</span>
           <span>40-85% is ideal. Under 40% = weak trend. Over 85% = extended, higher risk.</span>
@@ -1073,7 +1091,7 @@ button.attn-card:hover{border-color:var(--accent)}
           <span>Earnings coming up — price can move sharply in either direction. Wait until after.</span>
           <span style="color:var(--amber);font-family:var(--mono);font-weight:700">+5% flag</span>
           <span>Already moved strongly this week — may be extended. Wait for consolidation.</span>
-          <span style="color:var(--text);font-family:var(--mono);font-weight:700">Trend sparkline</span>
+          <span style="color:var(--text);font-family:var(--mono);font-weight:700">20D Chart</span>
           <span>Green rising line = steady uptrend this week. Prefer smooth rises over sharp spikes.</span>
         </div>
       </div>
@@ -1143,22 +1161,22 @@ button.attn-card:hover{border-color:var(--accent)}
         <div style="font-size:14px;font-weight:700;color:var(--green)">When to consider buying</div>
       </div>
       <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
-        All five conditions below should ideally be true before entering a position.
+        All six conditions below should ideally be true before entering a position. The Possible Entry badge already checks the rating, the 50-day average, RSI and the 4-week range; the rest are extra checks.
         The more boxes you can tick, the stronger the setup.
         <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-width:560px">
 
           <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surf2);border-radius:8px;padding:10px 12px">
             <span style="color:var(--green);font-size:14px;margin-top:1px">&#10003;</span>
             <div>
-              <div style="color:var(--text);font-weight:600;margin-bottom:2px">Signal is Strong Momentum</div>
-              <div style="color:var(--muted);font-size:11px">Stock is outperforming peers across 1W, 1M and YTD. This is your first and most important filter.</div>
+              <div style="color:var(--text);font-weight:600;margin-bottom:2px">Rating is Strong or Neutral (not Weak)</div>
+              <div style="color:var(--muted);font-size:11px">The rating ranks recent performance against peers. Strong is a quality filter, not an entry cue &mdash; read the Timing badge for the entry itself.</div>
             </div>
           </div>
 
           <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surf2);border-radius:8px;padding:10px 12px">
             <span style="color:var(--green);font-size:14px;margin-top:1px">&#10003;</span>
             <div>
-              <div style="color:var(--text);font-weight:600;margin-bottom:2px">RSI is below 60</div>
+              <div style="color:var(--text);font-weight:600;margin-bottom:2px">RSI is below 58</div>
               <div style="color:var(--muted);font-size:11px">The stock has not been overbought. There is still room for the trend to continue. RSI 35-50 after a pullback is the ideal entry.</div>
             </div>
           </div>
@@ -1200,7 +1218,7 @@ button.attn-card:hover{border-color:var(--accent)}
         <div style="margin-top:14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px 14px">
           <div style="color:var(--green);font-weight:700;margin-bottom:4px">Best setup example</div>
           <div style="color:var(--muted);font-size:11px;line-height:1.7">
-            Strong Momentum &nbsp;+&nbsp; RSI 42 (pulled back, not oversold) &nbsp;+&nbsp; Above 50MA &nbsp;+&nbsp;
+            Strong or Neutral rating &nbsp;+&nbsp; RSI 42 (pulled back, not oversold) &nbsp;+&nbsp; Above 50MA &nbsp;+&nbsp;
             52W Position 55% &nbsp;+&nbsp; vs SPY +2.5% &nbsp;+&nbsp; No earnings flag &nbsp;+&nbsp; YTD gain 15-35%
             <br><strong style="color:var(--text)">= High conviction entry</strong>
           </div>
@@ -1256,9 +1274,9 @@ button.attn-card:hover{border-color:var(--accent)}
           </tr>
           <tr style="border-bottom:1px solid var(--border)">
             <td style="padding:9px 12px;font-weight:600">RSI-14</td>
-            <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">&lt; 60</td>
-            <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">60 - 70</td>
-            <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 70</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--green);font-family:var(--mono)">&lt; 58</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--amber);font-family:var(--mono)">58 - 72</td>
+            <td style="padding:9px 12px;text-align:center;color:var(--red);font-family:var(--mono)">&gt; 72</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border)">
             <td style="padding:9px 12px;font-weight:600">50MA</td>
@@ -1300,7 +1318,7 @@ button.attn-card:hover{border-color:var(--accent)}
 </div>
 
 </main>
-<footer>Prices: Finnhub &middot; History, RSI, MA, Volume: Yahoo Finance &middot; Earnings: Finnhub &middot; Data pushed daily by GAS &middot; Not financial advice.<div id="foot-ver"></div></footer>
+<footer>Prices: Finnhub &middot; History, RSI, MA, Volume: Yahoo Finance &middot; Earnings: Finnhub &middot; Data pushed hourly by GAS &middot; Not financial advice.<div id="foot-ver"></div></footer>
 <button id="to-top" type="button" aria-label="Back to top">&#8593;</button>
 
 <script>
@@ -1373,7 +1391,7 @@ function renderDividends(dividends, stocks) {
   var sustCount = dividends.filter(function(d){ return d.sustainable===true; }).length;
 
   document.getElementById('div-summary').innerHTML = [
-    { lbl:'Dividend Payers', val:dividends.length,    sub:'of 20 tracked' },
+    { lbl:'Dividend Payers', val:dividends.length,    sub:'of '+((stocks && stocks.length) || '?')+' tracked' },
     { lbl:'Avg Yield',       val:avgYield+'%',         sub:'universe avg' },
     { lbl:'Highest Yield',   val:bestYield.ticker,     sub:bestYield.yield+'%' },
     { lbl:'Best 5Y Growth',  val:bestGrow.ticker,      sub:'+'+(bestGrow.grow5y||0)+'%/yr' },
@@ -1574,7 +1592,7 @@ function renderGreekWatchlist(greek) {
                   range4wBar(s)+
                   supportResistance(s)+
                 '</div>'+
-                '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto">'+bz.label+'</span>'+
+                '<span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px">'+convictionMarker(s)+'<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span></span>'+
                 (function(){ var ex=exitSignal(s); return ex.label==='Hold' ? '' : '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'; })()+
               '</div>';
             })()+
@@ -2035,7 +2053,7 @@ function labelStyle(label, s) {
   switch (label) {
     case 'Extended':
       return { cls:'bz-wait', tip: (rsi !== null && rsi > 72)
-        ? 'RSI '+rsi+' is overbought (>72). Price has risen too fast. Wait for RSI to cool below 60 before entering.'
+        ? 'RSI '+rsi+' is overbought (>72). Price has risen too fast. Wait for RSI to cool below 58 before entering.'
         : 'Price is '+pctAvg+'% above its 20-day average. Stretched. Typically mean-reverts. Wait for pullback toward average.' };
     case 'Near 4W High':
       return { cls:'bz-wait', tip:'Price is at '+pos4w+'% of its 4-week range — near recent high. Risk/reward is poor here. Wait for a pullback.' };
@@ -2628,21 +2646,21 @@ function renderPortfolio() {
     }
 
     return '<tr>'+
-      '<td style="font-family:var(--mono);font-weight:700;color:var(--accent)">'+tkLink(p.ticker, (st && st.full_ticker) || p.ticker)+'</td>'+
-      '<td style="font-family:var(--mono)">'+p.shares+'</td>'+
-      '<td style="font-family:var(--mono)">'+cs+fmt(p.entry)+'</td>'+
-      '<td style="font-family:var(--mono)">'+(curPrice ? cs+fmt(curPrice) : '-')+'</td>'+
-      '<td style="font-family:var(--mono)">'+cs+fmt(cost)+'</td>'+
-      '<td style="font-family:var(--mono)">'+(val !== null ? cs+fmt(val) : '-')+'</td>'+
-      '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlAbs !== null ? (pnlAbs>=0?'+':'-')+cs+fmt(Math.abs(pnlAbs)) : '-')+'</td>'+
-      '<td style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlPct !== null ? (pnlPct>=0?'+':'')+pnlPct+'%' : '-')+'</td>'+
-      '<td>'+(vsSPY!=='-' ? '<span class="tip" data-tip="'+esc(vsSPYTip)+'" style="cursor:help">'+vsSPY+'</span>' : '<span class="tip" data-tip="'+esc(vsSPYTip)+'" style="cursor:help;color:var(--muted)">-</span>')+'</td>'+
-      '<td>'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>'+
-      '<td>'+(bz.label !== '-' ? '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>' : '-')+'</td>'+
-      '<td>'+(ex.label !== '-' ? '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>' : '-')+'</td>'+
-      '<td style="font-size:11px;color:var(--muted)">'+fmtDMY(p.date)+'</td>'+
-      '<td style="font-size:11px;color:var(--muted);max-width:120px;white-space:normal">'+esc(p.notes||'')+'</td>'+
-      '<td><button onclick="pfRemove('+p.id+')" style="background:none;border:1px solid var(--border);color:var(--red);font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer">&#10005;</button></td>'+
+      '<td data-label="Ticker" style="font-family:var(--mono);font-weight:700;color:var(--accent)">'+tkLink(p.ticker, (st && st.full_ticker) || p.ticker)+'</td>'+
+      '<td data-label="Shares" style="font-family:var(--mono)">'+p.shares+'</td>'+
+      '<td data-label="Entry" style="font-family:var(--mono)">'+cs+fmt(p.entry)+'</td>'+
+      '<td data-label="Current" style="font-family:var(--mono)">'+(curPrice ? cs+fmt(curPrice) : '-')+'</td>'+
+      '<td data-label="Cost" style="font-family:var(--mono)">'+cs+fmt(cost)+'</td>'+
+      '<td data-label="Value" style="font-family:var(--mono)">'+(val !== null ? cs+fmt(val) : '-')+'</td>'+
+      '<td data-label="P&amp;L" style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlAbs !== null ? (pnlAbs>=0?'+':'-')+cs+fmt(Math.abs(pnlAbs)) : '-')+'</td>'+
+      '<td data-label="P&amp;L %" style="font-family:var(--mono);color:'+pnlClr+';font-weight:700">'+(pnlPct !== null ? (pnlPct>=0?'+':'')+pnlPct+'%' : '-')+'</td>'+
+      '<td data-label="vs SPY">'+(vsSPY!=='-' ? '<span class="tip" data-tip="'+esc(vsSPYTip)+'" style="cursor:help">'+vsSPY+'</span>' : '<span class="tip" data-tip="'+esc(vsSPYTip)+'" style="cursor:help;color:var(--muted)">-</span>')+'</td>'+
+      '<td data-label="Signal">'+(st.signal?'<span class="sig '+sigCls+'">'+sigLbl+'</span>':'-')+'</td>'+
+      '<td data-label="Timing">'+(bz.label !== '-' ? '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>' : '-')+'</td>'+
+      '<td data-label="Exit">'+(ex.label !== '-' ? '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>' : '-')+'</td>'+
+      '<td data-label="Date" style="font-size:11px;color:var(--muted)">'+fmtDMY(p.date)+'</td>'+
+      '<td data-label="Notes" style="font-size:11px;color:var(--muted);max-width:120px;white-space:normal">'+esc(p.notes||'')+'</td>'+
+      '<td data-label="Remove"><button onclick="pfRemove('+p.id+')" style="background:none;border:1px solid var(--border);color:var(--red);font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer">&#10005;</button></td>'+
     '</tr>';
   });
 
@@ -2656,10 +2674,10 @@ function renderPortfolio() {
     { lbl:'Positions',     val:positions.length,                   sub:'tracked' },
     { lbl:'Total Cost',    val:perCcy(function(k,b){ return k+fmt(b.cost); }),  sub:'invested' + (ccyKeys.length > 1 ? ' (per currency)' : '') },
     { lbl:'Market Value',  val:perCcy(function(k,b){ return k+fmt(b.val); }),   sub:'current' },
-    { lbl:'Total P&L',     val:perCcy(function(k,b){ return (b.pnl>=0?'+':'-')+k+fmt(Math.abs(b.pnl)); }), sub:pnlPctTxt },
+    { lbl:'Total P&L',     val:ccyKeys.map(function(k){ var b = byCcy[k] || { pnl: 0 }; return '<span style="color:'+(b.pnl>=0?'var(--green)':'var(--red)')+'">'+(b.pnl>=0?'+':'-')+k+fmt(Math.abs(b.pnl))+'</span>'; }).join(' \u00B7 '), sub:pnlPctTxt },
     { lbl:'Winners',       val:winners+'/'+positions.length,       sub:'in profit' }
   ].map(function(c){
-    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val" style="color:'+(c.lbl==='Total P&L'?(totalPnl>=0?'var(--green)':'var(--red)'):'var(--text)')+'">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
+    return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val" style="color:'+'var(--text)'+'">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
   }).join('');
 }
 
@@ -2667,7 +2685,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxkKmF2xMLEO8D5jlx0ncWmsqhBC9-7c-FsdniLsYjk2Gqzl9yfG28EzYXSVuZ5m0OD/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwlXjY3odzViyHu30uRIRKbOYfiAgxkjKSMhJ-16eNUwYwdT29P6Vlw17MnxAty9OlRHQ/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2953,6 +2971,8 @@ function applyEuEligibility(data) {
 }
 
 document.addEventListener('click', function(e) {
+  var sw = e.target.closest && e.target.closest('#stale-warning');
+  if (sw) sw.classList.toggle('open');
   var h = e.target.closest && e.target.closest('.grp-head');
   if (!h || e.target.closest('a')) return;
   var g = h.parentNode;
@@ -3428,7 +3448,7 @@ function renderWatchlist(stocks) {
                   range4wBar(s)+
                   supportResistance(s)+
                 '</div>'+
-                '<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'" style="margin-left:auto">'+bz.label+'</span>'+
+                '<span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px">'+convictionMarker(s)+'<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span></span>'+
                 (function(){ var ex=exitSignal(s); return ex.label==='Hold' ? '' : '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'; })()+
               '</div>';
             })()+
@@ -3520,7 +3540,7 @@ function renderActionTable(stocks) {
       (function(){ var ex=exitSignal(st); return '<td data-label="Exit">'+(ex.label==='Hold' ? '<span style="color:var(--muted)">-</span>' : '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'+confirmMarker(ex))+'</td>'; })()+
       '<td data-label="Flags" style="white-space:nowrap">'+flags+'</td>'+
     '</tr>'+
-    (st.news && st.news.length ? '<tr style="background:rgba(245,158,11,.05)"><td colspan="18" style="padding:4px 12px 8px 36px">'+
+    (st.news && st.news.length ? '<tr class="news-row" style="background:rgba(245,158,11,.05)"><td colspan="18" style="padding:4px 12px 8px 36px">'+
       '<div style="font-size:10px;color:var(--amber);font-weight:700;margin-bottom:3px">&#128240; Recent news:</div>'+
       st.news.map(function(n){
         return '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">&#8250; <a href="'+esc(safeHttpUrl(n.url))+'" target="_blank" rel="noopener noreferrer" style="color:var(--text);text-decoration:none">'+esc(n.headline)+'</a> <span style="color:var(--muted);font-size:10px">('+esc(n.source||'')+')</span></div>';
@@ -3746,10 +3766,19 @@ function renderHeatmapData(hm) {
 
 function filterSignals(query) {
   query=query.toLowerCase().trim();
-  var rows=document.querySelectorAll('#action-body tr'), visible=0;
-  rows.forEach(function(row){ var show=!query||row.textContent.toLowerCase().indexOf(query)!==-1; row.style.display=show?'':'none'; if(show) visible++; });
+  // A stock row and its optional news row are one unit: match on either, show or hide both.
+  var rows=[].slice.call(document.querySelectorAll('#action-body tr')), visible=0, total=0;
+  for (var i=0;i<rows.length;i++){
+    var row=rows[i];
+    if (row.classList.contains('news-row')) continue;
+    var news=(rows[i+1]&&rows[i+1].classList.contains('news-row'))?rows[i+1]:null;
+    var hay=row.textContent.toLowerCase()+(news?' '+news.textContent.toLowerCase():'');
+    var show=!query||hay.indexOf(query)!==-1;
+    row.style.display=show?'':'none'; if(news) news.style.display=show?'':'none';
+    total++; if(show) visible++;
+  }
   var el=document.getElementById('sig-count');
-  if(el) el.textContent=query?visible+' of '+rows.length+' stocks':'';
+  if(el) el.textContent=query?visible+' of '+total+' stocks':'';
 }
 
 function initAlerts(stocks) {
@@ -4181,6 +4210,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   document.addEventListener('mouseover', function(e) {
+    if (window.matchMedia && window.matchMedia('(hover: none)').matches) return;
     var t = e.target.closest('.tip');
     if (t && tipEl) {
       tipEl.textContent = t.getAttribute('data-tip');
@@ -4194,9 +4224,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   document.addEventListener('mouseout', function(e) {
+    if (window.matchMedia && window.matchMedia('(hover: none)').matches) return; // touch: tap handler owns it
     var t = e.target.closest('.tip');
     if (t && tipEl) tipEl.style.display = 'none';
   });
+
+  // Touch devices have no hover: tap a .tip to open its explanation, tap it
+  // again or anywhere else (or scroll) to close it.
+  var tipSrc = null, tipShownAt = 0;
+  function hideTip() { if (tipEl) tipEl.style.display = 'none'; tipSrc = null; }
+  document.addEventListener('click', function(e) {
+    if (!tipEl || !window.matchMedia || !window.matchMedia('(hover: none)').matches) return;
+    var t = e.target.closest('.tip');
+    if (!t) { hideTip(); return; }
+    if (tipSrc === t) { hideTip(); return; }
+    tipEl.textContent = t.getAttribute('data-tip');
+    tipEl.style.display = 'block';
+    var mg = 12, vw = window.innerWidth, vh = window.innerHeight;
+    var tw = Math.min(260, vw - mg * 2);
+    tipEl.style.width = tw + 'px';
+    var th = tipEl.offsetHeight || 60, r = t.getBoundingClientRect();
+    var x = Math.max(mg, Math.min(r.left + r.width / 2 - tw / 2, vw - tw - mg));
+    var y = (r.top - th - 8 > mg) ? r.top - th - 8 : r.bottom + 8;
+    y = Math.max(mg, Math.min(y, vh - th - mg));
+    tipEl.style.left = x + 'px';
+    tipEl.style.top  = y + 'px';
+    tipSrc = t; tipShownAt = Date.now();
+  });
+  // Scrolling closes it, but not the scroll a browser does while bringing the tapped element into view.
+  window.addEventListener('scroll', function() { if (tipSrc && Date.now() - tipShownAt > 400) hideTip(); }, { passive: true });
 
   // Chart hover/tap-to-zoom: mouseover shows an enlarged redraw of the
   // same 20-day data for precise mouse hovering; click/tap toggles it too
@@ -4360,7 +4416,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.25-a';
+var APP_VERSION = '2026.11.26-a';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
@@ -4384,8 +4440,13 @@ if ('serviceWorker' in navigator) {
         if (!bar) { return; }
         bar.style.display = 'block';
         bar.onclick = function() {
-          if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
-          location.reload();
+          var done = false;
+          function go() { if (done) return; done = true; location.reload(); }
+          // Reload only after the new worker has taken control, otherwise the
+          // reload can land on the old version. The timeout is a safety net.
+          navigator.serviceWorker.addEventListener('controllerchange', go);
+          if (worker) worker.postMessage({ type: 'SKIP_WAITING' }); else go();
+          setTimeout(go, 3000);
         };
       }
 
