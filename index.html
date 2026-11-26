@@ -97,6 +97,48 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 
+
+/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.26-b) ===== */
+.regime{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:var(--surf);border:1px solid var(--border);border-left:4px solid var(--muted);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px}
+.regime.t-g{border-left-color:var(--green)}.regime.t-a{border-left-color:var(--amber)}.regime.t-r{border-left-color:var(--red)}
+.regime .rg-tone{font-weight:800;font-size:13px}
+.regime.t-g .rg-tone{color:var(--green)}.regime.t-a .rg-tone{color:var(--amber)}.regime.t-r .rg-tone{color:var(--red)}
+.regime .rg-bar{width:90px;height:6px;border-radius:3px;background:var(--border);overflow:hidden;display:inline-block;vertical-align:middle;margin:0 6px}
+.regime .rg-bar i{display:block;height:100%;background:var(--muted)}
+.regime.t-g .rg-bar i{background:var(--green)}.regime.t-a .rg-bar i{background:var(--amber)}.regime.t-r .rg-bar i{background:var(--red)}
+.regime .rg-m{color:var(--muted)}.regime .rg-m b{color:var(--text);font-family:var(--mono)}
+.regime .rg-read{flex:1 1 100%;color:var(--muted);font-size:11px;line-height:1.5}
+details.chg{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px}
+details.chg summary{cursor:pointer;font-weight:700;color:var(--text);list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+details.chg summary::-webkit-details-marker{display:none}
+details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open] summary::before{content:'\25BE'}
+.chg-g{margin-top:8px;line-height:2}.chg-l{color:var(--muted);font-size:11px;margin-right:6px}
+.chg-chip{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--surf2);color:var(--accent);border:1px solid var(--border);border-radius:5px;padding:1px 7px;margin:0 3px 3px 0;cursor:pointer}
+.size-hint{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--cyan);background:rgba(6,182,212,.10);border-radius:4px;padding:2px 6px;cursor:help;white-space:nowrap}
+.mkt-nav{display:flex;gap:6px;margin:0 0 12px}
+.mkt-nav button{background:var(--surf2);color:var(--muted);border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;min-height:32px}
+.mkt-nav button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+#bottom-nav,#more-sheet{display:none}
+.swipe-hint{display:none;font-size:10px;color:var(--muted);margin:0 0 8px}
+@media (hover: none){.swipe-hint{display:block}}
+#alert-sheet{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center}
+#alert-sheet.open{display:flex}
+#alert-sheet .sheet-card{background:var(--surf);border:1px solid var(--border);border-radius:14px 14px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));width:100%;max-width:480px}
+#alert-sheet button,#alert-sheet input,#alert-sheet select{font-size:13px;min-height:40px;border-radius:8px;border:1px solid var(--border);background:var(--surf2);color:var(--text);padding:6px 10px}
+#alert-sheet .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}#alert-sheet .row>*{flex:1 1 120px}
+@media (max-width:760px){
+  .tabs-wrap{display:none}
+  body{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+  #bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:10000;background:var(--surf);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
+  #bottom-nav button{flex:1;background:none;border:0;color:var(--muted);font-size:10px;font-weight:600;padding:7px 2px 6px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+  #bottom-nav button .bn-i{font-size:18px;line-height:1}
+  #bottom-nav button.on{color:var(--accent)}
+  #more-sheet.open{display:block;position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:10000;background:var(--surf);border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(0,0,0,.35);padding:8px 14px}
+  #more-sheet button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;padding:13px 4px;min-height:44px}
+  #more-sheet button:last-child{border-bottom:0}
+  #to-top{bottom:calc(72px + env(safe-area-inset-bottom))!important}
+  .regime{padding:9px 12px}
+}
 /* ===== Mobile phone view (<=760px only — desktop/browser view untouched) ===== */
 @media(max-width:760px){
   header{padding:10px 14px;padding-top:max(10px, env(safe-area-inset-top));gap:8px}
@@ -376,6 +418,15 @@ button.attn-card:hover{border-color:var(--accent)}
     </div>
   </div>
 
+  <!-- Position sizing -->
+  <div style="margin-bottom:12px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Position sizing (optional)</div>
+    <div style="display:flex;gap:6px">
+      <input id="risk-acct" type="number" min="0" step="100" placeholder="Account size" aria-label="Account size" style="flex:1;min-width:0;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px">
+      <input id="risk-pct" type="number" min="0" max="10" step="0.1" placeholder="Risk %" aria-label="Risk per trade in percent" style="width:70px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px">
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4">Adds a rough share count to entry cards: risk &divide; (entry &minus; stop). Saved in this browser only.</div>
+  </div>
   <button id="settings-close" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;margin-top:4px">Close</button>
 </div>
     <div id="last-updated" role="status" aria-live="polite">Loading...</div><span id="updated-age" class="age-chip"></span>
@@ -389,9 +440,7 @@ button.attn-card:hover{border-color:var(--accent)}
 <div class="tabs-wrap">
 <div class="tabs">
   <div class="tab active" data-tab="overview">&#127760; US Stocks</div>
-  <div class="tab" data-tab="greek">&#127987; Greek</div>
-  <div class="tab" data-tab="indices">&#127757; Indices</div>
-  <div class="tab" data-tab="metals">&#129689; Metals</div>
+  <div class="tab" data-tab="markets">&#127757; Markets</div>
   <div class="tab" data-tab="signals">&#127919; Signals</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
   <div class="tab" data-tab="dividends">&#128176; Dividends</div>
@@ -422,6 +471,8 @@ button.attn-card:hover{border-color:var(--accent)}
     <div id="warning-banner"></div>
     <div class="spy-bar" id="spy-bar"></div>
     <div id="ov-howto"></div>
+    <div id="ov-regime"></div>
+    <div id="ov-changes"></div>
     <div id="ov-attention"></div>
     <div id="ov-top3" style="margin-bottom:0"></div>
     <div class="summary-grid" id="summary-cards"></div>
@@ -436,6 +487,7 @@ button.attn-card:hover{border-color:var(--accent)}
   <button class="wl-filter tip" data-filter="below50" data-tip="Below 50MA: price is below its 50-day moving average. Downtrend in place. Avoid buying — rallies are often short-lived.">&#9660; Below 50MA</button>
 </div>
 <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="acc-slot" data-scope="us"></span><button type="button" id="wl-ai" class="chip tip" aria-pressed="false" onclick="toggleAiTheme(this)" data-tip="Shows only tracked names with a large AI link (chips, cloud, software, infrastructure). A personal grouping, not an official index.">&#129302; AI-exposed</button><input class="search-box" id="wl-search" type="search" placeholder="Search ticker / name" oninput="wlSearch=this.value;if(D)renderWatchlist(D.stocks)" aria-label="Search US stocks"></div>
+<div class="swipe-hint">Tip: swipe a card left to set a price alert.</div>
 <div id="ov-watchlist" style="margin-bottom:16px"></div>
     <div class="panel" style="margin-bottom:16px">
       <h3>Sector Heatmap <span class="sub">Weekly &amp; Monthly avg</span></h3>
@@ -723,6 +775,7 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- GLOBAL INDICES -->
 <div id="panel-indices" class="tab-panel">
+<div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="indices-content" style="display:none">
     <div id="help-indices"></div>
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px">
@@ -748,6 +801,7 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- METALS & COMMODITIES -->
 <div id="panel-metals" class="tab-panel">
+<div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="metals-content" style="display:none">
     <div id="help-metals"></div>
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px">
@@ -778,6 +832,7 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- GREEK STOCKS -->
 <div id="panel-greek" class="tab-panel">
+<div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="greek-content" style="display:none">
     <div id="help-greek"></div>
 
@@ -1109,7 +1164,7 @@ button.attn-card:hover{border-color:var(--accent)}
         A stock up +15% YTD with RSI still under 58 and price in the lower part of its 4-week range is a cleaner setup than one that has just spiked &mdash; which is exactly what the Timing badge tests for.
         <div style="margin-top:10px;background:var(--surf2);border-radius:8px;padding:12px 14px">
           <div style="color:var(--text);font-weight:600;margin-bottom:6px">Sweet spot to look for:</div>
-          Timing badge reads <strong>Possible Entry</strong> &nbsp;&#183;&nbsp; conviction <strong>High</strong> &nbsp;&#183;&nbsp; volume not fading &nbsp;&#183;&nbsp; vs SPY positive &nbsp;&#183;&nbsp; no earnings within 7 days
+          Timing badge reads <strong>Possible Entry</strong> &nbsp;&#183;&nbsp; conviction <strong>High</strong> (a &#9733; beside the badge) &nbsp;&#183;&nbsp; volume not fading &nbsp;&#183;&nbsp; vs SPY positive &nbsp;&#183;&nbsp; no earnings within 7 days
         </div>
       </div>
     </div>
@@ -1593,8 +1648,9 @@ function renderGreekWatchlist(greek) {
                   range4wBar(s)+
                   supportResistance(s)+
                 '</div>'+
-                '<span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px">'+convictionMarker(s)+'<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span></span>'+
+                '<span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px">'+'<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>'+convictionMarker(s)+'</span>'+
                 (function(){ var ex=exitSignal(s); return ex.label==='Hold' ? '' : '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'; })()+
+                sizeHintInline(s)+
               '</div>';
             })()+
           '</div>';
@@ -2084,24 +2140,17 @@ function labelStyle(label, s) {
 // the 1-month trend and volume all agree; Low = the signal fired but
 // little else backs it.
 function convictionMarker(s) {
+  // Folded into the Timing badge: a star beside it means HIGH conviction.
+  // Medium and Low are the unremarkable cases and show nothing (the email
+  // still lists the tier for every row).
   var c = s && s.conviction;
-  if (!c || !c.tier) return '';
-  // Backend conviction falls back to the exit calculation for every non-entry
-  // row, so most Monitor/Hold rows came out "LOW". Only show it where there
-  // is a decision to weigh: an entry-type label or an actionable exit.
+  if (!c || c.tier !== 'High') return '';
   var entryType = (s.timing === 'Possible Entry' || s.timing === 'Oversold Watch');
   var actionableExit = (s.exit_label === 'Exit Signal' || s.exit_label === 'Take Profit' || s.exit_label === 'Trim Risk');
   if (!entryType && !actionableExit) return '';
-  if (c.tier === 'Medium') return '';   // only the extremes earn screen space
-  var high = c.tier === 'High';
-  return '<span class="tip" data-tip="' + esc(c.tier + ' conviction' +
-      (c.why && c.why.length ? ': ' + c.why.join(', ') : '')) +
-    '" style="background:' + (high ? 'var(--text)' : 'transparent') +
-    ';color:' + (high ? 'var(--bg)' : 'var(--muted)') +
-    ';border:1px solid ' + (high ? 'var(--text)' : 'var(--border)') +
-    ';font-family:var(--mono);font-size:9px;font-weight:700;padding:1px 5px;' +
-    'border-radius:4px;margin-left:3px;cursor:help;white-space:nowrap">' +
-    (high ? 'HIGH' : 'LOW') + '</span>';
+  return '<span class="tip nb" tabindex="0" data-tip="' + esc('High conviction' +
+      (c.why && c.why.length ? ': ' + c.why.join(', ') : '') + '. The rating, 1-month trend and volume agree with the signal.') +
+    '" style="color:var(--amber);font-size:13px;line-height:1;margin-left:3px;cursor:help">&#9733;</span>';
 }
 
 function buyZoneLabel(s) {
@@ -2369,6 +2418,17 @@ function filterETFs(filter, btn) {
 
 // ── Watchlist filters ──────────────────────────────────────────
 var wlFilter = 'all', gkFilter = 'all', wlSearch = '', gkSearch = '';
+var wlAllExits = false;
+function isNarrow() { return !!(window.matchMedia && window.matchMedia('(max-width: 760px)').matches); }
+// On a phone the exit filter shows the 5 strongest-conviction exits first.
+function exitCap(stocks) {
+  if (wlFilter !== 'exit' || wlAllExits || !isNarrow()) return { set: null, hidden: 0 };
+  var list = stocks.filter(function(s){ return matchesFilter(s,wlFilter) && matchesSearch(s,wlSearch) && (!wlAI || AI_TICKERS.indexOf(s.ticker)!==-1) && matchesAccess(s); });
+  if (list.length <= 5) return { set: null, hidden: 0 };
+  list.sort(function(a,b){ return ((b.conviction&&b.conviction.score)||0) - ((a.conviction&&a.conviction.score)||0) || ((a.score||0) - (b.score||0)); });
+  var set = {}; list.slice(0,5).forEach(function(s){ set[s.ticker] = 1; });
+  return { set: set, hidden: list.length - 5 };
+}
 function matchesSearch(s, q) {
   q = String(q || '').trim().toLowerCase();
   if (!q) return true;
@@ -2388,7 +2448,8 @@ function matchesFilter(s, filter) {
 }
 
 function filterWatchlist(filter, btn) {
-  wlFilter = filter;
+  wlFilter = filter; wlAllExits = false;
+  if (filter !== 'all') collapsedGrp.ovWEAK = false;
   document.querySelectorAll('.wl-filter').forEach(function(b){ b.classList.remove('active-filter'); });
   btn.classList.add('active-filter');
   if (D) renderWatchlist(D.stocks);
@@ -2686,11 +2747,20 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwlXjY3odzViyHu30uRIRKbOYfiAgxkjKSMhJ-16eNUwYwdT29P6Vlw17MnxAty9OlRHQ/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbz2s80U7O5pOPVWrFlnV_o4_OHgV1PxM-we5Z_RThRDG_0Bkmij1_oR7K6rViENav3-6A/exec';
 
 // Tab switching
+var MKT_TABS = ['greek','indices','metals'];
+var MORE_TABS = ['history','dividends','portfolio','guide'];
 function switchTab(name) {
-  var activeTab = document.querySelector('[data-tab="'+name+'"]');
+  if (name === 'markets') {
+    var last = 'indices';
+    try { last = localStorage.getItem('dashMkt') || 'indices'; } catch (e) {}
+    name = MKT_TABS.indexOf(last) >= 0 ? last : 'indices';
+  }
+  var isMkt = MKT_TABS.indexOf(name) >= 0;
+  var tabName = isMkt ? 'markets' : name;
+  var activeTab = document.querySelector('[data-tab="'+tabName+'"]');
   var panel = document.getElementById('panel-'+name);
   if (!activeTab || !panel) return;
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
@@ -2698,11 +2768,27 @@ function switchTab(name) {
   activeTab.classList.add('active');
   activeTab.setAttribute('aria-selected','true');
   panel.classList.add('active');
-  activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  if (isMkt) {
+    try { localStorage.setItem('dashMkt', name); } catch (e) {}
+    document.querySelectorAll('.mkt-nav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-mkt') === name); });
+  }
+  syncBottomNav(tabName);
+  try { activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); } catch (e) {}
   try { localStorage.setItem('dashTab', name); } catch (e) {}
   try { history.replaceState(null, '', '#' + name); } catch (e) {}
   window.scrollTo(0, 0);
 }
+function syncBottomNav(tabName) {
+  var key = MORE_TABS.indexOf(tabName) >= 0 ? 'more' : tabName;
+  document.querySelectorAll('#bottom-nav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-bn') === key); });
+  var m = document.getElementById('more-sheet'); if (m) m.classList.remove('open');
+}
+function bnGo(name) { switchTab(name); }
+function toggleMore() { var m = document.getElementById('more-sheet'); if (m) m.classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  var m = document.getElementById('more-sheet');
+  if (m && m.classList.contains('open') && !e.target.closest('#more-sheet') && !e.target.closest('[data-bn="more"]')) m.classList.remove('open');
+});
 
 // ── UX helpers (2026-11-20-d) ──────────────────────────────────
 // "AI-exposed" is a personal grouping of tracked names with a large AI
@@ -2710,6 +2796,7 @@ function switchTab(name) {
 var AI_TICKERS = ['NVDA','MSFT','GOOGL','AMZN','META','AVGO','AMD','TSM','ARM','MU','ORCL','PLTR','CRM','NOW','SNOW','NET','PANW','ALAB','TEM','QCOM','AMAT','MRVL','ANET','SMCI','VRT','IBM','ADBE'];
 var wlAI = false;
 var collapsedGrp = {};
+try { if (window.matchMedia && window.matchMedia('(max-width: 760px)').matches) collapsedGrp.ovWEAK = true; } catch (e) {}
 
 function toggleAiTheme(btn) {
   wlAI = !wlAI;
@@ -2718,7 +2805,7 @@ function toggleAiTheme(btn) {
   if (D) renderWatchlist(D.stocks);
 }
 function resetWlFilters() {
-  wlFilter = 'all'; wlSearch = ''; wlAI = false; accessFilter = 'all'; renderAccSlots();
+  wlFilter = 'all'; wlAllExits = false; wlSearch = ''; wlAI = false; accessFilter = 'all'; renderAccSlots();
   var i = document.getElementById('wl-search'); if (i) i.value = '';
   var b = document.getElementById('wl-ai'); if (b) { b.classList.remove('active-filter'); b.setAttribute('aria-pressed', 'false'); }
   document.querySelectorAll('.wl-filter').forEach(function(x){ x.classList.toggle('active-filter', x.dataset.filter === 'all'); });
@@ -2766,6 +2853,159 @@ function renderAttention(stocks) {
   }
 }
 
+
+// ── Market regime strip ──
+function renderRegime(stocks) {
+  var el = document.getElementById('ov-regime'); if (!el) return;
+  stocks = stocks || [];
+  var withMa = stocks.filter(function(s){ return s.above_ma50 === true || s.above_ma50 === false; });
+  if (!withMa.length) { el.innerHTML = ''; return; }
+  var above = withMa.filter(function(s){ return s.above_ma50; }).length;
+  var pct = Math.round(above / withMa.length * 100);
+  var ent = stocks.filter(function(s){ return matchesFilter(s,'entry'); }).length;
+  var ex  = stocks.filter(function(s){ return matchesFilter(s,'exit'); }).length;
+  var tone = pct >= 70 ? ['Broad strength','g'] : pct >= 40 ? ['Mixed market','a'] : ['Broad weakness','r'];
+  var vix = D && D.vix && typeof D.vix.price === 'number' ? D.vix : null, vixTxt = '';
+  if (vix) {
+    var lvl = vix.price < 15 ? 'calm' : vix.price < 25 ? 'normal' : 'stressed';
+    vixTxt = '<span class="rg-m tip" data-tip="VIX = market-implied volatility of the S&amp;P 500. Under 15 calm, 15-25 normal, over 25 stressed.">VIX <b>' + vix.price.toFixed(1) + '</b>' +
+      (typeof vix.dp === 'number' ? ' (' + (vix.dp >= 0 ? '+' : '') + vix.dp.toFixed(1) + '%)' : '') + ' &middot; ' + lvl + '</span>';
+  }
+  var read = (pct < 40 && ex > ent * 2) ? 'Exits this broad usually reflect the market, not many separate problems: judge each one against the index before acting.' :
+             (pct >= 70 && ent > ex) ? 'Most stocks are in an uptrend and entries outnumber exits.' : '';
+  el.innerHTML = '<div class="regime t-' + tone[1] + '" role="status">' +
+    '<span class="rg-tone">' + tone[0] + '</span>' +
+    '<span class="rg-m tip" data-tip="Share of tracked US stocks trading above their 50-day average. Above 70% = broad uptrend, below 40% = broad pullback.">' +
+      '<span class="rg-bar"><i style="width:' + pct + '%"></i></span><b>' + above + '</b> of ' + withMa.length + ' above 50MA (' + pct + '%)</span>' +
+    '<span class="rg-m"><b>' + ent + '</b> entries &middot; <b>' + ex + '</b> exits</span>' + vixTxt +
+    (read ? '<span class="rg-read">' + read + '</span>' : '') + '</div>';
+}
+
+// ── What changed since the previous day ──
+function renderChanges() {
+  var el = document.getElementById('ov-changes'); if (!el) return;
+  var dl = D && D.deltas;
+  if (!dl) { el.innerHTML = ''; return; }
+  var total = 0; (dl.groups || []).forEach(function(g){ total += g.items.length; });
+  var head = !dl.since ? 'What changed <span style="color:var(--muted);font-weight:400">tracking starts after the next day rollover</span>' :
+    'What changed since ' + esc(dl.since) + ' <span style="color:var(--muted);font-weight:400">' + (total ? total + ' signal change' + (total === 1 ? '' : 's') : 'nothing changed') + '</span>';
+  var body = (dl.groups || []).map(function(g){
+    return '<div class="chg-g"><span class="chg-l">' + esc(g.label) + ' (' + g.items.length + ')</span>' + g.items.map(function(it){
+      var tk = String(it).split(' ')[0];
+      return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(tk).replace(/'/g,'') + '\')">' + esc(it) + '</button>';
+    }).join('') + '</div>';
+  }).join('');
+  el.innerHTML = '<details class="chg"' + ((!isNarrow() || total <= 6) && total ? ' open' : '') + '><summary>' + head + '</summary>' + body + '</details>';
+}
+function jumpToTicker(tk) {
+  var inUS = D && (D.stocks || []).some(function(s){ return s.ticker === tk; });
+  var inGR = D && (D.greek || []).some(function(s){ return s.ticker === tk; });
+  if (inUS) {
+    switchTab('overview'); wlSearch = tk; wlFilter = 'all'; wlAllExits = false;
+    var i = document.getElementById('wl-search'); if (i) i.value = tk;
+    document.querySelectorAll('.wl-filter').forEach(function(x){ x.classList.toggle('active-filter', x.dataset.filter === 'all'); });
+    collapsedGrp.ovWEAK = false; renderWatchlist(D.stocks);
+  } else if (inGR) {
+    switchTab('greek'); gkSearch = tk; gkFilter = 'all';
+    var g = document.getElementById('gk-search'); if (g) g.value = tk;
+    renderGreekWatchlist(D.greek);
+  } else { switchTab('etfs'); }
+  var w = document.getElementById(inGR && !inUS ? 'greek-watchlist' : 'ov-watchlist'); if (w) w.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Position-size hint (optional; needs account size + risk % in settings) ──
+function riskCfg() {
+  try {
+    var c = JSON.parse(localStorage.getItem('dashRisk') || 'null');
+    if (c && c.acct > 0 && c.pct > 0) return c;
+  } catch (e) {}
+  return null;
+}
+function sizeHintInline(s) {
+  var c = riskCfg(), lv = s && s.levels;
+  if (!c || !lv || !(lv.entry_ref > 0) || !(lv.stop > 0)) return '';
+  if (s.timing !== 'Possible Entry' && s.timing !== 'Oversold Watch') return '';
+  var per = lv.entry_ref - lv.stop; if (!(per > 0)) return '';
+  var riskAmt = c.acct * c.pct / 100;
+  var sh = Math.min(Math.floor(riskAmt / per), Math.floor(c.acct / lv.entry_ref));
+  if (sh < 1) return '';
+  var cy = ccy(s).replace('&#8364;', '€');
+  return '<span class="size-hint tip nb" tabindex="0" data-tip="' + esc('Rough size: risking ' + c.pct + '% of ' + cy + fmt(c.acct) + ' (' + cy + fmt(riskAmt) +
+    ') with the stop at ' + cy + fmt(lv.stop) + ' versus entry ' + cy + fmt(lv.entry_ref) + ' = ' + cy + fmt(per) + ' risk per share, so about ' + sh +
+    ' shares (' + cy + fmt(sh * lv.entry_ref) + '). Mechanical levels, not advice.') + '">~' + sh + ' sh</span>';
+}
+function initRiskInputs() {
+  var a = document.getElementById('risk-acct'), r = document.getElementById('risk-pct');
+  if (!a || !r) return;
+  var c = null; try { c = JSON.parse(localStorage.getItem('dashRisk') || 'null'); } catch (e) {}
+  if (c) { a.value = c.acct || ''; r.value = c.pct || ''; }
+  function save() {
+    try { localStorage.setItem('dashRisk', JSON.stringify({ acct: parseFloat(a.value) || 0, pct: parseFloat(r.value) || 0 })); } catch (e) {}
+    if (D) { renderWatchlist(D.stocks); renderGreekWatchlist(D.greek); }
+  }
+  a.addEventListener('change', save); r.addEventListener('change', save);
+}
+
+// ── Quick alert from a card swipe ──
+var asTicker = null;
+function openAlertSheet(tk) {
+  var st = D && (D.stocks || []).filter(function(x){ return x.ticker === tk; })[0];
+  if (!st) return;
+  asTicker = st;
+  var below = Math.round(st.price * 0.95 * 100) / 100, above = Math.round(st.price * 1.05 * 100) / 100;
+  document.getElementById('as-title').textContent = 'Price alert: ' + st.ticker + ' (' + st.company + ')';
+  document.getElementById('as-sub').textContent = 'Now $' + fmt(st.price) + '. Checked hourly on the server; the e-mail goes out with your daily digest.';
+  var b = document.getElementById('as-below'), a = document.getElementById('as-above');
+  b.textContent = 'Falls below $' + fmt(below) + ' (-5%)'; b.onclick = function(){ saveQuickAlert('below', below); };
+  a.textContent = 'Rises above $' + fmt(above) + ' (+5%)'; a.onclick = function(){ saveQuickAlert('above', above); };
+  var em = document.getElementById('as-email'), saved = '';
+  try { saved = localStorage.getItem('dashAlertEmail') || ''; } catch (e) {}
+  if (!em.value) em.value = saved || (document.getElementById('alert-email') || {}).value || '';
+  document.getElementById('as-custom').value = ''; document.getElementById('as-status').textContent = '';
+  document.getElementById('alert-sheet').classList.add('open');
+}
+function closeAlertSheet() { document.getElementById('alert-sheet').classList.remove('open'); }
+function saveQuickAlert(cond, price) {
+  var st = asTicker, status = document.getElementById('as-status');
+  var email = document.getElementById('as-email').value.trim();
+  if (!st) return;
+  if (!(price > 0)) { status.textContent = 'Enter a valid price.'; return; }
+  if (email.indexOf('@') < 1) { status.textContent = 'Enter your e-mail address.'; return; }
+  status.textContent = 'Saving...';
+  gasAlertCall({ action:'saveAlert', ticker:st.ticker, company:st.company, condition:cond, targetPrice:price, email:email })
+    .then(function(r){
+      try { localStorage.setItem('dashAlertEmail', email); } catch (e) {}
+      status.textContent = 'Alert set: ' + st.ticker + (cond === 'below' ? ' falls below $' : ' rises above $') + fmt(price) + '.';
+      renderAlerts(r.alerts || []);
+      setTimeout(closeAlertSheet, 1400);
+    })
+    .catch(function(e){ status.textContent = 'Could not save: ' + e.message; });
+}
+(function() {
+  var sx = 0, sy = 0, st0 = 0, card = null;
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) { card = null; return; }
+    card = e.target.closest ? e.target.closest('[data-tk]') : null;
+    if (card && e.target.closest('a,button,input,.chart-wrap,svg')) card = null;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st0 = Date.now();
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    if (!card) return;
+    var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (dx < -80 && Math.abs(dy) < 40 && Date.now() - st0 < 700) openAlertSheet(card.getAttribute('data-tk'));
+    card = null;
+  }, { passive: true });
+  document.addEventListener('DOMContentLoaded', function() {
+    var c = document.getElementById('as-close'); if (c) c.addEventListener('click', closeAlertSheet);
+    var sh = document.getElementById('alert-sheet'); if (sh) sh.addEventListener('click', function(e){ if (e.target === sh) closeAlertSheet(); });
+    var sv = document.getElementById('as-save'); if (sv) sv.addEventListener('click', function(){
+      saveQuickAlert(document.getElementById('as-cond').value, parseFloat(document.getElementById('as-custom').value));
+    });
+    initRiskInputs();
+    var ae = document.getElementById('alert-email'); try { if (ae && !ae.value) ae.value = localStorage.getItem('dashAlertEmail') || ''; } catch (e) {}
+  });
+})();
+
 function dismissHowto() { try { localStorage.setItem('dashHowtoDismissed', '1'); } catch (e) {} renderHowto(); }
 function showHowto()    { try { localStorage.removeItem('dashHowtoDismissed'); } catch (e) {} renderHowto(); }
 
@@ -2774,24 +3014,15 @@ function showHowto()    { try { localStorage.removeItem('dashHowtoDismissed'); }
 // Every claim below must match what the tab actually does.
 var TAB_HELP = {
   greek: ['How to read Greek stocks', [
-    '<b>Availability is unverified</b> at both brokers. Search the plain symbol (without <b>.AT</b>) in IBKR or Revolut before relying on it.',
-    'Small caps can trade thinly: expect wide spreads and gaps, so check volume before sizing a position.',
-    'Use the <b>search box</b> and filters to narrow the list; tap a ticker to open it on Yahoo Finance.']],
+    'Broker availability is unverified: search the plain symbol (no <b>.AT</b>) in IBKR or Revolut first. Small caps trade thinly, so check volume before sizing.']],
   indices: ['How to read Indices', [
-    '<b>Indices are reference gauges, not products you can buy.</b> To get exposure, use a UCITS index ETF (ETFs tab) or index futures/options at IBKR, which need trading permissions.',
-    'The <b>entry / stop / target levels</b> are mechanical reference points built from the price history — see the Guide. Not financial advice.',
-    'The <b>filters</b> narrow the list by timing signal; hover a filter for its exact rule.']],
+    'Reference gauges, not products: get exposure through a UCITS index ETF (ETFs tab) or index futures at IBKR (permissions needed). Levels are mechanical &mdash; see the Guide.']],
   metals: ['How to read Metals & Commodities', [
-    '<b>Futures are complex, leveraged products</b> and need an appropriateness assessment and permissions at IBKR; they are not offered by Revolut.',
-    'An <b>EU-accessible route</b> to gold is the Xetra-Gold ETC (4GLD.DE, ETFs tab).',
-    'The <b>entry / stop / target levels</b> are mechanical reference points — see the Guide. Not financial advice.']],
+    'Futures are complex and leveraged (IBKR permissions; not at Revolut). EU route to gold: Xetra-Gold ETC 4GLD.DE (ETFs tab). Levels are mechanical &mdash; see the Guide.']],
   history: ['How to read Historical', [
-    'Longer-horizon context: price, 3-month and year-to-date performance, and market cap. It is <b>not a timing tool</b> — use the US Stocks tab for that.',
-    'Click a <b>column header</b> to sort; use the market buttons and the search box to narrow the list.']],
+    'Longer-horizon context, <b>not a timing tool</b> &mdash; use US Stocks for timing. Click a column header to sort.']],
   portfolio: ['How to use Portfolio', [
-    '<b>Positions are saved only in this browser on this device.</b> Clearing site data or opening the dashboard on another device starts you from an empty list, and there is no export.',
-    'Enter the <b>ticker exactly as shown on the dashboard</b> (Greek names without .AT) so the live price can be matched.',
-    'The <b>vs SPY</b> column compares from your entry date and only covers the last year of SPY history.']]
+    '<b>Saved only in this browser.</b> Enter the ticker exactly as on the dashboard (Greek without .AT); <b>vs SPY</b> covers the last year only.']]
 };
 function tabHelpGone(tab) {
   try { return localStorage.getItem('dashHelp_' + tab) === '1'; } catch (e) { return false; }
@@ -2816,12 +3047,10 @@ function renderHowto() {
   try { gone = localStorage.getItem('dashHowtoDismissed') === '1'; } catch (e) {}
   if (gone) { el.innerHTML = '<div style="margin:0 0 10px"><button class="chip" type="button" onclick="showHowto()">? How to read this page</button></div>'; return; }
   el.innerHTML = '<div class="howto"><b>How to read this page</b><ul>' +
-    '<li><b>Strong / Neutral / Weak</b> is a rank against the other tracked stocks \u2014 not a buy or sell call.</li>' +
-    '<li><b>Timing badge</b> (Possible Entry, Extended, \u2026) says whether the setup looks attractive or stretched. An <b>Exit</b> badge only appears when a rule triggers.</li>' +
-    '<li>Tap the <b>boxes above</b> to jump to a filtered list. Tap a <b>ticker</b> to open it on Yahoo Finance and a <b>chart</b> to enlarge it. Dashed underlines have a tooltip.</li>' +
-    '<li><b>Availability tags</b> (EU / IBKR / REV) show whether you can legally and practically buy a name from Greece. \u25D0 means market-level only \u2014 confirm in your broker; ? means unverified. Hover one for the reason; details are in the Guide.</li>' +
-    '<li>Indices and Metals show mechanical entry / stop / target reference levels \u2014 see the Guide tab. Not financial advice.</li></ul>' +
-    '<button class="chip" type="button" onclick="dismissHowto()">Got it \u2014 hide this</button></div>';
+    '<li><b>Strong / Neutral / Weak</b> is a rank against the other tracked stocks, not a buy or sell call. The <b>Timing badge</b> says whether the setup looks attractive or stretched (&#9733; = high conviction); an <b>Exit</b> badge only appears when a rule triggers.</li>' +
+    '<li>Tap the <b>boxes above</b> for a filtered list, a <b>ticker</b> to open Yahoo Finance, a <b>chart</b> to enlarge it. Dashed underlines have a tooltip; on touch, swipe a card left to set a price alert.</li>' +
+    '<li><b>EU / IBKR / REV tags</b> show what you can buy from Greece (&#9680; = market-level, confirm in your broker; ? = unverified). Indices and Metals levels are mechanical &mdash; see the Guide. Not financial advice.</li></ul>' +
+    '<button class="chip" type="button" onclick="dismissHowto()">Got it — hide this</button></div>';
 }
 
 // Relative age of the data file, coloured against the same 3-hour limit
@@ -3377,7 +3606,8 @@ function renderSummary(stocks, spy) {
 
 function renderWatchlist(stocks) {
   var groups = { STRONG:[], NEUTRAL:[], WEAK:[] };
-  stocks.forEach(function(s){ if(matchesFilter(s,wlFilter) && matchesSearch(s,wlSearch) && (!wlAI || AI_TICKERS.indexOf(s.ticker)!==-1) && matchesAccess(s)) (groups[s.signal]||groups.NEUTRAL).push(s); });
+  var cap = exitCap(stocks);
+  stocks.forEach(function(s){ if((!cap.set||cap.set[s.ticker]) && matchesFilter(s,wlFilter) && matchesSearch(s,wlSearch) && (!wlAI || AI_TICKERS.indexOf(s.ticker)!==-1) && matchesAccess(s)) (groups[s.signal]||groups.NEUTRAL).push(s); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return b.score-a.score; }); });
   var configs = [
     { key:'STRONG', label:'Strong Momentum', icon:'&#9679;', sub:'Ranked highest vs peers on the composite score. This is NOT an entry signal \u2014 strong names are often already extended. Check each stock\u0027s Timing badge below.', color:'var(--green)', border:'rgba(16,185,129,.25)' },
@@ -3421,7 +3651,7 @@ function renderWatchlist(stocks) {
           var maLbl=s.above_ma50===null?'MA -':s.above_ma50?'&#9650; 50MA':'&#9660; 50MA';
           var maTip=s.above_ma50===null?'50-day Moving Average: no data available':s.above_ma50?'Above 50MA: price is above its 50-day average. Uptrend in place. Dips are buying opportunities.':'Below 50MA: price is below its 50-day average. Downtrend in place. Rallies are selling opportunities.';
           var earnHtml=(s.earnings_days!==null&&s.earnings_days!==undefined)?'<span class="earn-warn">! '+s.earnings_days+'d</span>':'';
-          return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
+          return '<div data-tk="'+esc(s.ticker)+'" style="padding:10px 0;border-bottom:1px solid var(--border)">'+
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'+
               '<div style="display:flex;align-items:center;gap:8px">'+
                 '<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);min-width:48px">'+tkOf(s)+'</span>'+
@@ -3458,15 +3688,16 @@ function renderWatchlist(stocks) {
                   range4wBar(s)+
                   supportResistance(s)+
                 '</div>'+
-                '<span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px">'+convictionMarker(s)+'<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span></span>'+
+                '<span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px">'+'<span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>'+convictionMarker(s)+'</span>'+
                 (function(){ var ex=exitSignal(s); return ex.label==='Hold' ? '' : '<span class="tip '+ex.cls+'" data-tip="'+esc(ex.tip)+'">'+ex.label+'</span>'; })()+
+                sizeHintInline(s)+
               '</div>';
             })()+
           '</div>';
         }).join('')+
       '</div>';
     }).join('')+
-    '</div>';
+    '</div>' + (cap.hidden ? '<div style="text-align:center;margin-top:12px"><button class="chip" type="button" onclick="wlAllExits=true;renderWatchlist(D.stocks)">+' + cap.hidden + ' more exit signals &mdash; show all</button></div>' : '');
 }
 
 function renderHeatmap(hm) {
@@ -3906,6 +4137,7 @@ function addAlert() {
                  condition:condition, targetPrice:price, email:email })
     .then(function(r){
       document.getElementById('alert-price').value='';
+      try { localStorage.setItem('dashAlertEmail', email); } catch (e) {}
       setAlertStatus('Alert saved — it is now being checked hourly on the server.');
       renderAlerts(r.alerts || []);
     })
@@ -3921,37 +4153,48 @@ function deleteAlertById(id) {
 }
 
 function renderAlerts(alerts) {
+  window.__alerts = alerts || [];
   var el=document.getElementById('alerts-list');
-  if(!alerts||!alerts.length){ el.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">No alerts set. Add one above.</div>'; return; }
-  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px">'+
-    alerts.map(function(a){
-      var condStr=a.condition==='above'?'rises above':'falls below';
-      // State is whatever the server says. A fired alert is deactivated
-      // server-side after the email goes out, so it must not keep
-      // presenting itself as armed.
-      var isActive = a.active !== false;
-      var stateTxt = isActive ? 'Active'
-        : ('Fired' + (a.firedPrice ? ' @ $' + a.firedPrice : '') + (a.firedAt ? ' - ' + esc(a.firedAt) : ''));
-      var stateClr = isActive ? 'var(--green)' : 'var(--amber)';
-      return '<div style="background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;opacity:'+(isActive?'1':'.7')+'">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
-          '<div style="display:flex;align-items:center;gap:8px">'+
-            '<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent)">'+esc(a.ticker)+'</span>'+
-            '<span style="font-size:12px">'+esc(a.company)+'</span>'+
-          '</div>'+
-          '<span style="font-size:10px;color:'+stateClr+'">'+stateTxt+'</span>'+
+  if(!alerts||!alerts.length){ el.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">No alerts set. Add one above, or swipe a card left on your phone.</div>'; return; }
+  function ts(a){ var m=/^(\d{2})-(\d{2})-(\d{4}) (\d{2}):(\d{2})/.exec(a.firedAt||''); return m?Date.UTC(+m[3],+m[2]-1,+m[1],+m[4],+m[5]):0; }
+  var active=alerts.filter(function(a){ return a.active!==false; });
+  var fired=alerts.filter(function(a){ return a.active===false; }).sort(function(a,b){ return ts(b)-ts(a); });
+  function card(a){
+    var condStr=a.condition==='above'?'rises above':'falls below';
+    var isActive = a.active !== false;
+    var stateTxt = isActive ? 'Active'
+      : ('Fired' + (a.firedPrice ? ' @ ' + alertCcy(a.ticker) + a.firedPrice : '') + (a.firedAt ? ' - ' + esc(a.firedAt) : ''));
+    var stateClr = isActive ? 'var(--green)' : 'var(--amber)';
+    var rearm = isActive ? '' : '<button onclick="rearmAlert(\''+a.id+'\')" style="background:rgba(56,189,248,.12);color:var(--cyan);border:1px solid rgba(56,189,248,.3);padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer;margin-right:6px">Re-arm</button>';
+    return '<div style="background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;opacity:'+(isActive?'1':'.75')+'">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent)">'+esc(a.ticker)+'</span>'+
+          '<span style="font-size:12px">'+esc(a.company)+'</span>'+
         '</div>'+
-        '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">'+
-          condStr+' <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber)">'+alertCcy(a.ticker)+a.targetPrice+'</span>'+
-          ' - <span>'+esc(a.email)+'</span>'+
-        '</div>'+
-        '<div style="display:flex;align-items:center;justify-content:space-between">'+
-          '<span style="font-size:10px;color:var(--muted)">Set '+esc(a.createdAt)+'</span>'+
-          '<button onclick="deleteAlertById(\''+a.id+'\')" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer">Remove</button>'+
-        '</div>'+
-      '</div>';
-    }).join('')+
-  '</div>';
+        '<span style="font-size:10px;color:'+stateClr+'">'+stateTxt+'</span>'+
+      '</div>'+
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">'+
+        condStr+' <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber)">'+alertCcy(a.ticker)+a.targetPrice+'</span>'+
+        ' - <span>'+esc(a.email)+'</span>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between">'+
+        '<span style="font-size:10px;color:var(--muted)">Set '+esc(a.createdAt)+'</span>'+
+        '<span>'+rearm+'<button onclick="deleteAlertById(\''+a.id+'\')" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer">Remove</button></span>'+
+      '</div>'+
+    '</div>';
+  }
+  var grid='display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px';
+  el.innerHTML=(active.length?'<div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Active ('+active.length+')</div><div style="'+grid+'">'+active.map(card).join('')+'</div>':'<div style="padding:6px 0;color:var(--muted);font-size:12px">No active alerts.</div>')+
+    (fired.length?'<div style="font-size:11px;color:var(--muted);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px">History ('+fired.length+' fired, newest first)</div><div style="'+grid+'">'+fired.map(card).join('')+'</div>':'');
+}
+function rearmAlert(id) {
+  var a=(window.__alerts||[]).filter(function(x){ return x.id===id; })[0];
+  if(!a){ setAlertStatus('Reload the page and try again.', true); return; }
+  setAlertStatus('Re-arming...');
+  gasAlertCall({ action:'saveAlert', ticker:a.ticker, company:a.company, condition:a.condition, targetPrice:a.targetPrice, email:a.email })
+    .then(function(r){ setAlertStatus('Alert re-armed for '+a.ticker+'.'); renderAlerts(r.alerts || []); })
+    .catch(function(e){ setAlertStatus('Could not re-arm: ' + e.message, true); });
 }
 
 function fmt(n){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -4101,6 +4344,8 @@ function renderAll(data) {
     ['renderMetalsTab',  function(){ renderMetalsTab(data.metals, data.metal_ratio); }],
     ['renderSummary',    function(){ renderSummary(data.stocks, data.spy); }],
     ['renderAttention',  function(){ renderAttention(data.stocks); }],
+    ['renderRegime',     function(){ renderRegime(data.stocks); }],
+    ['renderChanges',    function(){ renderChanges(); }],
     ['renderWatchlist',  function(){ renderWatchlist(data.stocks); }],
     ['renderHeatmap',    function(){ renderHeatmap(data.sector_heatmap); }],
     ['renderEvents',     function(){ renderEvents(data.events); }],
@@ -4426,7 +4671,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.26-a';
+var APP_VERSION = '2026.11.26-b';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
@@ -4485,5 +4730,29 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<nav id="bottom-nav" aria-label="Main navigation">
+  <button type="button" data-bn="overview" onclick="bnGo('overview')"><span class="bn-i">&#128200;</span>US</button>
+  <button type="button" data-bn="markets" onclick="bnGo('markets')"><span class="bn-i">&#127757;</span>Markets</button>
+  <button type="button" data-bn="signals" onclick="bnGo('signals')"><span class="bn-i">&#127919;</span>Signals</button>
+  <button type="button" data-bn="etfs" onclick="bnGo('etfs')"><span class="bn-i">&#128640;</span>ETFs</button>
+  <button type="button" data-bn="more" onclick="toggleMore()"><span class="bn-i">&#8943;</span>More</button>
+</nav>
+<div id="more-sheet" role="menu" aria-label="More sections">
+  <button type="button" onclick="bnGo('history')">&#128200; Historical</button>
+  <button type="button" onclick="bnGo('dividends')">&#128176; Dividends</button>
+  <button type="button" onclick="bnGo('portfolio')">&#128181; Portfolio</button>
+  <button type="button" onclick="bnGo('guide')">&#128218; Guide</button>
+</div>
+<div id="alert-sheet" role="dialog" aria-modal="true" aria-label="Quick price alert">
+  <div class="sheet-card">
+    <div style="font-size:14px;font-weight:700;color:var(--text)" id="as-title"></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:2px" id="as-sub"></div>
+    <div class="row"><button type="button" id="as-below"></button><button type="button" id="as-above"></button></div>
+    <div class="row"><select id="as-cond" aria-label="Condition"><option value="below">Falls below</option><option value="above">Rises above</option></select><input id="as-custom" type="number" step="0.01" placeholder="Custom price" aria-label="Custom target price"><button type="button" id="as-save">Set</button></div>
+    <div class="row"><input id="as-email" type="email" placeholder="your@email.com" aria-label="Email"></div>
+    <div id="as-status" style="font-size:11px;color:var(--muted);min-height:16px;margin-top:6px"></div>
+    <button type="button" id="as-close" style="width:100%;margin-top:4px">Close</button>
+  </div>
+</div>
 </body>
 </html>
