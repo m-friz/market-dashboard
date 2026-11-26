@@ -98,7 +98,7 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 
 
-/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.26-d) ===== */
+/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.26-e) ===== */
 .regime{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:var(--surf);border:1px solid var(--border);border-left:4px solid var(--muted);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px}
 .regime.t-g{border-left-color:var(--green)}.regime.t-a{border-left-color:var(--amber)}.regime.t-r{border-left-color:var(--red)}
 .regime .rg-tone{font-weight:800;font-size:13px}
@@ -115,7 +115,6 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
 .chg-g{margin-top:8px;line-height:2}.chg-l{color:var(--muted);font-size:11px;margin-right:6px}
 .chg-chip{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--surf2);color:var(--accent);border:1px solid var(--border);border-radius:5px;padding:1px 7px;margin:0 3px 3px 0;cursor:pointer}
 .size-hint{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--cyan);background:rgba(6,182,212,.10);border-radius:4px;padding:2px 6px;cursor:help;white-space:nowrap}
-#bottom-nav,#more-sheet,#mkt-sheet{display:none}
 .swipe-hint{display:none;font-size:10px;color:var(--muted);margin:0 0 8px}
 @media (hover: none){.swipe-hint{display:block}}
 #alert-sheet{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center}
@@ -124,17 +123,9 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
 #alert-sheet button,#alert-sheet input,#alert-sheet select{font-size:13px;min-height:40px;border-radius:8px;border:1px solid var(--border);background:var(--surf2);color:var(--text);padding:6px 10px}
 #alert-sheet .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}#alert-sheet .row>*{flex:1 1 120px}
 @media (max-width:760px){
-  .tabs-wrap{display:none}
-  body{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
-  #bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:10000;background:var(--surf);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
-  #bottom-nav button{flex:1;background:none;border:0;color:var(--muted);font-size:10px;font-weight:600;padding:7px 2px 6px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
-  #bottom-nav button .bn-i{font-size:18px;line-height:1}
-  #bottom-nav button.on{color:var(--accent)}
-  #more-sheet.open,#mkt-sheet.open{display:block;position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:10000;background:var(--surf);border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(0,0,0,.35);padding:8px 14px}
-  #more-sheet button,#mkt-sheet button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;padding:13px 4px;min-height:44px}
-  #more-sheet button:last-child,#mkt-sheet button:last-child{border-bottom:0}
-  #to-top{bottom:calc(72px + env(safe-area-inset-bottom))!important}
   .regime{padding:9px 12px}
+  .tabs .tab{padding:12px 14px;font-size:13px;min-height:44px;white-space:nowrap}
+  .howto.slim{padding:8px 10px;font-size:11.5px;align-items:flex-start}
 }
 /* ===== Mobile phone view (<=760px only — desktop/browser view untouched) ===== */
 @media(max-width:760px){
@@ -282,7 +273,9 @@ footer{text-align:center;padding:18px;font-size:11px;color:var(--muted);border-t
 .etf-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
 .wl-filter[data-filter="oversold"],.gk-filter[data-filter="oversold"],.ix-filter[data-filter="oversold"],.mt-filter[data-filter="oversold"]{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.08);color:var(--cyan)}
 
-.top3-card { background:var(--surf2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px }
+.top3-card > div:first-child > div:first-child { min-width:0; flex:1 }
+.top3-pct { flex:0 0 auto; margin-left:6px }
+.top3-card { min-width:0; background:var(--surf2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px }
 .top3-card.up   { border-left:3px solid var(--green) }
 .top3-card.down { border-left:3px solid var(--red) }
 .tk{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor}
@@ -315,6 +308,9 @@ button.attn-card:hover{border-color:var(--accent)}
 .attn-card .n.g{color:var(--green)}.attn-card .n.r{color:var(--red)}.attn-card .n.c{color:var(--cyan)}.attn-card .n.a{color:var(--amber)}
 .howto{background:var(--surf2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 16px;margin:0 0 12px;font-size:12px;line-height:1.7;color:var(--muted)}
 .howto b{color:var(--text)}
+.howto.slim{display:flex;align-items:center;gap:10px;padding:8px 14px;line-height:1.5;margin:0 0 10px}
+.howto.slim .txt{flex:1;min-width:0}
+.howto.slim .chip{flex:0 0 auto;padding:2px 10px;font-size:11px;white-space:nowrap}
 .howto ul{margin:6px 0 8px 18px;padding:0}
 .grp-head{cursor:pointer;user-select:none}
 .grp-head::after{content:'\25BE';color:var(--muted);margin-left:10px}
@@ -504,6 +500,7 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- SIGNALS -->
 <div id="panel-signals" class="tab-panel">
+  <div id="help-signals"></div>
   <div id="sig-content" style="display:none">
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.9">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 32px">
@@ -664,6 +661,7 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- DIVIDENDS -->
 <div id="panel-dividends" class="tab-panel">
+  <div id="help-dividends"></div>
   <div id="div-content" style="display:none">
 
     <!-- Explanation banner -->
@@ -892,6 +890,7 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- ETFs -->
 <div id="panel-etfs" class="tab-panel">
+  <div id="help-etfs"></div>
   <div id="etf-content" style="display:none">
     <div id="rg-etfs"></div>
     <div id="chg-etfs"></div>
@@ -2763,11 +2762,9 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbw_cdyFsUTTmAxQ-ztd2O3lMspOdGM1QEclpnLoZz-JunyK2MeBrPtfqWdW0VAcJE9MLQ/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbyviIN8Vo5GvH8C-0coXv2SWCY1FtoM6p08xsp8r4xP92PJ0K9Eyeo_7azlUbOj1IZS6A/exec';
 
 // Tab switching
-var MKT_TABS = ['greek','indices','metals'];
-var MORE_TABS = ['history','dividends','portfolio','guide'];
 function switchTab(name) {
   var activeTab = document.querySelector('[data-tab="'+name+'"]');
   var panel = document.getElementById('panel-'+name);
@@ -2777,24 +2774,16 @@ function switchTab(name) {
   activeTab.classList.add('active');
   activeTab.setAttribute('aria-selected','true');
   panel.classList.add('active');
-  syncBottomNav(name);
-  try { activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); } catch (e) {}
+  // Centre the active tab in the (horizontally scrolling) tab row, so on a phone the
+  // neighbours on both sides stay visible and the tab is never half cut off.
+  try {
+    var row = activeTab.parentElement;
+    row.scrollTo({ left: Math.max(0, activeTab.offsetLeft - (row.clientWidth - activeTab.offsetWidth) / 2), behavior: 'smooth' });
+  } catch (e) {}
   try { localStorage.setItem('dashTab', name); } catch (e) {}
   try { history.replaceState(null, '', '#' + name); } catch (e) {}
   window.scrollTo(0, 0);
 }
-function syncBottomNav(tabName) {
-  var key = MORE_TABS.indexOf(tabName) >= 0 ? 'more' : MKT_TABS.indexOf(tabName) >= 0 ? 'markets' : tabName;
-  document.querySelectorAll('#bottom-nav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-bn') === key); });
-  closeSheets();
-}
-function closeSheets() { ['more-sheet','mkt-sheet'].forEach(function(id){ var m = document.getElementById(id); if (m) m.classList.remove('open'); }); }
-function bnGo(name) { switchTab(name); }
-function toggleSheet(id) { var m = document.getElementById(id); if (!m) return; var was = m.classList.contains('open'); closeSheets(); if (!was) m.classList.add('open'); }
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.sheet-nav') && !e.target.closest('#bottom-nav')) closeSheets();
-});
-
 // ── UX helpers (2026-11-20-d) ──────────────────────────────────
 // "AI-exposed" is a personal grouping of tracked names with a large AI
 // revenue / capex link — not an official index or sector.
@@ -3026,52 +3015,39 @@ function saveQuickAlert(cond, price) {
   });
 })();
 
-function dismissHowto() { try { localStorage.setItem('dashHowtoDismissed', '1'); } catch (e) {} renderHowto(); }
-function showHowto()    { try { localStorage.removeItem('dashHowtoDismissed'); } catch (e) {} renderHowto(); }
 
-// Per-tab help. Only tabs that do not already explain themselves get a card
-// (Signals, Dividends, ETFs and the Guide have their own explainer panels).
-// Every claim below must match what the tab actually does.
+// One-line "how to read" ribbon on every tab except the Guide. Keep each
+// to a single sentence or two; every claim must match what the tab does.
 var TAB_HELP = {
-  greek: ['How to read Greek stocks', [
-    'Broker availability is unverified: search the plain symbol (no <b>.AT</b>) in IBKR or Revolut first. Small caps trade thinly, so check volume before sizing.']],
-  indices: ['How to read Indices', [
-    'Reference gauges, not products: get exposure through a UCITS index ETF (ETFs tab) or index futures at IBKR (permissions needed). Levels are mechanical &mdash; see the Guide.']],
-  metals: ['How to read Metals & Commodities', [
-    'Futures are complex and leveraged (IBKR permissions; not at Revolut). EU route to gold: Xetra-Gold ETC 4GLD.DE (ETFs tab). Levels are mechanical &mdash; see the Guide.']],
-  history: ['How to read Historical', [
-    'Longer-horizon context, <b>not a timing tool</b> &mdash; use US Stocks for timing. Click a column header to sort.']],
-  portfolio: ['How to use Portfolio', [
-    '<b>Saved only in this browser.</b> Enter the ticker exactly as on the dashboard (Greek without .AT); <b>vs SPY</b> covers the last year only.']]
+  overview:  'Strong/Neutral/Weak is a <b>peer rank, not a buy call</b>. Timing badge = the setup (&#9733; high conviction). Exit badge = a rule fired. Tap a box to filter.',
+  greek:     'Prices in EUR. Broker availability is <b>unverified</b>: search the plain symbol (no .AT). Small caps trade thinly.',
+  indices:   'Gauges, <b>not products</b>: trade them via a UCITS index ETF (ETFs tab) or IBKR futures. Levels are mechanical, not advice.',
+  metals:    'Futures are <b>leveraged</b> and need IBKR permissions (not Revolut). EU route to gold: 4GLD.DE (ETFs tab). Levels are mechanical.',
+  signals:   'Search the full US list with score, RSI and signals. <b>Price alerts</b> are at the bottom (US stocks only).',
+  history:   'Longer-horizon context, <b>not a timing tool</b>: use US Stocks for timing. Click a column header to sort.',
+  dividends: 'Yield under 1% = minimal income, 1-4% = healthy, <b>4%+ = check the payout ratio</b> first.',
+  etfs:      'Compare funds <b>within a category</b>; a lower expense ratio = cheaper to hold. Signals follow the same rules as stocks.',
+  portfolio: '<b>Saved only in this browser.</b> Enter tickers as shown on the dashboard (Greek without .AT). vs SPY covers 1 year.'
 };
+function helpKey(tab) { return tab === 'overview' ? 'dashHowtoDismissed' : 'dashHelp_' + tab; }
 function tabHelpGone(tab) {
-  try { return localStorage.getItem('dashHelp_' + tab) === '1'; } catch (e) { return false; }
+  try { return localStorage.getItem(helpKey(tab)) === '1'; } catch (e) { return false; }
 }
-function dismissTabHelp(tab) { try { localStorage.setItem('dashHelp_' + tab, '1'); } catch (e) {} renderHowto(); }
-function showTabHelp(tab)    { try { localStorage.removeItem('dashHelp_' + tab); } catch (e) {} renderHowto(); }
+function dismissTabHelp(tab) { try { localStorage.setItem(helpKey(tab), '1'); } catch (e) {} renderHowto(); }
+function showTabHelp(tab)    { try { localStorage.removeItem(helpKey(tab)); } catch (e) {} renderHowto(); }
 function renderTabHelp(tab) {
-  var el = document.getElementById('help-' + tab), h = TAB_HELP[tab];
+  var el = document.getElementById(tab === 'overview' ? 'ov-howto' : 'help-' + tab), h = TAB_HELP[tab];
   if (!el || !h) return;
   if (tabHelpGone(tab)) {
-    el.innerHTML = '<div style="margin:0 0 10px"><button class="chip" type="button" onclick="showTabHelp(\'' + tab + '\')">? ' + h[0] + '</button></div>';
+    el.innerHTML = '<div style="margin:0 0 10px"><button class="chip" type="button" onclick="showTabHelp(\'' + tab + '\')">? How to read this tab</button></div>';
     return;
   }
-  el.innerHTML = '<div class="howto"><b>' + h[0] + '</b><ul><li>' + h[1].join('</li><li>') + '</li></ul>' +
-    '<button class="chip" type="button" onclick="dismissTabHelp(\'' + tab + '\')">Got it \u2014 hide this</button></div>';
+  el.innerHTML = '<div class="howto slim"><span class="txt"><b>How to read:</b> ' + h + '</span>' +
+    '<button class="chip" type="button" aria-label="Hide this tip" onclick="dismissTabHelp(\'' + tab + '\')">Hide</button></div>';
 }
-function renderHowto() {
-  Object.keys(TAB_HELP).forEach(renderTabHelp);
-  var el = document.getElementById('ov-howto');
-  if (!el) return;
-  var gone = false;
-  try { gone = localStorage.getItem('dashHowtoDismissed') === '1'; } catch (e) {}
-  if (gone) { el.innerHTML = '<div style="margin:0 0 10px"><button class="chip" type="button" onclick="showHowto()">? How to read this page</button></div>'; return; }
-  el.innerHTML = '<div class="howto"><b>How to read this page</b><ul>' +
-    '<li><b>Strong / Neutral / Weak</b> is a rank against the other tracked stocks, not a buy or sell call. The <b>Timing badge</b> says whether the setup looks attractive or stretched (&#9733; = high conviction); an <b>Exit</b> badge only appears when a rule triggers.</li>' +
-    '<li>Tap the <b>boxes above</b> for a filtered list, a <b>ticker</b> to open Yahoo Finance, a <b>chart</b> to enlarge it. Dashed underlines have a tooltip; on touch, swipe a card left to set a price alert.</li>' +
-    '<li><b>EU / IBKR / REV tags</b> show what you can buy from Greece (&#9680; = market-level, confirm in your broker; ? = unverified). Indices and Metals levels are mechanical &mdash; see the Guide. Not financial advice.</li></ul>' +
-    '<button class="chip" type="button" onclick="dismissHowto()">Got it — hide this</button></div>';
-}
+function dismissHowto() { dismissTabHelp('overview'); }
+function showHowto()    { showTabHelp('overview'); }
+function renderHowto() { Object.keys(TAB_HELP).forEach(renderTabHelp); }
 
 // Relative age of the data file, coloured against the same 3-hour limit
 // the stale-data banner uses.
@@ -4690,7 +4666,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.26-d';
+var APP_VERSION = '2026.11.26-e';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
@@ -4749,24 +4725,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<nav id="bottom-nav" aria-label="Main navigation">
-  <button type="button" data-bn="overview" onclick="bnGo('overview')"><span class="bn-i">&#128200;</span>US</button>
-  <button type="button" data-bn="markets" onclick="toggleSheet('mkt-sheet')"><span class="bn-i">&#127757;</span>Markets</button>
-  <button type="button" data-bn="signals" onclick="bnGo('signals')"><span class="bn-i">&#127919;</span>Signals</button>
-  <button type="button" data-bn="etfs" onclick="bnGo('etfs')"><span class="bn-i">&#128640;</span>ETFs</button>
-  <button type="button" data-bn="more" onclick="toggleSheet('more-sheet')"><span class="bn-i">&#8943;</span>More</button>
-</nav>
-<div id="mkt-sheet" class="sheet-nav" role="menu" aria-label="Markets sections">
-  <button type="button" onclick="bnGo('greek')">&#127987; Greek stocks</button>
-  <button type="button" onclick="bnGo('indices')">&#127757; Indices</button>
-  <button type="button" onclick="bnGo('metals')">&#129689; Metals</button>
-</div>
-<div id="more-sheet" class="sheet-nav" role="menu" aria-label="More sections">
-  <button type="button" onclick="bnGo('history')">&#128200; Historical</button>
-  <button type="button" onclick="bnGo('dividends')">&#128176; Dividends</button>
-  <button type="button" onclick="bnGo('portfolio')">&#128181; Portfolio</button>
-  <button type="button" onclick="bnGo('guide')">&#128218; Guide</button>
-</div>
 <div id="alert-sheet" role="dialog" aria-modal="true" aria-label="Quick price alert">
   <div class="sheet-card">
     <div style="font-size:14px;font-weight:700;color:var(--text)" id="as-title"></div>
