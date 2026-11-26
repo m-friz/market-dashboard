@@ -2880,22 +2880,30 @@ var ACCESS_TXT = {
 var accessFilter = 'all';
 
 function accessOf(s) { return (s && s.access) || { k:'?', e:'?', i:'u', r:'u', v:'' }; }
-function accessTip(s) {
+function accessTip(s, which) {
+  // One explanation per badge: 'e' = EU eligibility, 'i' = IBKR, 'r' = Revolut.
   var a = accessOf(s), t = ACCESS_TXT[a.k] || {}, out = [];
-  if (a.v) out.push('Market: ' + a.v + '.');
-  out.push('EU retail: ' + (t.eu || 'not assessed (data file predates the eligibility update).'));
-  if (a.i) out.push('IBKR (' + ACCESS_LBL[a.i] + '): ' + ((t.i && t.i[a.i]) || ACCESS_GENERIC[a.i]));
-  if (a.r) out.push('Revolut (' + ACCESS_LBL[a.r] + '): ' + ((t.r && t.r[a.r]) || ACCESS_GENERIC[a.r]));
-  if (a.n) out.push('Note: ' + a.n);
-  out.push('Based on public pages read 2026-11-20. Legal eligibility is not the same as broker availability. Not legal or investment advice.');
+  if (which === 'i' || which === 'r') {
+    var c = a[which], txt = (t[which] && t[which][c]) || ACCESS_GENERIC[c];
+    out.push((which === 'i' ? 'IBKR' : 'Revolut') + ' - ' + ACCESS_LBL[c] + ' ' + ACCESS_SYM[c] + '.');
+    out.push(txt);
+    if (a.v) out.push('Market: ' + a.v + '.');
+    out.push('Broker availability only; EU legal eligibility is the separate EU badge. Public pages read 2026-11-20. Confirm in the app before trading.');
+  } else {
+    out.push('EU retail eligibility (legal, not broker availability).');
+    out.push(t.eu || 'Not assessed (data file predates the eligibility update).');
+    if (a.v) out.push('Market: ' + a.v + '.');
+    if (a.n) out.push('Note: ' + a.n);
+    out.push('Public pages read 2026-11-20. Not legal or investment advice.');
+  }
   return out.join(' ');
 }
 function accessBadge(s) {
   var a = accessOf(s);
   var eu = { y:'EU &#10003;', c:'EU &#10003; complex', n:'EU &#10005;', x:'Not tradable' }[a.e] || 'EU ?';
-  var h = '<span class="acc-badge tip" tabindex="0" data-tip="' + esc(accessTip(s)) + '"><span class="e-' + ({y:1,c:1,n:1,x:1}[a.e] ? a.e : 'x') + '">' + eu + '</span>';
-  if (a.i) h += '<span class="ac-' + a.i + '">IBKR ' + ACCESS_SYM[a.i] + '</span>';
-  if (a.r) h += '<span class="ac-' + a.r + '">REV ' + ACCESS_SYM[a.r] + '</span>';
+  var h = '<span class="acc-badge"><span class="tip e-' + ({y:1,c:1,n:1,x:1}[a.e] ? a.e : 'x') + '" tabindex="0" data-tip="' + esc(accessTip(s, 'e')) + '">' + eu + '</span>';
+  if (a.i) h += '<span class="tip ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span>';
+  if (a.r) h += '<span class="tip ac-' + a.r + '" tabindex="0" data-tip="' + esc(accessTip(s, 'r')) + '">REV ' + ACCESS_SYM[a.r] + '</span>';
   return h + '</span>';
 }
 function ccy(e) { return (e && (e.currency === 'EUR' || /\.AT$/.test(e.full_ticker || ''))) ? '&#8364;' : '$'; }
