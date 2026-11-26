@@ -197,6 +197,7 @@ tbody td:nth-child(3){text-align:left;font-family:var(--mono);font-size:11px;col
 .period-btn:hover{color:var(--text);border-color:var(--accent)}
 .active-period{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
 .tip{border-bottom:1px dashed var(--muted);cursor:help;display:inline}
+.tip.nb{border-bottom:none}
 #tip-popup{display:none;position:fixed;background:#1e3a5f;color:#e8f0fe;border:1px solid #4a90d9;border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.8;white-space:normal;word-break:break-word;width:240px;max-width:240px;z-index:2147483647;box-shadow:0 6px 32px rgba(0,0,0,.85);pointer-events:none;font-family:sans-serif;font-weight:400}
 .chart-hover{display:inline-block;cursor:zoom-in;line-height:0}
 #chart-popup{display:none;position:fixed;width:260px;box-sizing:border-box;background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.5);pointer-events:none}
@@ -1855,7 +1856,7 @@ function renderETFTable(etfs) {
       '<td data-label="&#916; 1M" class="'+pcls(e.pct_1m)+'">'+pn(e.pct_1m)+'</td>'+
       '<td data-label="&#916; YTD" class="'+pcls(e.pct_ytd)+'">'+pn(e.pct_ytd)+'</td>'+
       '<td data-label="RSI-14">'+(e.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+e.rsi14+'</span>':'-')+'</td>'+
-      '<td data-label="50MA"><span class="'+maCls+'">'+maLbl+'</span></td>'+
+      '<td data-label="50MA"><span class="tip nb '+maCls+'" tabindex="0" data-tip="'+maTipText(e.above_ma50)+'">'+maLbl+'</span></td>'+
       '<td data-label="52W Pos">'+range52+'</td>'+
       '<td data-label="Trend">'+chartHoverWrap(makeSpark(e.spark||[],50,18), e.spark||[], e.ticker)+'</td>'+
     '</tr>';
@@ -2879,6 +2880,7 @@ var ACCESS_TXT = {
 };
 var accessFilter = 'all';
 
+function maTipText(v) { return v===null||v===undefined ? '50-day moving average: no data.' : v ? 'Above 50MA: price is above its 50-day average. Uptrend in place.' : 'Below 50MA: price is below its 50-day average. Downtrend in place.'; }
 function accessOf(s) { return (s && s.access) || { k:'?', e:'?', i:'u', r:'u', v:'' }; }
 function accessTip(s, which) {
   // One explanation per badge: 'e' = EU eligibility, 'i' = IBKR, 'r' = Revolut.
@@ -3436,7 +3438,7 @@ function renderWatchlist(stocks) {
             '</div>'+
             '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
               '<span class="tip" data-tip="'+rsiTip+'" style="background:'+rsiBg+';color:'+rsiClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+rsiLbl+'</span>'+
-              '<span title="'+maTip+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+maLbl+'</span>'+
+              '<span class="tip nb" tabindex="0" data-tip="'+maTip+'" style="background:'+maBg+';color:'+maClr+';font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:help">'+maLbl+'</span>'+
               volTrendBadge(s)+momentumBadge(s)+
               earnHtml+
               '<div style="margin-left:auto;display:flex;align-items:center;gap:5px">'+
@@ -3492,9 +3494,9 @@ function renderActionTable(stocks) {
     var maCls=st.above_ma50===null?'':st.above_ma50?'ma-above':'ma-below';
     var sw=st.score||0;
     var flags='';
-    if(st.alert) flags+='<span title="Moved 5% or more this week" style="display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">+5%</span>';
-    if(st.vol_spike) flags+='<span title="Volume burst: the latest session traded 50%+ above the 20-day average — a one-time spike, confirms this specific move is significant. Different from the VOL trend badge, which tracks a sustained multi-week direction." style="display:inline-block;background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">BURST</span>';
-    if(st.earnings_days!==null&&st.earnings_days!==undefined) flags+='<span title="Earnings report in '+st.earnings_days+' days — price can move sharply" class="earn-warn">EARN '+st.earnings_days+'d</span>';
+    if(st.alert) flags+='<span class="tip nb" tabindex="0" data-tip="Moved 5% or more this week" style="display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">+5%</span>';
+    if(st.vol_spike) flags+='<span class="tip nb" tabindex="0" data-tip="Volume burst: the latest session traded 50%+ above the 20-day average — a one-time spike, confirms this specific move is significant. Different from the VOL trend badge, which tracks a sustained multi-week direction." style="display:inline-block;background:rgba(139,92,246,.15);color:#a78bfa;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:3px;cursor:help;white-space:nowrap">BURST</span>';
+    if(st.earnings_days!==null&&st.earnings_days!==undefined) flags+='<span class="tip nb earn-warn" tabindex="0" data-tip="Earnings report in '+st.earnings_days+' days — price can move sharply">EARN '+st.earnings_days+'d</span>';
     if(!flags) flags='<span style="color:var(--muted);font-size:11px">-</span>';
     var range52=st.pos_52w!==null?'<div class="range-wrap"><div class="range-track"><div class="range-grad"></div><div class="range-dot" style="left:'+st.pos_52w+'%"></div></div><span class="range-pct">'+st.pos_52w+'%</span></div>':'<span>-</span>';
     // Rich contextual tooltip
@@ -3541,7 +3543,7 @@ function renderActionTable(stocks) {
       '<td data-label="P/E" style="font-family:var(--mono);font-size:11px">'+(st.pe_ttm!==null&&st.pe_ttm!==undefined?st.pe_ttm:'<span style="color:var(--muted)">-</span>')+'</td>'+
       '<td data-label="Beta" style="font-family:var(--mono);font-size:11px">'+(st.beta!==null&&st.beta!==undefined?st.beta:'<span style="color:var(--muted)">-</span>')+'</td>'+
       '<td data-label="RSI-14">'+(st.rsi14!==null?'<span class="rsi-badge '+rsiCls+'">'+st.rsi14+'</span>':'-')+'</td>'+
-      '<td data-label="50MA"><span class="'+maCls+'">'+maLbl+'</span></td>'+
+      '<td data-label="50MA"><span class="tip nb '+maCls+'" tabindex="0" data-tip="'+maTipText(st.above_ma50)+'">'+maLbl+'</span></td>'+
       '<td data-label="52W Pos">'+range52+'</td>'+
       '<td data-label="20D Chart">'+chartHoverWrap(makeChart20(st.chart20||[], 80, 32), st.chart20||[], st.ticker)+'</td>'+
       (function(){ var bz=buyZone(st); return '<td data-label="Timing"><span class="tip '+bz.cls+'" data-tip="'+esc(bz.tip)+'">'+bz.label+'</span>'+confirmMarker(bz)+convictionMarker(st)+'</td>'; })()+
