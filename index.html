@@ -98,7 +98,7 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 
 
-/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.26-c) ===== */
+/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.26-d) ===== */
 .regime{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:var(--surf);border:1px solid var(--border);border-left:4px solid var(--muted);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px}
 .regime.t-g{border-left-color:var(--green)}.regime.t-a{border-left-color:var(--amber)}.regime.t-r{border-left-color:var(--red)}
 .regime .rg-tone{font-weight:800;font-size:13px}
@@ -115,10 +115,7 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
 .chg-g{margin-top:8px;line-height:2}.chg-l{color:var(--muted);font-size:11px;margin-right:6px}
 .chg-chip{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--surf2);color:var(--accent);border:1px solid var(--border);border-radius:5px;padding:1px 7px;margin:0 3px 3px 0;cursor:pointer}
 .size-hint{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--cyan);background:rgba(6,182,212,.10);border-radius:4px;padding:2px 6px;cursor:help;white-space:nowrap}
-.mkt-nav{display:flex;gap:6px;margin:0 0 12px}
-.mkt-nav button{background:var(--surf2);color:var(--muted);border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;min-height:32px}
-.mkt-nav button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-#bottom-nav,#more-sheet{display:none}
+#bottom-nav,#more-sheet,#mkt-sheet{display:none}
 .swipe-hint{display:none;font-size:10px;color:var(--muted);margin:0 0 8px}
 @media (hover: none){.swipe-hint{display:block}}
 #alert-sheet{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center}
@@ -133,9 +130,9 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
   #bottom-nav button{flex:1;background:none;border:0;color:var(--muted);font-size:10px;font-weight:600;padding:7px 2px 6px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
   #bottom-nav button .bn-i{font-size:18px;line-height:1}
   #bottom-nav button.on{color:var(--accent)}
-  #more-sheet.open{display:block;position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:10000;background:var(--surf);border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(0,0,0,.35);padding:8px 14px}
-  #more-sheet button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;padding:13px 4px;min-height:44px}
-  #more-sheet button:last-child{border-bottom:0}
+  #more-sheet.open,#mkt-sheet.open{display:block;position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:10000;background:var(--surf);border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(0,0,0,.35);padding:8px 14px}
+  #more-sheet button,#mkt-sheet button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;padding:13px 4px;min-height:44px}
+  #more-sheet button:last-child,#mkt-sheet button:last-child{border-bottom:0}
   #to-top{bottom:calc(72px + env(safe-area-inset-bottom))!important}
   .regime{padding:9px 12px}
 }
@@ -440,7 +437,9 @@ button.attn-card:hover{border-color:var(--accent)}
 <div class="tabs-wrap">
 <div class="tabs">
   <div class="tab active" data-tab="overview">&#127760; US Stocks</div>
-  <div class="tab" data-tab="markets">&#127757; Markets</div>
+  <div class="tab" data-tab="greek">&#127987; Greek</div>
+  <div class="tab" data-tab="indices">&#127757; Indices</div>
+  <div class="tab" data-tab="metals">&#129689; Metals</div>
   <div class="tab" data-tab="signals">&#127919; Signals</div>
   <div class="tab" data-tab="history">&#128200; Historical</div>
   <div class="tab" data-tab="dividends">&#128176; Dividends</div>
@@ -775,7 +774,6 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- GLOBAL INDICES -->
 <div id="panel-indices" class="tab-panel">
-<div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="indices-content" style="display:none">
     <div id="help-indices"></div>
     <div id="rg-indices"></div>
@@ -803,7 +801,6 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- METALS & COMMODITIES -->
 <div id="panel-metals" class="tab-panel">
-<div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="metals-content" style="display:none">
     <div id="help-metals"></div>
     <div id="rg-metals"></div>
@@ -836,7 +833,6 @@ button.attn-card:hover{border-color:var(--accent)}
 
 <!-- GREEK STOCKS -->
 <div id="panel-greek" class="tab-panel">
-<div class="mkt-nav" role="group" aria-label="Markets sections"><button type="button" data-mkt="greek" onclick="switchTab('greek')">Greek stocks</button><button type="button" data-mkt="indices" onclick="switchTab('indices')">Indices</button><button type="button" data-mkt="metals" onclick="switchTab('metals')">Metals</button></div>
   <div id="greek-content" style="display:none">
     <div id="help-greek"></div>
     <div id="rg-greek"></div>
@@ -2767,20 +2763,13 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwGMm22IO6TmH_jzp1PXTmFhngIHmQaybWniOh0jSNT3Yz8BZGLljl-zo98dLzwBj3y4A/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbw_cdyFsUTTmAxQ-ztd2O3lMspOdGM1QEclpnLoZz-JunyK2MeBrPtfqWdW0VAcJE9MLQ/exec';
 
 // Tab switching
 var MKT_TABS = ['greek','indices','metals'];
 var MORE_TABS = ['history','dividends','portfolio','guide'];
 function switchTab(name) {
-  if (name === 'markets') {
-    var last = 'indices';
-    try { last = localStorage.getItem('dashMkt') || 'indices'; } catch (e) {}
-    name = MKT_TABS.indexOf(last) >= 0 ? last : 'indices';
-  }
-  var isMkt = MKT_TABS.indexOf(name) >= 0;
-  var tabName = isMkt ? 'markets' : name;
-  var activeTab = document.querySelector('[data-tab="'+tabName+'"]');
+  var activeTab = document.querySelector('[data-tab="'+name+'"]');
   var panel = document.getElementById('panel-'+name);
   if (!activeTab || !panel) return;
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
@@ -2788,26 +2777,22 @@ function switchTab(name) {
   activeTab.classList.add('active');
   activeTab.setAttribute('aria-selected','true');
   panel.classList.add('active');
-  if (isMkt) {
-    try { localStorage.setItem('dashMkt', name); } catch (e) {}
-    document.querySelectorAll('.mkt-nav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-mkt') === name); });
-  }
-  syncBottomNav(tabName);
+  syncBottomNav(name);
   try { activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); } catch (e) {}
   try { localStorage.setItem('dashTab', name); } catch (e) {}
   try { history.replaceState(null, '', '#' + name); } catch (e) {}
   window.scrollTo(0, 0);
 }
 function syncBottomNav(tabName) {
-  var key = MORE_TABS.indexOf(tabName) >= 0 ? 'more' : tabName;
+  var key = MORE_TABS.indexOf(tabName) >= 0 ? 'more' : MKT_TABS.indexOf(tabName) >= 0 ? 'markets' : tabName;
   document.querySelectorAll('#bottom-nav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-bn') === key); });
-  var m = document.getElementById('more-sheet'); if (m) m.classList.remove('open');
+  closeSheets();
 }
+function closeSheets() { ['more-sheet','mkt-sheet'].forEach(function(id){ var m = document.getElementById(id); if (m) m.classList.remove('open'); }); }
 function bnGo(name) { switchTab(name); }
-function toggleMore() { var m = document.getElementById('more-sheet'); if (m) m.classList.toggle('open'); }
+function toggleSheet(id) { var m = document.getElementById(id); if (!m) return; var was = m.classList.contains('open'); closeSheets(); if (!was) m.classList.add('open'); }
 document.addEventListener('click', function(e) {
-  var m = document.getElementById('more-sheet');
-  if (m && m.classList.contains('open') && !e.target.closest('#more-sheet') && !e.target.closest('[data-bn="more"]')) m.classList.remove('open');
+  if (!e.target.closest('.sheet-nav') && !e.target.closest('#bottom-nav')) closeSheets();
 });
 
 // ── UX helpers (2026-11-20-d) ──────────────────────────────────
@@ -4705,7 +4690,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.26-c';
+var APP_VERSION = '2026.11.26-d';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
@@ -4766,12 +4751,17 @@ if ('serviceWorker' in navigator) {
 </script>
 <nav id="bottom-nav" aria-label="Main navigation">
   <button type="button" data-bn="overview" onclick="bnGo('overview')"><span class="bn-i">&#128200;</span>US</button>
-  <button type="button" data-bn="markets" onclick="bnGo('markets')"><span class="bn-i">&#127757;</span>Markets</button>
+  <button type="button" data-bn="markets" onclick="toggleSheet('mkt-sheet')"><span class="bn-i">&#127757;</span>Markets</button>
   <button type="button" data-bn="signals" onclick="bnGo('signals')"><span class="bn-i">&#127919;</span>Signals</button>
   <button type="button" data-bn="etfs" onclick="bnGo('etfs')"><span class="bn-i">&#128640;</span>ETFs</button>
-  <button type="button" data-bn="more" onclick="toggleMore()"><span class="bn-i">&#8943;</span>More</button>
+  <button type="button" data-bn="more" onclick="toggleSheet('more-sheet')"><span class="bn-i">&#8943;</span>More</button>
 </nav>
-<div id="more-sheet" role="menu" aria-label="More sections">
+<div id="mkt-sheet" class="sheet-nav" role="menu" aria-label="Markets sections">
+  <button type="button" onclick="bnGo('greek')">&#127987; Greek stocks</button>
+  <button type="button" onclick="bnGo('indices')">&#127757; Indices</button>
+  <button type="button" onclick="bnGo('metals')">&#129689; Metals</button>
+</div>
+<div id="more-sheet" class="sheet-nav" role="menu" aria-label="More sections">
   <button type="button" onclick="bnGo('history')">&#128200; Historical</button>
   <button type="button" onclick="bnGo('dividends')">&#128176; Dividends</button>
   <button type="button" onclick="bnGo('portfolio')">&#128181; Portfolio</button>
