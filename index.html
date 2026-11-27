@@ -2794,7 +2794,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwq3Q5CFHEWClDTVv6lhjzclNgW_gwx6bHgYAlYIkfPef1iGrAKmyFerotEe0KF4zsoKg/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbyw_-xSR10g_EGu1H1PVaH09qiV-XBuzpV7aQiNN_rd/dev';
 
 // Tab switching
 function switchTab(name) {
@@ -3012,7 +3012,8 @@ function renderToday() {
       return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(tk).replace(/'/g,'') + '\')">' + esc(it) + '</button>'; }).join('') + '</div>'; }).join('');
   el.innerHTML =
     '<div class="howto slim"><span class="txt"><b>Start here:</b> what is actionable today across every tab. &#9733; = high conviction. Tap a ticker to open it.</span>' +
-    '<button class="chip" type="button" onclick="toggleCompact()" aria-pressed="' + (compactCards ? 'true' : 'false') + '">Compact cards: ' + (compactCards ? 'on' : 'off') + '</button></div>' +
+    '<button class="chip" type="button" onclick="toggleCompact()" aria-pressed="' + (compactCards ? 'true' : 'false') + '">Card badges: ' + (compactCards ? 'fewer' : 'all') + '</button></div>' +
+    '<div style="font-size:11px;color:var(--muted);margin:-4px 0 10px">"Fewer" hides the IBKR / Revolut and vs-20-day badges on stock cards (EU, timing, conviction and exit stay). Tap the button to switch; applies on every tab.</div>' +
     '<div class="today-sec"><h3>Market read <span>per tab</span></h3>' + (rows || '<div style="color:var(--muted);font-size:12px">No data yet.</div>') + '</div>' +
     '<div class="today-sec"><h3>Possible entries <span>a screen, not a recommendation</span></h3>' + (ents || '<div style="color:var(--muted);font-size:12px">No entry signals today.</div>') + '</div>' +
     '<div class="today-sec"><h3>Exit signals <span>rule-based: judge against the group first</span></h3>' + (exs || '<div style="color:var(--muted);font-size:12px">No exit signals today.</div>') + '</div>' +
