@@ -98,7 +98,7 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 
 
-/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.27-b) ===== */
+/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.27-c) ===== */
 .regime{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:var(--surf);border:1px solid var(--border);border-left:4px solid var(--muted);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px}
 .regime.t-g{border-left-color:var(--green)}.regime.t-a{border-left-color:var(--amber)}.regime.t-r{border-left-color:var(--red)}
 .regime .rg-tone{font-weight:800;font-size:13px}
@@ -125,8 +125,13 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
 .trade-line{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.9}
 .trade-line code{font-family:var(--mono);font-size:11px;color:var(--text);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;white-space:nowrap}
 .trade-line .tl-sep{margin:0 2px}
+.legend-d{margin-bottom:12px}.legend-d>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);padding:6px 2px;list-style:none}
+.legend-d>summary::before{content:'\25B8 ';color:var(--muted)}.legend-d[open]>summary::before{content:'\25BE '}
+.legend-d>summary::-webkit-details-marker{display:none}
 .tab-more,.more-menu{display:none}
 @media (max-width:760px){
+  .regime .rg-read{display:none}
+  .td-tiles{grid-template-columns:repeat(2,1fr)!important}.tt-hm{display:none!important}table.tt td,table.tt th{padding:8px 5px}.tt-nm{max-width:100px}.tt-pill{font-size:10px;padding:2px 7px}.today-sec{overflow-x:auto}
   .tab.more-item{display:none}.tab.more-item.active{display:block}
   .tab-more{display:block;padding:12px 14px;font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap;cursor:pointer;min-height:44px;box-sizing:border-box;position:sticky;right:0;background:var(--surf);flex:0 0 auto}
   .more-menu.open{display:block;position:absolute;right:8px;top:100%;z-index:60;background:var(--surf);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:4px;min-width:170px}
@@ -138,6 +143,31 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
   .tabs .tab{padding:12px 11px;font-size:13px;min-height:44px;white-space:nowrap}
   .howto.slim{padding:8px 10px;font-size:11.5px;align-items:flex-start}
 }
+.td-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.td-tile{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px;border-top:3px solid var(--muted)}
+.td-tile .lbl{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.td-tile .val{font-size:22px;font-weight:800;font-family:var(--mono);margin-top:4px;color:var(--text)}
+.td-tile .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.td-tile.g{border-top-color:var(--green)}.td-tile.g .val{color:var(--green)}
+.td-tile.r{border-top-color:var(--red)}.td-tile.r .val{color:var(--red)}
+.td-tile.t-g{border-top-color:var(--green)}.td-tile.t-g .val{color:var(--green)}
+.td-tile.t-a{border-top-color:var(--amber)}.td-tile.t-a .val{color:var(--amber)}
+.td-tile.t-r{border-top-color:var(--red)}.td-tile.t-r .val{color:var(--red)}
+table.tt{width:100%;border-collapse:collapse;font-size:12px}
+table.tt th{text-align:left;font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
+table.tt td{text-align:left!important;padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.tt tbody tr{cursor:pointer}table.tt tbody tr:nth-child(even){background:rgba(100,116,139,.06)}
+table.tt tbody tr:hover{background:rgba(59,130,246,.10)}table.tt tbody tr.tt-nohover{cursor:default}table.tt tbody tr.tt-nohover:hover{background:none}
+table.tt tr:last-child td{border-bottom:none}
+.tt-r2,table.tt td.tt-r2{text-align:right!important;color:var(--text);font-family:var(--mono);white-space:nowrap}th.tt-r2{font-family:inherit}
+.tt-tk,table.tt td.tt-tk{font-family:var(--mono);font-weight:700;color:var(--accent);text-align:left!important}.tt-nm{font-family:inherit;font-weight:400;font-size:10.5px;color:var(--muted);max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tt-g{color:var(--green)}.tt-r{color:var(--red)}.tt-m{color:var(--muted)}
+.tt-star{color:var(--amber);margin-right:4px}
+.tt-mk{font-size:10px;font-weight:700;color:var(--muted);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:1px 6px}
+.tt-pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:10px;white-space:nowrap}
+.tt-pill.g{background:rgba(16,185,129,.15);color:var(--green)}.tt-pill.r{background:rgba(239,68,68,.15);color:var(--red)}.tt-pill.a{background:rgba(245,158,11,.15);color:var(--amber)}
+.tt-bar{white-space:nowrap}.tt-bt{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.tt-empty{color:var(--muted);font-size:12px;padding:6px 2px}.tt-more{margin-top:8px}
 .today-sec{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px}
 .today-sec h3{font-size:13px;margin:0 0 8px;color:var(--text);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 .today-sec h3 span{font-weight:400;color:var(--muted);font-size:12px}
@@ -151,7 +181,7 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
 .today-lbl:first-of-type{margin-top:0}
 #sticky-rg{display:none}
 /* Compact cards: keep timing / conviction / exit; hide secondary badges */
-body.compact-cards .acc-badge>span:not(:first-child),body.compact-cards .vs-avg-pos,body.compact-cards .vs-avg-neg{display:none}
+body.compact-cards .acc-rev,body.compact-cards .vs-avg-pos,body.compact-cards .vs-avg-neg,body.compact-cards .range4w-wrap,body.compact-cards .sr-line{display:none}
 @media (hover: none){.tip{position:relative}.tip::after{content:'';position:absolute;inset:-9px -6px}}
 /* ===== Mobile phone view (<=760px only — desktop/browser view untouched) ===== */
 @media(max-width:760px){
@@ -463,10 +493,10 @@ button.attn-card:hover{border-color:var(--accent)}
   <div class="tab" data-tab="greek">&#127987; Greek</div>
   <div class="tab more-item" data-tab="indices">&#127757; Indices</div>
   <div class="tab more-item" data-tab="metals">&#129689; Metals</div>
-  <div class="tab more-item" data-tab="signals">&#127919; Signals</div>
-  <div class="tab more-item" data-tab="history">&#128200; Historical</div>
   <div class="tab more-item" data-tab="dividends">&#128176; Dividends</div>
   <div class="tab more-item" data-tab="etfs">&#128640; ETFs</div>
+  <div class="tab more-item" data-tab="history">&#128200; Historical</div>
+  <div class="tab more-item" data-tab="signals">&#127919; Signals</div>
   <div class="tab more-item" data-tab="portfolio">&#128181; Portfolio</div>
   <div class="tab more-item" data-tab="guide">&#128218; Guide</div>
   <div class="tab-more" id="tab-more" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" onclick="toggleMoreMenu(event)">More &#9662;</div>
@@ -537,7 +567,7 @@ button.attn-card:hover{border-color:var(--accent)}
 <div id="panel-signals" class="tab-panel">
   <div id="help-signals"></div>
   <div id="sig-content" style="display:none">
-    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.9">
+    <details class="legend-d"><summary>How scores &amp; indicators work</summary><div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.9">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 32px">
         <div>
           <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Score (0-100)</div>
@@ -586,7 +616,7 @@ button.attn-card:hover{border-color:var(--accent)}
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
         Momentum signals only. Not financial advice. Always check fundamentals before acting.
       </div>
-    </div>
+    </div></details>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
       <div style="position:relative;flex:1;min-width:200px;max-width:340px">
         <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">&#128269;</span>
@@ -700,7 +730,7 @@ button.attn-card:hover{border-color:var(--accent)}
   <div id="div-content" style="display:none">
 
     <!-- Explanation banner -->
-    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.8">
+    <details class="legend-d"><summary>How to read the dividend columns</summary><div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.8">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px 32px">
 
         <div>
@@ -753,7 +783,7 @@ button.attn-card:hover{border-color:var(--accent)}
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber);font-weight:600">
         Only tracked US stocks that currently pay a dividend are shown. Data from Finnhub.
       </div>
-    </div>
+    </div></details>
 
     <!-- Summary cards -->
     <div id="div-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px"></div>
@@ -872,19 +902,12 @@ button.attn-card:hover{border-color:var(--accent)}
     <div id="chg-greek"></div>
 
 
-    <!-- Header banner -->
-    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-      <div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Athens Exchange (ATHEX) &#8212; Greek Stocks</div>
-        <div style="font-size:11px;color:var(--muted)">Prices in EUR &#183; Data via Yahoo Finance &#183; Scores ranked within Greek universe only</div>
-        <div id="gk-errors" style="display:none;font-size:11px;color:var(--amber);margin-top:5px"></div>
-      </div>
-      <div id="greek-summary-inline" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
-    </div>
+    <div id="gk-errors" style="display:none;font-size:11px;color:var(--amber);margin-bottom:10px"></div>
+    <div id="greek-summary-inline" style="display:none"></div>
 
     <!-- Summary cards -->
     <div id="gk-top3" style="margin-bottom:0"></div>
-    <div id="greek-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px"></div>
+    <div id="greek-summary" style="display:none;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px"></div>
 
     <!-- Watchlist Strong/Neutral/Weak -->
     <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -936,28 +959,10 @@ button.attn-card:hover{border-color:var(--accent)}
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">EU-accessible ETFs &amp; ETCs</div>
         <div style="font-size:11px;color:var(--muted)">Prices in EUR &#183; EU-domiciled UCITS ETFs (and one ETC) listed on Xetra &#183; US-listed ETFs such as VOO, QQQ or GLD are excluded because EU retail investors cannot buy them (no PRIIPs KID)</div>
       </div>
-      <div id="etf-inline-strip" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
+      <div id="etf-inline-strip" style="display:none;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono)"></div>
     </div>
 
-    <!-- What is an ETF (collapsible explanation) -->
-    <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 20px;margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 32px;font-size:11px;color:var(--muted)">
-        <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">What is an ETF?</div>
-          A basket of stocks or bonds that trades like a single stock. One purchase gives instant exposure to dozens or hundreds of companies.
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
-            <span class="tip" data-tip="Expense Ratio: annual fee charged by the ETF manager. 0.07% = &euro;7/yr per &euro;10,000 invested. Lower is always better.">Expense Ratio</span>
-          </div>
-          Annual fee as % of investment. Small differences compound significantly over decades. Prefer under 0.20%.
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">ETF vs Individual Stocks</div>
-          ETFs spread risk across many companies. Best for long-term, low-maintenance investing. Stocks tab is for active monitoring.
-        </div>
-      </div>
-    </div>
+
 
     <!-- Summary cards -->
     <div id="etf-top3" style="margin-bottom:0"></div>
@@ -1112,6 +1117,18 @@ button.attn-card:hover{border-color:var(--accent)}
     Always do your own research before making any investment decision. <strong>Not financial advice.</strong>
   </div>
 
+  <!-- Dashboard map -->
+  <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:14px">
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px">Which tab for what</div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--muted);line-height:1.7"><div><strong style="color:var(--accent)">&#9889; Today</strong> — Entries, exits and changes across everything. Start here.</div><div><strong style="color:var(--accent)">&#127760; US Stocks &middot; &#127987; Greek</strong> — Ranked columns with timing and exit badges. Greek scores rank Greek stocks only against each other.</div><div><strong style="color:var(--accent)">&#127757; Indices &middot; &#129689; Metals</strong> — Market context and levels. Each card shows <b>Trade via</b>: a listed ETF/ETC and the futures symbol.</div><div><strong style="color:var(--accent)">&#128176; Dividends &middot; &#128640; ETFs</strong> — Income names with payout checks; EU-listed funds compared within a category.</div><div><strong style="color:var(--accent)">&#128200; Historical &middot; &#127919; Signals</strong> — Longer-horizon context; the full US table with score, RSI and price alerts.</div><div><strong style="color:var(--accent)">&#128181; Portfolio</strong> — Your positions, saved only in this browser.</div></div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-top:12px">
+      <strong style="color:var(--text)">On a phone</strong> the tab row shows Today, US Stocks and Greek; everything else is under <b>More &#9662;</b>. A pinned line under the tabs shows the market trend for the tab you are on.<br>
+      <strong style="color:var(--text)">Badges:</strong> <b>EU &#10003;</b> = EU retail investors may legally buy it. <b>IBKR &#10003;</b> verified, <b>&#9680;</b> offered at market level (this ticker not individually checked), <b>!</b> needs extra permissions.
+      Revolut and Greek-stock IBKR availability cannot be confirmed from public sources, so no badge is shown: search the symbol in the app. &#9733; = high conviction.<br>
+      <strong style="color:var(--text)">Card badges: fewer</strong> (button on Today) hides Revolut, vs-20-day, 4-week range and support/resistance details on cards; switch to <b>all</b> to see them.
+    </div>
+  </div>
+
   <!-- Step by step -->
   <div style="display:flex;flex-direction:column;gap:14px">
 
@@ -1119,11 +1136,11 @@ button.attn-card:hover{border-color:var(--accent)}
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
         <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">1</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text)">Start on the Overview tab — find what needs attention</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Start on the Today tab, then drill down</div>
       </div>
       <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
-        Start with the <strong style="color:var(--green)">What needs attention</strong> strip, or use the <strong>Possible Entry</strong> filter.
-        The Strong / Neutral / Weak columns rank recent performance against peers; they are a quality filter, not a buy signal.
+        <strong style="color:var(--text)">Today</strong> lists every possible entry and exit across all tabs, the market trend per tab, and what changed since yesterday. Tap a row to jump to that stock.
+        Then open <strong>US Stocks</strong> or <strong>Greek</strong>: the Strong / Neutral / Weak columns rank recent performance against peers. That is a quality filter, not a buy signal.
         Strong names have often already run, so many of the best pullback entries sit in <strong>Neutral</strong>. Be cautious with Weak.
       </div>
     </div>
@@ -1217,14 +1234,15 @@ button.attn-card:hover{border-color:var(--accent)}
       <div style="font-size:12px;color:var(--muted);line-height:1.8;padding-left:40px">
         <div style="display:flex;flex-direction:column;gap:10px">
           <div><strong style="color:var(--text)">Greek tab</strong> — same Strong/Neutral/Weak logic as US Stocks, but scores rank Greek stocks only against each other, not against the US universe. A "Strong" Greek stock isn't necessarily stronger than a US one.</div>
+          <div><strong style="color:var(--text)">Indices &amp; Metals</strong> — gauges for macro context, not products. If Dow, Nasdaq and international indices all fall together, that is broad weakness and even a good setup carries more risk. To trade them use the <b>Trade via</b> line: a listed ETF/ETC (no leverage, needs a KID) or the futures contract (leveraged, needs IBKR futures permission). These are common routes, not recommendations: confirm ISIN, fees and listing first.</div>
+          <div><strong style="color:var(--text)">Dividends</strong> — only US stocks that pay a dividend. A yield of 4%+ deserves a payout-ratio check first.</div>
           <div><strong style="color:var(--text)">ETFs tab</strong> — best for long-term, low-maintenance positions rather than active trading. Check the expense ratio before anything else; small differences compound heavily over decades.</div>
-          <div><strong style="color:var(--text)">Indices tab</strong> — use this for macro context before entering a position. If Dow, Nasdaq, and international indices are all falling together, that's broad market weakness — even a great individual stock setup carries more risk in that backdrop.</div>
+          <div><strong style="color:var(--text)">Signals tab</strong> — the full US table. Open "How scores &amp; indicators work" at the top for the score formula and grades.</div>
           <div><strong style="color:var(--text)">Hover/tap any small chart</strong> (in cards or tables) to see an enlarged version with the actual high, low, starting, and current prices — not just the shape of the line.</div>
           <div><strong style="color:var(--text)">Refresh button</strong> pulls genuinely new prices from the data source (can take a minute or two); the dashboard also refreshes itself automatically every hour in the background.</div>
         </div>
       </div>
     </div>
-
 
     <!-- Step 7 -->
     <div style="background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px 20px">
@@ -1544,7 +1562,7 @@ function renderDivTable(dividends, stocks) {
     return '<tr title="'+esc(tip)+'">' +
       '<td data-label="#">'+(i+1)+'</td>' +
       '<td data-label="Company" style="font-weight:600">'+esc(d.company)+'</td>' +
-      '<td data-label="Ticker" style="font-family:var(--mono);color:var(--accent);font-weight:700">'+tkOf(d)+'</td>' +
+      '<td data-label="Ticker" style="font-family:var(--mono);color:var(--accent);font-weight:700">'+tkOf(d)+(st && st.access ? ibkrMark(st) : '')+'</td>' +
       '<td data-label="Sector" style="color:var(--muted);font-size:11px">'+esc(d.sector)+'</td>' +
       '<td data-label="Yield %"><span class="tip" data-tip="'+yldTip+'" style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+yldClr+';cursor:help">'+d.yield+'%</span></td>' +
       '<td data-label="Ann. DPS" style="font-family:var(--mono);color:var(--text)">'+(d.dps ? '$'+d.dps : '-')+'</td>' +
@@ -1856,8 +1874,6 @@ function renderETFs(etfs) {
   document.getElementById('etf-summary').innerHTML = [
     { lbl:'Tracked ETFs',   val:etfs.length,             sub:'across 5 categories' },
     { lbl:'Weekly Gainers', val:gainers+'/'+validPct.length, sub:'up this week' },
-    { lbl:'Best 1W',        val:best.ticker,             sub:p(best.pct_1w) },
-    { lbl:'Above 50MA',     val:above50+'/'+etfs.length, sub:'in uptrend' },
     { lbl:'Avg YTD',        val:(avgYTD>0?'+':'')+avgYTD+'%', sub:'ETF universe' }
   ].map(function(c){
     return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
@@ -1988,7 +2004,7 @@ function supportResistance(s) {
   var sup = s.low20, res = s.high20, cur = s.price;
   if (!sup || !res || !cur) return '';
   var sym = s.currency === 'EUR' ? '&#8364;' : '$';
-  return '<div class="tip" data-tip="20-day Support: '+sym+sup+' (a pullback to here with RSI back under 58 would satisfy the entry test). 20-day Resistance: '+sym+res+' (price may stall or reverse here)." style="font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap">'+
+  return '<div class="tip sr-line" data-tip="20-day Support: '+sym+sup+' (a pullback to here with RSI back under 58 would satisfy the entry test). 20-day Resistance: '+sym+res+' (price may stall or reverse here)." style="font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap">'+
     '<span style="color:var(--green)">S:'+sym+sup+'</span>'+
     ' <span style="color:var(--border)">|</span> '+
     '<span style="color:var(--red)">R:'+sym+res+'</span>'+
@@ -2049,7 +2065,7 @@ function makeTop3Strip(stocks, currency) {
     return '<div class="top3-card '+dir+'">' +
       '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
         '<div>' +
-          '<div class="top3-ticker">'+tkOf(s)+'</div>' +
+          '<div class="top3-ticker">'+tkOf(s)+ibkrMark(s)+'</div>' +
           '<div class="top3-name">'+esc(name)+'</div>' +
         '</div>' +
         '<div class="top3-pct '+dir+'">'+(s.pct_1w>=0?'+':'')+s.pct_1w+'%</div>' +
@@ -2758,7 +2774,7 @@ function renderPortfolio() {
     }
 
     return '<tr>'+
-      '<td data-label="Ticker" style="font-family:var(--mono);font-weight:700;color:var(--accent)">'+tkLink(p.ticker, (st && st.full_ticker) || p.ticker)+'</td>'+
+      '<td data-label="Ticker" style="font-family:var(--mono);font-weight:700;color:var(--accent)">'+tkLink(p.ticker, (st && st.full_ticker) || p.ticker)+(st && st.access ? ibkrMark(st) : '')+'</td>'+
       '<td data-label="Shares" style="font-family:var(--mono)">'+p.shares+'</td>'+
       '<td data-label="Entry" style="font-family:var(--mono)">'+cs+fmt(p.entry)+'</td>'+
       '<td data-label="Current" style="font-family:var(--mono)">'+(curPrice ? cs+fmt(curPrice) : '-')+'</td>'+
@@ -2797,7 +2813,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwq3Q5CFHEWClDTVv6lhjzclNgW_gwx6bHgYAlYIkfPef1iGrAKmyFerotEe0KF4zsoKg/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbx0EZy0WHKpmJwnz2PvSueyiEpGwAZgzsIAb_5xB_Ws1ytiN1Q4wAueikA9wbO79MIooA/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2870,6 +2886,25 @@ function renderAttention(stocks) {
     return '<button class="attn-card" type="button" onclick="jumpToFilter(\'' + kind + '\')" title="' + esc(tip) + '">' +
       '<div class="n ' + cls + '">' + num + '</div><div class="l">' + label + ' &rsaquo;</div></button>';
   }
+  el.innerHTML = '';
+  var ai = document.getElementById('wl-ai'); if (ai) { ai.classList.remove('active-filter'); ai.setAttribute('aria-pressed', 'false'); }
+  filterWatchlist(kind, btn);
+  var el = document.getElementById('ov-watchlist');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// "What needs attention" strip. Counts use matchesFilter(), the same
+// function the filter buttons use, so a number here always equals the
+// number of cards you get after tapping it.
+function renderAttention(stocks) {
+  var el = document.getElementById('ov-attention');
+  if (!el) return;
+  stocks = stocks || [];
+  var n = function(f){ return stocks.filter(function(s){ return matchesFilter(s, f); }).length; };
+  function btn(cls, num, label, kind, tip) {
+    return '<button class="attn-card" type="button" onclick="jumpToFilter(\'' + kind + '\')" title="' + esc(tip) + '">' +
+      '<div class="n ' + cls + '">' + num + '</div><div class="l">' + label + ' &rsaquo;</div></button>';
+  }
   el.innerHTML = '<div class="attn" role="group" aria-label="What needs attention">' +
     btn('g', n('entry'),    'Possible entries', 'entry',    'Tap to list stocks whose Timing badge is Possible Entry or Oversold Watch.') +
     btn('r', n('exit'),     'Exit signals',     'exit',     'Tap to list stocks showing an Exit badge.') +
@@ -2894,6 +2929,12 @@ var SCOPES = {
   metals:  { key:'metals',  noun:'commodities' }
 };
 function scopeList(scope) { return (D && D[SCOPES[scope].key]) || []; }
+function scopeChangeCount(scope) {
+  var dl = D && D.deltas; if (!dl || !dl.since) return 0;
+  var mine = {}; scopeList(scope).forEach(function(s){ mine[s.ticker] = 1; });
+  var n = 0; (dl.groups || []).forEach(function(g){ g.items.forEach(function(it){ if (mine[String(it).split(' ')[0]]) n++; }); });
+  return n;
+}
 function renderRegime(scope) {
   var sc = SCOPES[scope], el = document.getElementById('rg-' + scope); if (!el || !sc) return;
   var list = scopeList(scope);
@@ -2916,11 +2957,14 @@ function renderRegime(scope) {
     '<span class="rg-tone">' + tone[0] + '</span>' +
     '<span class="rg-m tip" data-tip="Share of tracked ' + sc.noun + ' trading above their 50-day average. Above 70% = broad uptrend, below 40% = broad pullback.">' +
       '<span class="rg-bar"><i style="width:' + pct + '%"></i></span><b>' + above + '</b> of ' + withMa.length + ' ' + sc.noun + ' above 50MA (' + pct + '%)</span>' +
-    '<span class="rg-m"><b>' + ent + '</b> entries &middot; <b>' + ex + '</b> exits</span>' + vixTxt +
+    '<span class="rg-m"><b>' + ent + '</b> entr' + (ent === 1 ? 'y' : 'ies') + ' &middot; <b>' + ex + '</b> exit' + (ex === 1 ? '' : 's') + '</span>' + vixTxt +
+    (scopeChangeCount(scope) ? '<button type="button" class="chg-chip" onclick="switchTab(\'today\')">' + scopeChangeCount(scope) + ' change' + (scopeChangeCount(scope) === 1 ? '' : 's') + ' &rsaquo;</button>' : '') +
     (read ? '<span class="rg-read">' + read + '</span>' : '') + '</div>';
 }
 var chgOpenDecision = {};
 function renderChanges(scope) {
+  var _e = document.getElementById('chg-' + scope); if (_e) _e.innerHTML = '';
+  return;
   var sc = SCOPES[scope], el = document.getElementById('chg-' + scope); if (!el || !sc) return;
   var dl = D && D.deltas;
   if (!dl) { el.innerHTML = ''; return; }
@@ -2982,44 +3026,82 @@ function closeMoreMenu() {
 document.addEventListener('click', function(e){ if (!e.target.closest || !e.target.closest('#more-menu, #tab-more')) closeMoreMenu(); });
 
 // Compact cards (default on for phones): hide secondary badges, keep the signal.
-var compactCards = (function(){ try { var v = localStorage.getItem('dashCompact'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return window.matchMedia && window.matchMedia('(max-width: 760px)').matches; })();
+var compactCards = (function(){ try { var v = localStorage.getItem('dashCompact'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return true; })();
 function applyCompact() { document.body.classList.toggle('compact-cards', compactCards); }
 function toggleCompact() { compactCards = !compactCards; try { localStorage.setItem('dashCompact', compactCards ? '1' : '0'); } catch (e) {} applyCompact(); renderToday(); }
 document.addEventListener('DOMContentLoaded', applyCompact);
 
-function todayChip(s) {
-  var star = (typeof convictionMarker === 'function' && convictionMarker(s)) ? '\u2605 ' : '';
-  return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(s.ticker).replace(/'/g,'') + '\')">' + star + esc(s.ticker) + '</button>';
+var todayAllExits = false;
+function todayItems(f) {
+  var names = { us:'US', greek:'Greek', etfs:'ETF', indices:'Index', metals:'Metal' }, out = [];
+  Object.keys(SCOPES).forEach(function(k){
+    scopeList(k).forEach(function(s){ if (matchesFilter(s, f)) out.push({ s: s, mk: names[k], scope: k }); });
+  });
+  out.sort(function(a, b){
+    var ca = convictionMarker(a.s) ? 1 : 0, cb = convictionMarker(b.s) ? 1 : 0;
+    return (cb - ca) || ((b.s.pct_1w || 0) - (a.s.pct_1w || 0));
+  });
+  return out;
+}
+function tdPct(v) {
+  if (v === null || v === undefined) return '<span class="tt-m">&mdash;</span>';
+  return '<span class="' + (v >= 0 ? 'tt-g' : 'tt-r') + '">' + (v >= 0 ? '+' : '') + Number(v).toFixed(1) + '%</span>';
+}
+function todayTable(items, kind) {
+  if (!items.length) return '<div class="tt-empty">' + (kind === 'entry' ? 'No entry signals today.' : 'No exit signals today.') + '</div>';
+  var rows = items.map(function(it){
+    var s = it.s, nm = s.company || s.name || '', star = convictionMarker(s) ? '<span class="tt-star" title="High conviction">&#9733;</span>' : '';
+    var sig = kind === 'entry' ? buyZone(s).label : exitSignal(s).label;
+    var cur = (s.currency === 'EUR' || /\.AT$/.test(s.full_ticker || '')) ? '&euro;' : (it.scope === 'indices' ? '' : '$');
+    return '<tr onclick="jumpToTicker(\'' + esc(s.ticker).replace(/'/g,'') + '\')">' +
+      '<td class="tt-tk">' + star + esc(s.ticker) + '<div class="tt-nm">' + esc(nm) + '</div></td>' +
+      '<td class="tt-hm"><span class="tt-mk">' + it.mk + '</span></td>' +
+      '<td class="tt-r2 tt-hm">' + (s.price !== null && s.price !== undefined ? cur + fmt(s.price) : '&mdash;') + '</td>' +
+      '<td class="tt-r2">' + tdPct(s.pct_1w) + '</td>' +
+      '<td class="tt-r2 tt-hm">' + (s.rsi14 !== null && s.rsi14 !== undefined ? s.rsi14 : '&mdash;') + '</td>' +
+      '<td class="tt-sg"><span class="tt-pill ' + (kind === 'entry' ? 'g' : 'r') + '" title="' + esc(sig) + '">' + esc(kind === 'entry' ? sig.replace('Possible ', '').replace(' Watch', '') : sig) + '</span></td>' +
+      '<td class="tt-hm">' + ibkrMark(s) + '</td></tr>';
+  }).join('');
+  return '<table class="tt"><thead><tr><th>Ticker</th><th class="tt-hm">Market</th><th class="tt-r2 tt-hm">Price</th><th class="tt-r2">1W</th><th class="tt-r2 tt-hm">RSI</th><th>Signal</th><th class="tt-hm">Broker</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 function renderToday() {
-  var el = document.getElementById('today-body'); if (!el) return;
-  if (!D) return;
+  var el = document.getElementById('today-body'); if (!el || !D) return;
   var names = { us:'US stocks', greek:'Greek', etfs:'ETFs', indices:'Indices', metals:'Metals' };
-  var rows = '', ents = '', exs = '';
-  Object.keys(SCOPES).forEach(function(k){
-    var st = regimeStats(k), list = scopeList(k);
-    if (st) rows += '<div class="today-row"><span class="t-name">' + names[k] + '</span><span class="t-' + st.tone[1] + '"><b>' + st.tone[0] + '</b></span>' +
-      '<span class="t-st">' + st.above + '/' + st.n + ' above 50MA (' + st.pct + '%) &middot; <b>' + st.ent + '</b> entr' + (st.ent === 1 ? 'y' : 'ies') + ' &middot; <b>' + st.ex + '</b> exit' + (st.ex === 1 ? '' : 's') + '</span></div>';
-    function pick(f){ return list.filter(function(s){ return matchesFilter(s, f); }).sort(function(a,b){
-      var ca = convictionMarker(a) ? 1 : 0, cb = convictionMarker(b) ? 1 : 0; return cb - ca; }); }
-    var e = pick('entry'), x = pick('exit');
-    if (e.length) ents += '<div class="today-lbl">' + names[k] + ' (' + e.length + ')</div><div>' + e.map(todayChip).join('') + '</div>';
-    if (x.length) exs  += '<div class="today-lbl">' + names[k] + ' (' + x.length + ')</div><div>' + x.map(todayChip).join('') + '</div>';
-  });
-  var dl = D.deltas, chg = '';
-  if (!dl || !dl.since) chg = '<div style="color:var(--muted);font-size:12px">Tracking starts after the next day rollover.</div>';
-  else if (!(dl.groups || []).length) chg = '<div style="color:var(--muted);font-size:12px">Nothing changed since ' + esc(dl.since) + '.</div>';
-  else chg = (dl.groups || []).map(function(g){
-    return '<div class="chg-g"><span class="chg-l">' + esc(g.label) + ' (' + g.items.length + ')</span>' + g.items.map(function(it){
+  var ents = todayItems('entry'), exs = todayItems('exit');
+  var capN = 8, exShow = todayAllExits ? exs : exs.slice(0, capN);
+  var us = regimeStats('us');
+  var dl = D.deltas, nChg = 0; if (dl && dl.since) (dl.groups || []).forEach(function(g){ nChg += g.items.length; });
+  var tile = function(lbl, val, sub, cls){ return '<div class="td-tile ' + (cls || '') + '"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div><div class="sub">' + sub + '</div></div>'; };
+  var tiles = '<div class="td-tiles">' +
+    tile('Market', us ? us.tone[0] : '&mdash;', us ? us.above + '/' + us.n + ' US above 50MA' : 'no data', us ? 't-' + us.tone[1] : '') +
+    tile('Entries', ents.length, 'possible entry signals', 'g') +
+    tile('Exits', exs.length, 'exit signals', 'r') +
+    tile('Changes', dl && dl.since ? nChg : '&mdash;', dl && dl.since ? 'since ' + esc(dl.since) : 'starts after next day rollover', '') + '</div>';
+  var mrows = Object.keys(SCOPES).map(function(k){
+    var st = regimeStats(k); if (!st) return '';
+    var c = scopeChangeCount(k), tab = { us:'overview', greek:'greek', etfs:'etfs', indices:'indices', metals:'metals' }[k];
+    return '<tr onclick="switchTab(\'' + tab + '\')"><td class="tt-tk">' + names[k] + '</td>' +
+      '<td><span class="tt-pill ' + st.tone[1] + '">' + st.tone[0] + '</span></td>' +
+      '<td class="tt-bar tt-hm"><span class="rg-bar"><i style="width:' + st.pct + '%"></i></span> <span class="tt-bt">' + st.above + '/' + st.n + '</span></td>' +
+      '<td class="tt-r2 tt-g">' + st.ent + '</td><td class="tt-r2 tt-r">' + st.ex + '</td>' +
+      '<td class="tt-r2 tt-hm">' + (c || '&mdash;') + '</td></tr>';
+  }).join('');
+  var mtable = '<table class="tt"><thead><tr><th>Market</th><th>Trend</th><th class="tt-hm">Above 50MA</th><th class="tt-r2">Entries</th><th class="tt-r2">Exits</th><th class="tt-r2 tt-hm">Changes</th></tr></thead><tbody>' + mrows + '</tbody></table>';
+  var chg;
+  if (!dl || !dl.since) chg = '<div class="tt-empty">Tracking starts after the next day rollover.</div>';
+  else if (!(dl.groups || []).length) chg = '<div class="tt-empty">Nothing changed since ' + esc(dl.since) + '.</div>';
+  else chg = '<table class="tt"><thead><tr><th>Change</th><th class="tt-r2">#</th><th>Tickers</th></tr></thead><tbody>' + (dl.groups || []).map(function(g){
+    return '<tr class="tt-nohover"><td class="tt-tk" style="white-space:nowrap">' + esc(g.label) + '</td><td class="tt-r2">' + g.items.length + '</td><td>' + g.items.map(function(it){
       var tk = String(it).split(' ')[0];
-      return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(tk).replace(/'/g,'') + '\')">' + esc(it) + '</button>'; }).join('') + '</div>'; }).join('');
+      return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(tk).replace(/'/g,'') + '\')">' + esc(it) + '</button>'; }).join('') + '</td></tr>'; }).join('') + '</tbody></table>';
   el.innerHTML =
-    '<div class="howto slim"><span class="txt"><b>Start here:</b> what is actionable today across every tab. &#9733; = high conviction. Tap a ticker to open it.</span>' +
+    '<div class="howto slim"><span class="txt"><b>Start here:</b> what is actionable today, across every tab. &#9733; = high conviction. Tap a row to open it.</span>' +
     '<button class="chip" type="button" onclick="toggleCompact()" aria-pressed="' + (compactCards ? 'true' : 'false') + '">Card badges: ' + (compactCards ? 'fewer' : 'all') + '</button></div>' +
-    '<div style="font-size:11px;color:var(--muted);margin:-4px 0 10px">"Fewer" hides the IBKR / Revolut and vs-20-day badges on stock cards (EU, timing, conviction and exit stay). Tap the button to switch; applies on every tab.</div>' +
-    '<div class="today-sec"><h3>Market read <span>per tab</span></h3>' + (rows || '<div style="color:var(--muted);font-size:12px">No data yet.</div>') + '</div>' +
-    '<div class="today-sec"><h3>Possible entries <span>a screen, not a recommendation</span></h3>' + (ents || '<div style="color:var(--muted);font-size:12px">No entry signals today.</div>') + '</div>' +
-    '<div class="today-sec"><h3>Exit signals <span>rule-based: judge against the group first</span></h3>' + (exs || '<div style="color:var(--muted);font-size:12px">No exit signals today.</div>') + '</div>' +
+    tiles +
+    '<div class="today-sec"><h3>Market read <span>per tab &middot; tap to open</span></h3>' + mtable + '</div>' +
+    '<div class="today-sec"><h3>Possible entries <span>' + ents.length + ' &middot; a screen, not a recommendation</span></h3>' + todayTable(ents, 'entry') + '</div>' +
+    '<div class="today-sec"><h3>Exit signals <span>' + exs.length + ' &middot; rule-based, judge against the group first</span></h3>' + todayTable(exShow, 'exit') +
+      (exs.length > capN ? '<button type="button" class="chip tt-more" onclick="todayAllExits=!todayAllExits;renderToday()">' + (todayAllExits ? 'Show top ' + capN : 'Show all ' + exs.length) + '</button>' : '') + '</div>' +
     '<div class="today-sec"><h3>What changed ' + (dl && dl.since ? '<span>since ' + esc(dl.since) + '</span>' : '') + '</h3>' + chg + '</div>';
 }
 function renderScopeBlocks() { Object.keys(SCOPES).forEach(function(k){ renderRegime(k); renderChanges(k); }); }
@@ -3139,7 +3221,7 @@ function saveQuickAlert(cond, price) {
 // One-line "how to read" ribbon on every tab except the Guide. Keep each
 // to a single sentence or two; every claim must match what the tab does.
 var TAB_HELP = {
-  overview:  'Strong/Neutral/Weak is a <b>peer rank, not a buy call</b>. Timing badge = the setup (&#9733; high conviction). Exit badge = a rule fired. Tap a box to filter.',
+  overview:  'Strong/Neutral/Weak is a <b>peer rank, not a buy call</b>. Timing badge = the setup (&#9733; high conviction). Exit badge = a rule fired. Use the filters below.',
   greek:     'Prices in EUR. Broker availability is <b>unverified</b>: search the plain symbol (no .AT). Small caps trade thinly.',
   indices:   'Gauges, <b>not products</b>: trade them via a UCITS index ETF (ETFs tab) or IBKR futures. Levels are mechanical, not advice.',
   metals:    'Futures are <b>leveraged</b> and need IBKR permissions (not Revolut). EU route to gold: 4GLD.DE (ETFs tab). Levels are mechanical.',
@@ -3275,12 +3357,17 @@ function accessTip(s, which) {
   }
   return out.join(' ');
 }
+function ibkrMark(s) {
+  var a = accessOf(s);
+  if (!a.i || a.i === 'u' || a.i === 'n') return '';
+  return '<span class="acc-badge"><span class="tip ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span></span>';
+}
 function accessBadge(s) {
   var a = accessOf(s);
   var eu = { y:'EU &#10003;', c:'EU &#10003; complex', n:'EU &#10005;', x:'Not tradable' }[a.e] || 'EU ?';
   var h = '<span class="acc-badge"><span class="tip e-' + ({y:1,c:1,n:1,x:1}[a.e] ? a.e : 'x') + '" tabindex="0" data-tip="' + esc(accessTip(s, 'e')) + '">' + eu + '</span>';
   if (a.i && a.i !== 'u') h += '<span class="tip ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span>';
-  if (a.r && a.r !== 'u') h += '<span class="tip ac-' + a.r + '" tabindex="0" data-tip="' + esc(accessTip(s, 'r')) + '">REV ' + ACCESS_SYM[a.r] + '</span>';
+  if (a.r && a.r !== 'u') h += '<span class="tip acc-rev ac-' + a.r + '" tabindex="0" data-tip="' + esc(accessTip(s, 'r')) + '">REV ' + ACCESS_SYM[a.r] + '</span>';
   return h + '</span>';
 }
 function ccy(e) { return (e && (e.currency === 'EUR' || /\.AT$/.test(e.full_ticker || ''))) ? '&#8364;' : '$'; }
@@ -3745,8 +3832,6 @@ function renderSummary(stocks, spy) {
   var earnSoon= stocks.filter(function(s){ return s.earnings_days!==null&&s.earnings_days!==undefined; }).length;
   document.getElementById('summary-cards').innerHTML = [
     { lbl:'Weekly Gainers',  val:gainers+'/'+usSt.valid, sub:coverageNote(usSt) },
-    { lbl:'Strong Momentum', val:strong,         sub:'of '+stocks.length+' stocks' },
-    { lbl:'Alerts',          val:alerts,         sub:'5%+ this week' },
     { lbl:'Earnings Soon',   val:earnSoon,       sub:'within 14 days' }
   ].map(function(c){
     return '<div class="card"><div class="lbl">'+c.lbl+'</div><div class="val">'+c.val+'</div><div class="sub">'+c.sub+'</div></div>';
@@ -4820,7 +4905,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.27-b';
+var APP_VERSION = '2026.11.27-c';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
