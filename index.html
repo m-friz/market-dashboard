@@ -122,6 +122,9 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
 #alert-sheet .sheet-card{background:var(--surf);border:1px solid var(--border);border-radius:14px 14px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));width:100%;max-width:480px}
 #alert-sheet button,#alert-sheet input,#alert-sheet select{font-size:13px;min-height:40px;border-radius:8px;border:1px solid var(--border);background:var(--surf2);color:var(--text);padding:6px 10px}
 #alert-sheet .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}#alert-sheet .row>*{flex:1 1 120px}
+.trade-line{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.9}
+.trade-line code{font-family:var(--mono);font-size:11px;color:var(--text);background:var(--surf2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.trade-line .tl-sep{margin:0 2px}
 .tab-more,.more-menu{display:none}
 @media (max-width:760px){
   .tab.more-item{display:none}.tab.more-item.active{display:block}
@@ -2794,7 +2797,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbyw_-xSR10g_EGu1H1PVaH09qiV-XBuzpV7aQiNN_rd/dev';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwq3Q5CFHEWClDTVv6lhjzclNgW_gwx6bHgYAlYIkfPef1iGrAKmyFerotEe0KF4zsoKg/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -3221,6 +3224,34 @@ var ACCESS_TXT = {
   bm:  { eu:'Used only as the benchmark for relative-strength figures. US-listed ETFs such as SPY are not available to EU retail investors (no PRIIPs KID).' }
 };
 var accessFilter = 'all';
+// How an EU retail investor can actually get this exposure. Listed products are the
+// usual route; futures need IBKR futures permission and are leveraged. Commonly used
+// examples, NOT a recommendation: check the KID/ISIN, TER, currency and that your broker lists it.
+var TRADE_ROUTES = {
+  '^GSPC':{ p:['VUAA.DE','SXR8.DE'], f:'ES / MES (CME)' },
+  '^DJI': { p:['EXI3.DE'],           f:'YM / MYM (CBOT)' },
+  '^IXIC':{ p:['SXRV.DE'],           f:'NQ / MNQ (CME)', n:'Nasdaq-100, not the Composite' },
+  '^RUT': { p:['ZPRR.DE'],           f:'RTY / M2K (CME)' },
+  '^FTSE':{ p:['ISF.L'],             f:'Z (ICE Europe)', n:'LSE, GBP' },
+  '^GDAXI':{p:['EXS1.DE'],           f:'FDAX / FDXM (Eurex)' },
+  '^FCHI':{ p:['CAC.PA'],            f:'FCE (Euronext)', n:'Euronext Paris' },
+  '^STOXX50E':{p:['EUN2.DE'],        f:'FESX (Eurex)' },
+  '^N225':{ p:['XDJP.DE'],           f:'NIY / NKD (CME)' },
+  'GC=F': { p:['4GLD.DE'],           f:'GC / MGC (COMEX)', n:'Xetra-Gold ETC' },
+  'SI=F': { p:['SSLN.L'],            f:'SI / SIL (COMEX)', n:'LSE, physical silver ETC' },
+  'PL=F': { p:['PHPT.L'],            f:'PL (NYMEX)',       n:'LSE, physical platinum ETC' },
+  'PA=F': { p:['PHPD.L'],            f:'PA (NYMEX)',       n:'LSE, physical palladium ETC' },
+  'HG=F': { p:['COPA.L'],            f:'HG / MHG (COMEX)', n:'LSE, copper ETC' },
+  'CL=F': { p:['CRUD.L'],            f:'CL / MCL (NYMEX)', n:'LSE, WTI ETC (tracks futures, roll costs)' },
+  'BZ=F': { p:['BRNT.L'],            f:'BZ (NYMEX)',       n:'LSE, Brent ETC (tracks futures, roll costs)' }
+};
+function tradeLine(tk) {
+  var r = TRADE_ROUTES[tk]; if (!r) return '';
+  var tip = 'Commonly used routes, not a recommendation. Listed product = no leverage, needs a KID and a broker that lists it. Futures = leveraged, need IBKR futures permission. Confirm ISIN, fees, currency and listing before trading.' + (r.n ? ' Note: ' + r.n + '.' : '');
+  return '<div class="trade-line"><span class="tip" data-tip="' + esc(tip) + '">Trade via</span> ' +
+    r.p.map(function(t){ return '<code>' + esc(t) + '</code>'; }).join(' ') +
+    ' <span class="tl-sep">&middot;</span> <span class="tl-fut">futures</span> <code>' + esc(r.f) + '</code></div>';
+}
 
 function maTipText(v) { return v===null||v===undefined ? '50-day moving average: no data.' : v ? 'Above 50MA: price is above its 50-day average. Uptrend in place.' : 'Below 50MA: price is below its 50-day average. Downtrend in place.'; }
 function accessOf(s) { return (s && s.access) || { k:'?', e:'?', i:'u', r:'u', v:'' }; }
@@ -3236,6 +3267,8 @@ function accessTip(s, which) {
   } else {
     out.push('EU retail eligibility (legal, not broker availability).');
     out.push(t.eu || 'Not assessed (data file predates the eligibility update).');
+    var unv = []; if (a.i === 'u') unv.push('IBKR'); if (a.r === 'u') unv.push('Revolut');
+    if (unv.length) out.push('Broker check: ' + unv.join(' and ') + ' publish no per-ticker list for this, so availability is unconfirmed (badge hidden). Search the symbol in the app.');
     if (a.v) out.push('Market: ' + a.v + '.');
     if (a.n) out.push('Note: ' + a.n);
     out.push('Public pages read 2026-11-20. Not legal or investment advice.');
@@ -3246,8 +3279,8 @@ function accessBadge(s) {
   var a = accessOf(s);
   var eu = { y:'EU &#10003;', c:'EU &#10003; complex', n:'EU &#10005;', x:'Not tradable' }[a.e] || 'EU ?';
   var h = '<span class="acc-badge"><span class="tip e-' + ({y:1,c:1,n:1,x:1}[a.e] ? a.e : 'x') + '" tabindex="0" data-tip="' + esc(accessTip(s, 'e')) + '">' + eu + '</span>';
-  if (a.i) h += '<span class="tip ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span>';
-  if (a.r) h += '<span class="tip ac-' + a.r + '" tabindex="0" data-tip="' + esc(accessTip(s, 'r')) + '">REV ' + ACCESS_SYM[a.r] + '</span>';
+  if (a.i && a.i !== 'u') h += '<span class="tip ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span>';
+  if (a.r && a.r !== 'u') h += '<span class="tip ac-' + a.r + '" tabindex="0" data-tip="' + esc(accessTip(s, 'r')) + '">REV ' + ACCESS_SYM[a.r] + '</span>';
   return h + '</span>';
 }
 function ccy(e) { return (e && (e.currency === 'EUR' || /\.AT$/.test(e.full_ticker || ''))) ? '&#8364;' : '$'; }
@@ -3282,8 +3315,9 @@ function renderAccSlots() {
     function b(k, label) {
       return '<button type="button" class="chip' + (accessFilter === k ? ' active-filter' : '') + '" aria-pressed="' + (accessFilter === k ? 'true' : 'false') + '" onclick="setAccessFilter(\'' + k + '\')">' + label + '</button>';
     }
+    if (!cnt('ibkr') && !cnt('rev') && !cnt('both')) { slot.innerHTML = ''; return; }
     slot.innerHTML = '<span class="acc-bar" role="group" aria-label="Broker availability filter"><span style="font-size:11px;color:var(--muted);font-weight:600">Broker:</span>' +
-      b('all', 'All') + b('ibkr', 'IBKR &#9680;/&#10003; (' + cnt('ibkr') + ')') + b('rev', 'Revolut &#9680;/&#10003; (' + cnt('rev') + ')') + b('both', 'Both (' + cnt('both') + ')') + '</span>';
+      b('all', 'All') + (cnt('ibkr') ? b('ibkr', 'IBKR &#9680;/&#10003; (' + cnt('ibkr') + ')') : '') + (cnt('rev') ? b('rev', 'Revolut &#9680;/&#10003; (' + cnt('rev') + ')') : '') + (cnt('both') ? b('both', 'Both (' + cnt('both') + ')') : '') + '</span>';
   });
 }
 function setAccessFilter(v) {
@@ -3621,6 +3655,7 @@ function renderMetalsTab(metals, ratio) {
         pct(m.pct_1w, '1W') + pct(m.pct_1m, '1M') + pct(m.pct_3m, '3M') + pct(m.pct_ytd, 'YTD') +
       '</div>' +
       techRow(m) +
+      tradeLine(m.ticker) +
       '<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px">' + esc(m.desc) + '</div>' +
     '</div>';
   }
@@ -3662,6 +3697,7 @@ function renderIndicesTab(indices, spy) {
         '<div>YTD<br><span class="'+pcls(idx.pct_ytd)+'">'+pn(idx.pct_ytd)+'</span></div>' +
       '</div>' +
       techRow(idx) +
+      tradeLine(idx.ticker) +
     '</div>';
   }
 
