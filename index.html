@@ -98,7 +98,7 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 
 
-/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.26-e) ===== */
+/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.27-b) ===== */
 .regime{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:var(--surf);border:1px solid var(--border);border-left:4px solid var(--muted);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px}
 .regime.t-g{border-left-color:var(--green)}.regime.t-a{border-left-color:var(--amber)}.regime.t-r{border-left-color:var(--red)}
 .regime .rg-tone{font-weight:800;font-size:13px}
@@ -122,11 +122,34 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
 #alert-sheet .sheet-card{background:var(--surf);border:1px solid var(--border);border-radius:14px 14px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));width:100%;max-width:480px}
 #alert-sheet button,#alert-sheet input,#alert-sheet select{font-size:13px;min-height:40px;border-radius:8px;border:1px solid var(--border);background:var(--surf2);color:var(--text);padding:6px 10px}
 #alert-sheet .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}#alert-sheet .row>*{flex:1 1 120px}
+.tab-more,.more-menu{display:none}
 @media (max-width:760px){
+  .tab.more-item{display:none}.tab.more-item.active{display:block}
+  .tab-more{display:block;padding:12px 14px;font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap;cursor:pointer;min-height:44px;box-sizing:border-box;position:sticky;right:0;background:var(--surf);flex:0 0 auto}
+  .more-menu.open{display:block;position:absolute;right:8px;top:100%;z-index:60;background:var(--surf);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:4px;min-width:170px}
+  .more-menu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);font-size:14px;padding:12px 14px;min-height:44px;border-radius:8px}
+  .more-menu button.on{color:var(--accent);font-weight:700}
+  #sticky-rg.show{display:block;background:var(--surf);border-bottom:1px solid var(--border);padding:7px 14px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #sticky-rg b{color:var(--text)}
   .regime{padding:9px 12px}
-  .tabs .tab{padding:12px 14px;font-size:13px;min-height:44px;white-space:nowrap}
+  .tabs .tab{padding:12px 11px;font-size:13px;min-height:44px;white-space:nowrap}
   .howto.slim{padding:8px 10px;font-size:11.5px;align-items:flex-start}
 }
+.today-sec{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.today-sec h3{font-size:13px;margin:0 0 8px;color:var(--text);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.today-sec h3 span{font-weight:400;color:var(--muted);font-size:12px}
+.today-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--border);font-size:12px}
+.today-row:first-of-type{border-top:none}
+.today-row .t-name{font-weight:700;min-width:96px}
+.today-row .t-st{color:var(--muted);flex:1 1 100%}
+.today-row .t-st b{color:var(--text)}
+.today-row .t-g{color:var(--green)}.today-row .t-a{color:var(--amber)}.today-row .t-r{color:var(--red)}
+.today-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin:8px 0 4px}
+.today-lbl:first-of-type{margin-top:0}
+#sticky-rg{display:none}
+/* Compact cards: keep timing / conviction / exit; hide secondary badges */
+body.compact-cards .acc-badge>span:not(:first-child),body.compact-cards .vs-avg-pos,body.compact-cards .vs-avg-neg{display:none}
+@media (hover: none){.tip{position:relative}.tip::after{content:'';position:absolute;inset:-9px -6px}}
 /* ===== Mobile phone view (<=760px only — desktop/browser view untouched) ===== */
 @media(max-width:760px){
   header{padding:10px 14px;padding-top:max(10px, env(safe-area-inset-top));gap:8px}
@@ -432,25 +455,34 @@ button.attn-card:hover{border-color:var(--accent)}
 <div id="stale-warning" style="display:none;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:var(--amber);font-size:12px;line-height:1.45;padding:9px 14px;margin:8px 12px 0;border-radius:8px"></div>
 <div class="tabs-wrap">
 <div class="tabs">
-  <div class="tab active" data-tab="overview">&#127760; US Stocks</div>
+  <div class="tab active" data-tab="today">&#9889; Today</div>
+  <div class="tab" data-tab="overview">&#127760; US Stocks</div>
   <div class="tab" data-tab="greek">&#127987; Greek</div>
-  <div class="tab" data-tab="indices">&#127757; Indices</div>
-  <div class="tab" data-tab="metals">&#129689; Metals</div>
-  <div class="tab" data-tab="signals">&#127919; Signals</div>
-  <div class="tab" data-tab="history">&#128200; Historical</div>
-  <div class="tab" data-tab="dividends">&#128176; Dividends</div>
-  <div class="tab" data-tab="etfs">&#128640; ETFs</div>
-  <div class="tab" data-tab="portfolio">&#128181; Portfolio</div>
-  <div class="tab" data-tab="guide">&#128218; Guide</div>
+  <div class="tab more-item" data-tab="indices">&#127757; Indices</div>
+  <div class="tab more-item" data-tab="metals">&#129689; Metals</div>
+  <div class="tab more-item" data-tab="signals">&#127919; Signals</div>
+  <div class="tab more-item" data-tab="history">&#128200; Historical</div>
+  <div class="tab more-item" data-tab="dividends">&#128176; Dividends</div>
+  <div class="tab more-item" data-tab="etfs">&#128640; ETFs</div>
+  <div class="tab more-item" data-tab="portfolio">&#128181; Portfolio</div>
+  <div class="tab more-item" data-tab="guide">&#128218; Guide</div>
+  <div class="tab-more" id="tab-more" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" onclick="toggleMoreMenu(event)">More &#9662;</div>
 </div>
+<div class="more-menu" id="more-menu" role="menu"></div>
 <div class="tabs-fade tabs-fade-l"></div>
 <div class="tabs-fade tabs-fade-r"></div>
 </div>
+<div id="sticky-rg"></div>
 </div>
 <main>
 
+<!-- TODAY -->
+<div id="panel-today" class="tab-panel active">
+  <div id="today-body"><div class="state-box">Loading&hellip;</div></div>
+</div>
+
 <!-- OVERVIEW -->
-<div id="panel-overview" class="tab-panel active">
+<div id="panel-overview" class="tab-panel">
   <div id="ov-loading" class="state-box" style="padding:0;align-items:stretch;text-align:left">
     <div class="skel-summary">
       <div class="skel skel-card"></div><div class="skel skel-card"></div><div class="skel skel-card"></div>
@@ -2762,7 +2794,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbyviIN8Vo5GvH8C-0coXv2SWCY1FtoM6p08xsp8r4xP92PJ0K9Eyeo_7azlUbOj1IZS6A/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbwq3Q5CFHEWClDTVv6lhjzclNgW_gwx6bHgYAlYIkfPef1iGrAKmyFerotEe0KF4zsoKg/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -2780,6 +2812,7 @@ function switchTab(name) {
     var row = activeTab.parentElement;
     row.scrollTo({ left: Math.max(0, activeTab.offsetLeft - (row.clientWidth - activeTab.offsetWidth) / 2), behavior: 'smooth' });
   } catch (e) {}
+  try { closeMoreMenu(); updateStickyRg(); } catch (e) {}
   try { localStorage.setItem('dashTab', name); } catch (e) {}
   try { history.replaceState(null, '', '#' + name); } catch (e) {}
   window.scrollTo(0, 0);
@@ -2883,6 +2916,7 @@ function renderRegime(scope) {
     '<span class="rg-m"><b>' + ent + '</b> entries &middot; <b>' + ex + '</b> exits</span>' + vixTxt +
     (read ? '<span class="rg-read">' + read + '</span>' : '') + '</div>';
 }
+var chgOpenDecision = {};
 function renderChanges(scope) {
   var sc = SCOPES[scope], el = document.getElementById('chg-' + scope); if (!el || !sc) return;
   var dl = D && D.deltas;
@@ -2900,7 +2934,89 @@ function renderChanges(scope) {
       return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(tk).replace(/'/g,'') + '\')">' + esc(it) + '</button>';
     }).join('') + '</div>';
   }).join('');
-  el.innerHTML = '<details class="chg"' + ((!isNarrow() || total <= 6) && total ? ' open' : '') + '><summary>' + head + '</summary>' + body + '</details>';
+  if (!(scope in chgOpenDecision)) {
+    var td = new Date().toISOString().slice(0,10) + '|' + (dl.since || '') + '|' + total, seen = '';
+    try { seen = localStorage.getItem('chgSeen_' + scope) || ''; localStorage.setItem('chgSeen_' + scope, td); } catch (e) {}
+    chgOpenDecision[scope] = seen !== td;
+  }
+  el.innerHTML = '<details class="chg"' + (chgOpenDecision[scope] && total ? ' open' : '') + '><summary>' + head + '</summary>' + body + '</details>';
+}
+function regimeStats(scope) {
+  var list = scopeList(scope);
+  var withMa = list.filter(function(s){ return s.above_ma50 === true || s.above_ma50 === false; });
+  if (!withMa.length) return null;
+  var above = withMa.filter(function(s){ return s.above_ma50; }).length, pct = Math.round(above / withMa.length * 100);
+  return { above: above, n: withMa.length, pct: pct,
+    ent: list.filter(function(s){ return matchesFilter(s,'entry'); }).length,
+    ex:  list.filter(function(s){ return matchesFilter(s,'exit'); }).length,
+    tone: pct >= 70 ? ['Broad strength','g'] : pct >= 40 ? ['Mixed','a'] : ['Broad weakness','r'] };
+}
+var TAB_SCOPE = { overview:'us', greek:'greek', indices:'indices', metals:'metals', etfs:'etfs' };
+function updateStickyRg() {
+  var el = document.getElementById('sticky-rg'); if (!el) return;
+  var act = document.querySelector('.tab.active[data-tab]'), sc = act && TAB_SCOPE[act.getAttribute('data-tab')];
+  var st = (sc && D) ? regimeStats(sc) : null;
+  if (!st) { el.className = ''; el.innerHTML = ''; return; }
+  el.className = 'show';
+  el.innerHTML = '<b class="t-' + st.tone[1] + '" style="color:var(--' + (st.tone[1] === 'g' ? 'green' : st.tone[1] === 'a' ? 'amber' : 'red') + ')">' + st.tone[0] + '</b> &middot; ' +
+    st.above + '/' + st.n + ' above 50MA &middot; <b>' + st.ent + '</b> entr' + (st.ent === 1 ? 'y' : 'ies') + ' &middot; <b>' + st.ex + '</b> exit' + (st.ex === 1 ? '' : 's');
+}
+function toggleMoreMenu(ev) {
+  if (ev) ev.stopPropagation();
+  var m = document.getElementById('more-menu'), b = document.getElementById('tab-more'); if (!m) return;
+  var act = document.querySelector('.tab.active[data-tab]'), cur = act ? act.getAttribute('data-tab') : '';
+  m.innerHTML = Array.prototype.map.call(document.querySelectorAll('.tab.more-item'), function(t){
+    var n = t.getAttribute('data-tab');
+    return '<button type="button" role="menuitem" class="' + (n === cur ? 'on' : '') + '" onclick="switchTab(\'' + n + '\')">' + t.innerHTML + '</button>';
+  }).join('');
+  var open = !m.classList.contains('open');
+  m.classList.toggle('open', open); if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function closeMoreMenu() {
+  var m = document.getElementById('more-menu'), b = document.getElementById('tab-more');
+  if (m) m.classList.remove('open'); if (b) b.setAttribute('aria-expanded', 'false');
+}
+document.addEventListener('click', function(e){ if (!e.target.closest || !e.target.closest('#more-menu, #tab-more')) closeMoreMenu(); });
+
+// Compact cards (default on for phones): hide secondary badges, keep the signal.
+var compactCards = (function(){ try { var v = localStorage.getItem('dashCompact'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return window.matchMedia && window.matchMedia('(max-width: 760px)').matches; })();
+function applyCompact() { document.body.classList.toggle('compact-cards', compactCards); }
+function toggleCompact() { compactCards = !compactCards; try { localStorage.setItem('dashCompact', compactCards ? '1' : '0'); } catch (e) {} applyCompact(); renderToday(); }
+document.addEventListener('DOMContentLoaded', applyCompact);
+
+function todayChip(s) {
+  var star = (typeof convictionMarker === 'function' && convictionMarker(s)) ? '\u2605 ' : '';
+  return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(s.ticker).replace(/'/g,'') + '\')">' + star + esc(s.ticker) + '</button>';
+}
+function renderToday() {
+  var el = document.getElementById('today-body'); if (!el) return;
+  if (!D) return;
+  var names = { us:'US stocks', greek:'Greek', etfs:'ETFs', indices:'Indices', metals:'Metals' };
+  var rows = '', ents = '', exs = '';
+  Object.keys(SCOPES).forEach(function(k){
+    var st = regimeStats(k), list = scopeList(k);
+    if (st) rows += '<div class="today-row"><span class="t-name">' + names[k] + '</span><span class="t-' + st.tone[1] + '"><b>' + st.tone[0] + '</b></span>' +
+      '<span class="t-st">' + st.above + '/' + st.n + ' above 50MA (' + st.pct + '%) &middot; <b>' + st.ent + '</b> entr' + (st.ent === 1 ? 'y' : 'ies') + ' &middot; <b>' + st.ex + '</b> exit' + (st.ex === 1 ? '' : 's') + '</span></div>';
+    function pick(f){ return list.filter(function(s){ return matchesFilter(s, f); }).sort(function(a,b){
+      var ca = convictionMarker(a) ? 1 : 0, cb = convictionMarker(b) ? 1 : 0; return cb - ca; }); }
+    var e = pick('entry'), x = pick('exit');
+    if (e.length) ents += '<div class="today-lbl">' + names[k] + ' (' + e.length + ')</div><div>' + e.map(todayChip).join('') + '</div>';
+    if (x.length) exs  += '<div class="today-lbl">' + names[k] + ' (' + x.length + ')</div><div>' + x.map(todayChip).join('') + '</div>';
+  });
+  var dl = D.deltas, chg = '';
+  if (!dl || !dl.since) chg = '<div style="color:var(--muted);font-size:12px">Tracking starts after the next day rollover.</div>';
+  else if (!(dl.groups || []).length) chg = '<div style="color:var(--muted);font-size:12px">Nothing changed since ' + esc(dl.since) + '.</div>';
+  else chg = (dl.groups || []).map(function(g){
+    return '<div class="chg-g"><span class="chg-l">' + esc(g.label) + ' (' + g.items.length + ')</span>' + g.items.map(function(it){
+      var tk = String(it).split(' ')[0];
+      return '<button type="button" class="chg-chip" onclick="jumpToTicker(\'' + esc(tk).replace(/'/g,'') + '\')">' + esc(it) + '</button>'; }).join('') + '</div>'; }).join('');
+  el.innerHTML =
+    '<div class="howto slim"><span class="txt"><b>Start here:</b> what is actionable today across every tab. &#9733; = high conviction. Tap a ticker to open it.</span>' +
+    '<button class="chip" type="button" onclick="toggleCompact()" aria-pressed="' + (compactCards ? 'true' : 'false') + '">Compact cards: ' + (compactCards ? 'on' : 'off') + '</button></div>' +
+    '<div class="today-sec"><h3>Market read <span>per tab</span></h3>' + (rows || '<div style="color:var(--muted);font-size:12px">No data yet.</div>') + '</div>' +
+    '<div class="today-sec"><h3>Possible entries <span>a screen, not a recommendation</span></h3>' + (ents || '<div style="color:var(--muted);font-size:12px">No entry signals today.</div>') + '</div>' +
+    '<div class="today-sec"><h3>Exit signals <span>rule-based: judge against the group first</span></h3>' + (exs || '<div style="color:var(--muted);font-size:12px">No exit signals today.</div>') + '</div>' +
+    '<div class="today-sec"><h3>What changed ' + (dl && dl.since ? '<span>since ' + esc(dl.since) + '</span>' : '') + '</h3>' + chg + '</div>';
 }
 function renderScopeBlocks() { Object.keys(SCOPES).forEach(function(k){ renderRegime(k); renderChanges(k); }); }
 
@@ -3242,7 +3358,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Reopen on the tab you were last using (or the one in the link).
   var want = (location.hash || '').replace('#', '');
   if (!want) { try { want = localStorage.getItem('dashTab') || ''; } catch (e) {} }
-  if (want && want !== 'overview' && document.getElementById('panel-' + want)) switchTab(want);
+  if (want && want !== 'today' && document.getElementById('panel-' + want)) switchTab(want);
   renderHowto();
   setInterval(renderAge, 60000);
   var top = document.getElementById('to-top');
@@ -4341,6 +4457,7 @@ function renderAll(data) {
     ['renderSummary',    function(){ renderSummary(data.stocks, data.spy); }],
     ['renderAttention',  function(){ renderAttention(data.stocks); }],
     ['renderScopeBlocks',function(){ renderScopeBlocks(); }],
+    ['renderToday',      function(){ renderToday(); updateStickyRg(); }],
     ['renderWatchlist',  function(){ renderWatchlist(data.stocks); }],
     ['renderHeatmap',    function(){ renderHeatmap(data.sector_heatmap); }],
     ['renderEvents',     function(){ renderEvents(data.events); }],
@@ -4666,7 +4783,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.26-e';
+var APP_VERSION = '2026.11.27-b';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
