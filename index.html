@@ -98,7 +98,7 @@ main{padding:18px 24px;max-width:1500px;margin:0 auto}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 
 
-/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.27-c) ===== */
+/* ===== Regime strip, changes, markets sub-nav, bottom nav, quick-alert sheet (2026.11.28-a) ===== */
 .regime{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:var(--surf);border:1px solid var(--border);border-left:4px solid var(--muted);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px}
 .regime.t-g{border-left-color:var(--green)}.regime.t-a{border-left-color:var(--amber)}.regime.t-r{border-left-color:var(--red)}
 .regime .rg-tone{font-weight:800;font-size:13px}
@@ -128,6 +128,16 @@ details.chg summary::before{content:'\25B8';color:var(--muted)}details.chg[open]
 .legend-d{margin-bottom:12px}.legend-d>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);padding:6px 2px;list-style:none}
 .legend-d>summary::before{content:'\25B8 ';color:var(--muted)}.legend-d[open]>summary::before{content:'\25BE '}
 .legend-d>summary::-webkit-details-marker{display:none}
+.tab.user-hidden{display:none!important}
+#pf-ui{border-top:1px solid var(--border);margin:4px 0 10px;padding-top:12px}
+#pf-ui .pf-h{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
+#pf-ui label{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);padding:5px 0;cursor:pointer;min-height:28px}
+#pf-ui input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+#pf-ui .pf-pre{display:flex;gap:6px;flex-wrap:wrap}
+#pf-ui .pf-pre button,#pf-ui .pf-mv{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:11px;cursor:pointer;min-height:28px}
+#pf-ui .pf-pre button.on{outline:2px solid var(--accent)}
+#pf-ui .pf-tab{display:flex;align-items:center;gap:4px}#pf-ui .pf-tab label{flex:1}
+#pf-ui select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;width:100%}
 .tab-more,.more-menu{display:none}
 @media (max-width:760px){
   .regime .rg-read{display:none}
@@ -431,7 +441,7 @@ button.attn-card:hover{border-color:var(--accent)}
     <button id="settings-btn" style="background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s" title="Display settings">&#9881; Display</button>
 
 <!-- Settings panel -->
-<div id="settings-panel" style="display:none;position:fixed;top:57px;right:16px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:18px 20px;z-index:9998;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:260px">
+<div id="settings-panel" style="display:none;position:fixed;top:57px;right:16px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:18px 20px;z-index:9998;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:260px;max-height:calc(100vh - 80px);overflow-y:auto">
   <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">Display Settings</div>
 
   <!-- Theme -->
@@ -476,6 +486,7 @@ button.attn-card:hover{border-color:var(--accent)}
     </div>
     <div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4">Adds a rough share count to entry cards: risk &divide; (entry &minus; stop). Saved in this browser only.</div>
   </div>
+  <div id="pf-ui"></div>
   <button id="settings-close" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;margin-top:4px">Close</button>
 </div>
     <div id="last-updated" role="status" aria-live="polite">Loading...</div><span id="updated-age" class="age-chip"></span>
@@ -1125,6 +1136,7 @@ button.attn-card:hover{border-color:var(--accent)}
       <strong style="color:var(--text)">On a phone</strong> the tab row shows Today, US Stocks and Greek; everything else is under <b>More &#9662;</b>. A pinned line under the tabs shows the market trend for the tab you are on.<br>
       <strong style="color:var(--text)">Badges:</strong> <b>EU &#10003;</b> = EU retail investors may legally buy it. <b>IBKR &#10003;</b> verified, <b>&#9680;</b> offered at market level (this ticker not individually checked), <b>!</b> needs extra permissions.
       Revolut and Greek-stock IBKR availability cannot be confirmed from public sources, so no badge is shown: search the symbol in the app. &#9733; = high conviction.<br>
+      <strong style="color:var(--text)">Make it yours:</strong> the &#9881; Display button has <b>Customise view</b>: pick Minimal / Standard / Full, switch individual badges and sections on or off, hide or reorder tabs, and choose which tab opens first. Saved per browser, so phone and desktop can differ; <b>Reset to defaults</b> undoes it.<br>
       <strong style="color:var(--text)">Card badges: fewer</strong> (button on Today) hides Revolut, vs-20-day, 4-week range and support/resistance details on cards; switch to <b>all</b> to see them.
     </div>
   </div>
@@ -2813,7 +2825,7 @@ var D = null;
 var sorts = { action: { f:'pct_1w', d:'desc' }, hist: { f:'pct_ytd', d:'desc' } };
 var DATA_URL = 'https://raw.githubusercontent.com/m-friz/market-dashboard/main/data.json';
 // GAS endpoint — set this to your deployed GAS web app URL
-var GAS_URL  = 'https://script.google.com/macros/s/AKfycbx0EZy0WHKpmJwnz2PvSueyiEpGwAZgzsIAb_5xB_Ws1ytiN1Q4wAueikA9wbO79MIooA/exec';
+var GAS_URL  = 'https://script.google.com/macros/s/AKfycbxl98ItBYDRF76eAUiFPkK95jimwqohScCiLiejNH0TRwtBGHdsZl-vPY1x0Udp6S9Qyw/exec';
 
 // Tab switching
 function switchTab(name) {
@@ -3012,7 +3024,7 @@ function toggleMoreMenu(ev) {
   if (ev) ev.stopPropagation();
   var m = document.getElementById('more-menu'), b = document.getElementById('tab-more'); if (!m) return;
   var act = document.querySelector('.tab.active[data-tab]'), cur = act ? act.getAttribute('data-tab') : '';
-  m.innerHTML = Array.prototype.map.call(document.querySelectorAll('.tab.more-item'), function(t){
+  m.innerHTML = Array.prototype.slice.call(document.querySelectorAll('.tab.more-item:not(.user-hidden)')).sort(function(a, b){ return (parseInt(a.style.order, 10) || 0) - (parseInt(b.style.order, 10) || 0); }).map(function(t){
     var n = t.getAttribute('data-tab');
     return '<button type="button" role="menuitem" class="' + (n === cur ? 'on' : '') + '" onclick="switchTab(\'' + n + '\')">' + t.innerHTML + '</button>';
   }).join('');
@@ -3028,9 +3040,125 @@ document.addEventListener('click', function(e){ if (!e.target.closest || !e.targ
 // Compact cards (default on for phones): hide secondary badges, keep the signal.
 var compactCards = (function(){ try { var v = localStorage.getItem('dashCompact'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return true; })();
 function applyCompact() { document.body.classList.toggle('compact-cards', compactCards); }
-function toggleCompact() { compactCards = !compactCards; try { localStorage.setItem('dashCompact', compactCards ? '1' : '0'); } catch (e) {} applyCompact(); renderToday(); }
+function toggleCompact() { compactCards = !compactCards; try { localStorage.setItem('dashCompact', compactCards ? '1' : '0'); } catch (e) {} applyCompact(); renderToday(); if (typeof renderPrefsUI === 'function') renderPrefsUI(); }
 document.addEventListener('DOMContentLoaded', applyCompact);
 
+// ── Display panel: user-customisable view (stored in this browser only) ──
+var PREF_KEY = 'dashPrefs';
+var PF_TABS = ['today','overview','greek','indices','metals','dividends','etfs','history','signals','portfolio','guide'];
+var PF_TAB_NAMES = { today:'Today', overview:'US Stocks', greek:'Greek', indices:'Indices', metals:'Metals', dividends:'Dividends', etfs:'ETFs', history:'Historical', signals:'Signals', portfolio:'Portfolio', guide:'Guide' };
+var PF_GROUPS = [
+  { h:'Card badges', items:[
+    { k:'eu',   l:'EU eligibility',  css:'.acc-eu' },
+    { k:'ibkr', l:'IBKR availability', css:'.acc-ibkr' },
+    { k:'rev',  l:'Revolut (when known)', css:'.acc-rev' } ] },
+  { h:'Page sections', items:[
+    { k:'howto',  l:'&ldquo;How to read&rdquo; ribbons', css:'.howto:not(#today-body .howto)' },
+    { k:'regime', l:'Market trend strip', css:'.regime,#sticky-rg' },
+    { k:'top3',   l:'Top-3 movers', css:'#ov-top3,#gk-top3,#etf-top3' } ] },
+  { h:'Today tab', items:[
+    { k:'tiles',    l:'Summary tiles', css:'.td-tiles' },
+    { k:'tmarket',  l:'Market read',   css:'#today-body .ts-market' },
+    { k:'tentries', l:'Possible entries', css:'#today-body .ts-entries' },
+    { k:'texits',   l:'Exit signals',  css:'#today-body .ts-exits' },
+    { k:'tchanges', l:'What changed',  css:'#today-body .ts-changes' } ] }
+];
+var PF_PRESETS = {
+  minimal:  { hide:{ rev:1, howto:1, top3:1, tiles:1 }, compact:true },
+  standard: { hide:{}, compact:true },
+  full:     { hide:{}, compact:false }
+};
+function loadPrefs() {
+  var p = null;
+  try { p = JSON.parse(localStorage.getItem(PREF_KEY) || 'null'); } catch (e) {}
+  if (!p || typeof p !== 'object') p = {};
+  if (!p.hide || typeof p.hide !== 'object') p.hide = {};
+  if (!Array.isArray(p.tabsHidden)) p.tabsHidden = [];
+  var ord = Array.isArray(p.order) ? p.order.filter(function(t){ return PF_TABS.indexOf(t) >= 0; }) : [];
+  PF_TABS.forEach(function(t){ if (ord.indexOf(t) < 0) ord.push(t); });
+  p.order = ord;
+  if (!p.defTab || (p.defTab !== 'last' && PF_TABS.indexOf(p.defTab) < 0)) p.defTab = 'last';
+  return p;
+}
+function savePrefs(p) { try { localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch (e) {} }
+function pfStyle() {
+  var el = document.getElementById('pf-style');
+  if (!el) { el = document.createElement('style'); el.id = 'pf-style'; document.head.appendChild(el); }
+  var css = '';
+  PF_GROUPS.forEach(function(g){ g.items.forEach(function(it){
+    css += it.css.split(',').map(function(sel){ return 'body.pf-' + it.k + ' ' + sel.trim(); }).join(',') + '{display:none!important}\n';
+  }); });
+  el.textContent = css;
+}
+function applyPrefs() {
+  var p = loadPrefs();
+  pfStyle();
+  PF_GROUPS.forEach(function(g){ g.items.forEach(function(it){ document.body.classList.toggle('pf-' + it.k, !!p.hide[it.k]); }); });
+  var vis = p.order.filter(function(t){ return p.tabsHidden.indexOf(t) < 0; });
+  if (!vis.length) vis = ['today'];
+  PF_TABS.forEach(function(t){
+    var el = document.querySelector('.tabs .tab[data-tab="' + t + '"]'); if (!el) return;
+    var hid = vis.indexOf(t) < 0;
+    el.classList.toggle('user-hidden', hid);
+    el.style.order = p.order.indexOf(t);
+    el.classList.toggle('more-item', !hid && vis.indexOf(t) >= 3);   // phone: first 3 visible tabs stay in the row
+  });
+  var more = document.getElementById('tab-more');
+  if (more) { more.style.order = 999; more.style.display = vis.length > 3 ? '' : 'none'; }
+  var act = document.querySelector('.tab.active[data-tab]');
+  if (act && act.classList.contains('user-hidden')) switchTab(vis[0]);
+  try { updateStickyRg(); } catch (e) {}
+}
+function pfSet(fn) { var p = loadPrefs(); fn(p); savePrefs(p); applyPrefs(); renderPrefsUI(); }
+function pfPreset(name) {
+  var d = PF_PRESETS[name]; if (!d) return;
+  pfSet(function(p){ p.hide = JSON.parse(JSON.stringify(d.hide)); p.preset = name; });
+  compactCards = d.compact; try { localStorage.setItem('dashCompact', compactCards ? '1' : '0'); } catch (e) {}
+  applyCompact(); renderToday(); renderPrefsUI();
+}
+function pfMove(t, dir) {
+  pfSet(function(p){
+    var vis = p.order.filter(function(x){ return p.tabsHidden.indexOf(x) < 0; });
+    var i = vis.indexOf(t), j = i + dir; if (i < 0 || j < 0 || j >= vis.length) return;
+    var a = p.order.indexOf(vis[i]), b = p.order.indexOf(vis[j]);
+    var tmp = p.order[a]; p.order[a] = p.order[b]; p.order[b] = tmp; p.preset = 'custom';
+  });
+}
+function pfReset() {
+  try { localStorage.removeItem(PREF_KEY); } catch (e) {}
+  compactCards = true; try { localStorage.setItem('dashCompact', '1'); } catch (e) {}
+  applyPrefs(); applyCompact(); renderToday(); renderPrefsUI();
+}
+function renderPrefsUI() {
+  var el = document.getElementById('pf-ui'); if (!el) return;
+  var p = loadPrefs();
+  var cur = p.preset || (compactCards && !Object.keys(p.hide).some(function(k){ return p.hide[k]; }) ? 'standard' : 'custom');
+  var h = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">Customise view</div>' +
+    '<div class="pf-pre">' + ['minimal','standard','full'].map(function(n){
+      return '<button type="button" class="' + (cur === n ? 'on' : '') + '" onclick="pfPreset(\'' + n + '\')">' + n.charAt(0).toUpperCase() + n.slice(1) + '</button>'; }).join('') + '</div>';
+  PF_GROUPS.forEach(function(g){
+    h += '<div class="pf-h">' + g.h + '</div>';
+    g.items.forEach(function(it){
+      h += '<label><input type="checkbox"' + (p.hide[it.k] ? '' : ' checked') + ' onchange="pfSet(function(p){ p.hide.' + it.k + ' = !event.target.checked; p.preset = \'custom\'; })"> ' + it.l + '</label>';
+    });
+    if (g.h === 'Card badges')
+      h += '<label><input type="checkbox"' + (compactCards ? '' : ' checked') + ' onchange="compactCards = event.target.checked ? false : true; try { localStorage.setItem(\'dashCompact\', compactCards ? \'1\' : \'0\'); } catch (e) {} applyCompact(); renderToday(); renderPrefsUI();"> Card details (vs-20-day, 4-week range, support/resistance)</label>';
+  });
+  h += '<div class="pf-h">Tabs (show, reorder)</div>';
+  var vis = p.order.filter(function(t){ return p.tabsHidden.indexOf(t) < 0; });
+  p.order.forEach(function(t){
+    var on = p.tabsHidden.indexOf(t) < 0, i = vis.indexOf(t);
+    h += '<div class="pf-tab"><label><input type="checkbox"' + (on ? ' checked' : '') + ' onchange="pfSet(function(p){ var i = p.tabsHidden.indexOf(\'' + t + '\'); if (event.target.checked) { if (i >= 0) p.tabsHidden.splice(i, 1); } else if (i < 0) p.tabsHidden.push(\'' + t + '\'); p.preset = \'custom\'; })"> ' + PF_TAB_NAMES[t] + '</label>' +
+      (on ? '<button type="button" class="pf-mv" aria-label="Move ' + PF_TAB_NAMES[t] + ' earlier"' + (i === 0 ? ' disabled' : '') + ' onclick="pfMove(\'' + t + '\',-1)">&#9650;</button>' +
+            '<button type="button" class="pf-mv" aria-label="Move ' + PF_TAB_NAMES[t] + ' later"' + (i === vis.length - 1 ? ' disabled' : '') + ' onclick="pfMove(\'' + t + '\',1)">&#9660;</button>' : '') + '</div>';
+  });
+  h += '<div class="pf-h">Open on</div><select aria-label="Open on" onchange="pfSet(function(p){ p.defTab = event.target.value; })"><option value="last"' + (p.defTab === 'last' ? ' selected' : '') + '>Last visited tab</option>' +
+    PF_TABS.map(function(t){ return '<option value="' + t + '"' + (p.defTab === t ? ' selected' : '') + '>' + PF_TAB_NAMES[t] + '</option>'; }).join('') + '</select>' +
+    '<button type="button" class="pf-mv" style="margin-top:12px;width:100%" onclick="pfReset()">Reset to defaults</button>' +
+    '<div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4">Saved in this browser only, so phone and desktop can differ.</div>';
+  el.innerHTML = h;
+}
+document.addEventListener('DOMContentLoaded', function(){ applyPrefs(); renderPrefsUI(); });
 var todayAllExits = false;
 function todayItems(f) {
   var names = { us:'US', greek:'Greek', etfs:'ETF', indices:'Index', metals:'Metal' }, out = [];
@@ -3098,11 +3226,11 @@ function renderToday() {
     '<div class="howto slim"><span class="txt"><b>Start here:</b> what is actionable today, across every tab. &#9733; = high conviction. Tap a row to open it.</span>' +
     '<button class="chip" type="button" onclick="toggleCompact()" aria-pressed="' + (compactCards ? 'true' : 'false') + '">Card badges: ' + (compactCards ? 'fewer' : 'all') + '</button></div>' +
     tiles +
-    '<div class="today-sec"><h3>Market read <span>per tab &middot; tap to open</span></h3>' + mtable + '</div>' +
-    '<div class="today-sec"><h3>Possible entries <span>' + ents.length + ' &middot; a screen, not a recommendation</span></h3>' + todayTable(ents, 'entry') + '</div>' +
-    '<div class="today-sec"><h3>Exit signals <span>' + exs.length + ' &middot; rule-based, judge against the group first</span></h3>' + todayTable(exShow, 'exit') +
+    '<div class="today-sec ts-market"><h3>Market read <span>per tab &middot; tap to open</span></h3>' + mtable + '</div>' +
+    '<div class="today-sec ts-entries"><h3>Possible entries <span>' + ents.length + ' &middot; a screen, not a recommendation</span></h3>' + todayTable(ents, 'entry') + '</div>' +
+    '<div class="today-sec ts-exits"><h3>Exit signals <span>' + exs.length + ' &middot; rule-based, judge against the group first</span></h3>' + todayTable(exShow, 'exit') +
       (exs.length > capN ? '<button type="button" class="chip tt-more" onclick="todayAllExits=!todayAllExits;renderToday()">' + (todayAllExits ? 'Show top ' + capN : 'Show all ' + exs.length) + '</button>' : '') + '</div>' +
-    '<div class="today-sec"><h3>What changed ' + (dl && dl.since ? '<span>since ' + esc(dl.since) + '</span>' : '') + '</h3>' + chg + '</div>';
+    '<div class="today-sec ts-changes"><h3>What changed ' + (dl && dl.since ? '<span>since ' + esc(dl.since) + '</span>' : '') + '</h3>' + chg + '</div>';
 }
 function renderScopeBlocks() { Object.keys(SCOPES).forEach(function(k){ renderRegime(k); renderChanges(k); }); }
 
@@ -3360,13 +3488,13 @@ function accessTip(s, which) {
 function ibkrMark(s) {
   var a = accessOf(s);
   if (!a.i || a.i === 'u' || a.i === 'n') return '';
-  return '<span class="acc-badge"><span class="tip ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span></span>';
+  return '<span class="acc-badge"><span class="tip acc-ibkr ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span></span>';
 }
 function accessBadge(s) {
   var a = accessOf(s);
   var eu = { y:'EU &#10003;', c:'EU &#10003; complex', n:'EU &#10005;', x:'Not tradable' }[a.e] || 'EU ?';
-  var h = '<span class="acc-badge"><span class="tip e-' + ({y:1,c:1,n:1,x:1}[a.e] ? a.e : 'x') + '" tabindex="0" data-tip="' + esc(accessTip(s, 'e')) + '">' + eu + '</span>';
-  if (a.i && a.i !== 'u') h += '<span class="tip ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span>';
+  var h = '<span class="acc-badge"><span class="tip acc-eu e-' + ({y:1,c:1,n:1,x:1}[a.e] ? a.e : 'x') + '" tabindex="0" data-tip="' + esc(accessTip(s, 'e')) + '">' + eu + '</span>';
+  if (a.i && a.i !== 'u') h += '<span class="tip acc-ibkr ac-' + a.i + '" tabindex="0" data-tip="' + esc(accessTip(s, 'i')) + '">IBKR ' + ACCESS_SYM[a.i] + '</span>';
   if (a.r && a.r !== 'u') h += '<span class="tip acc-rev ac-' + a.r + '" tabindex="0" data-tip="' + esc(accessTip(s, 'r')) + '">REV ' + ACCESS_SYM[a.r] + '</span>';
   return h + '</span>';
 }
@@ -3480,6 +3608,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Reopen on the tab you were last using (or the one in the link).
   var want = (location.hash || '').replace('#', '');
   if (!want) { try { want = localStorage.getItem('dashTab') || ''; } catch (e) {} }
+  try { var dt = loadPrefs().defTab; if (!location.hash && dt && dt !== 'last') want = dt; } catch (e) {}
   if (want && want !== 'today' && document.getElementById('panel-' + want)) switchTab(want);
   renderHowto();
   setInterval(renderAge, 60000);
@@ -4654,6 +4783,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (settingsBtn) settingsBtn.addEventListener('click', function(e) {
     e.stopPropagation();
     settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+    renderPrefsUI();
   });
   if (settingsClose) settingsClose.addEventListener('click', function() {
     settingsPanel.style.display = 'none';
@@ -4905,7 +5035,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // IMPORTANT: sw.js must use the SAME string in its cache name, or the
 // service worker will keep serving the previous index.html regardless of
 // what is on GitHub Pages.
-var APP_VERSION = '2026.11.27-c';
+var APP_VERSION = '2026.11.28-a';
 
 (function showVersion() {
   var el = document.getElementById('app-version');
